@@ -42,9 +42,7 @@ function activeIntentMask(botData, entry) {
       if (bit !== undefined) mask |= bit;
     });
   }
-  // Default: guilds + guild messages + message content (needed for prefix commands)
   if (!mask) mask = 513 | 32768;
-  // Fallback if the MESSAGE CONTENT intent is not enabled in the Discord Developer Portal (close code 4014)
   if (entry && entry.noContentIntent) mask &= ~32768;
   return mask;
 }
@@ -229,8 +227,6 @@ function registerGlobalCommands(botId, token, botData) {
 }
 
 function registerGuildCommands(botId, token, guildId, botData) {
-  // Commands are registered globally only. Registering them per guild as well makes
-  // Discord show every command twice, so guild-scoped copies are cleared instead.
   return discordRequest(token, "PUT", "/applications/" + botId + "/guilds/" + guildId + "/commands", []);
 }
 
@@ -858,7 +854,6 @@ function emitPluginEvent(entry, token, name, data) {
   if (!name || name === "READY" || name === "RESUMED") return;
   if (name === "MESSAGE_CREATE" && data && data.guild_id && data.member && data.member.permissions === undefined && data.content && !(data.author && data.author.bot)) {
     const rawMsg = String(data.content || "").trim();
-    // Only fetch member permissions if the message is a potential command (mention or prefix symbol)
     const isCmd = rawMsg.startsWith("<@") || /^[^a-zA-Z0-9\s]/.test(rawMsg);
     if (!isCmd) {
       emitPluginEventNow(entry, token, name, data);
@@ -1113,7 +1108,6 @@ function handleInteraction(entry, token, inter) {
       subcommandGroup: parsed.subcommandGroup
     });
 
-    // Enforce User Permissions
     if (Array.isArray(hit.userPermissions) && hit.userPermissions.length) {
       const missing = [];
       hit.userPermissions.forEach(function (p) {
@@ -1124,7 +1118,6 @@ function handleInteraction(entry, token, inter) {
       }
     }
 
-    // Enforce Cooldown
     if (typeof hit.cooldown === "number" && hit.cooldown > 0) {
       if (!ctx.cooldown(hit.cooldown)) return;
     }
@@ -1143,7 +1136,6 @@ function handleInteraction(entry, token, inter) {
       if (!mod) continue;
       let handler = null;
 
-      // Direct or wildcard match in mod.components
       if (mod.components) {
         if (typeof mod.components[customId] === "function") {
           handler = mod.components[customId];
@@ -1159,7 +1151,6 @@ function handleInteraction(entry, token, inter) {
         }
       }
 
-      // Button specific match (compType === 2)
       if (!handler && compType === 2 && mod.buttons) {
         if (typeof mod.buttons[customId] === "function") {
           handler = mod.buttons[customId];
@@ -1175,7 +1166,6 @@ function handleInteraction(entry, token, inter) {
         }
       }
 
-      // Select menu specific match (compType >= 3)
       if (!handler && compType >= 3 && mod.selects) {
         if (typeof mod.selects[customId] === "function") {
           handler = mod.selects[customId];
@@ -1191,7 +1181,6 @@ function handleInteraction(entry, token, inter) {
         }
       }
 
-      // Fallback function handlers
       if (!handler) {
         if (compType === 2 && typeof mod.onButton === "function") handler = mod.onButton;
         else if (compType >= 3 && typeof mod.onSelect === "function") handler = mod.onSelect;
@@ -1614,7 +1603,6 @@ function startBot(userId, botId, token, botData) {
           }, interval);
         }, Math.floor(Math.random() * interval * 0.5));
 
-        // Gateway Resume (OP 6)
         if (entry.sessionId && entry.seq !== null) {
           try {
             ws.send(JSON.stringify({

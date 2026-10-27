@@ -476,7 +476,6 @@ module.exports = {
       const setAliases = parseAliases(cfg.aliases_set, "prefixset, prefixadd, prefixdd, setprefix");
       const resetAliases = parseAliases(cfg.aliases_reset, "removeprefix, prefixremove, resetprefix, prefixreset");
 
-      // Check special case: "add prefix <p>"
       if (cmdName === "add" && rawArgs[0] && rawArgs[0].toLowerCase() === "prefix") {
         if (typeof ctx.cooldown === "function" && !ctx.cooldown(10)) return;
         return handleSet(ctx, rawArgs[1]);
@@ -506,7 +505,6 @@ module.exports = {
         return handleInfo(ctx);
       }
 
-      // External plugins command execution
       executeExternalPluginCommand(ctx, cmdName, rawArgs, rawText);
     }
   }

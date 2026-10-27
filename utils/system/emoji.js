@@ -1,29 +1,23 @@
-/**
- * Arixa System Emojis & Components V2 Formatter
- * 
- * Edit the raw JSON below to customize emojis.
- * Supports unicode emojis (e.g. "❌") or Discord custom emojis (e.g. "<:error:1301217730950660146>").
- */
-
 const raw = {
-  error: "<:error:1563618179891208242>",
-  warn: "<:Warning:1563618139051131033>",
-  cooldown: "<a:cooldown:1563618102841708624>",
+  error: "❌",
+  warn: "⚠️",
+  warning: "⚠️",
+  cooldown: "🕛",
   success: "✅",
   info: "ℹ️"
 };
 
 const COLORS = {
-  error: 0xed4245,    // Red
-  warn: 0xfaa61a,     // Yellow / Amber
-  cooldown: 0x5865f2, // Blurple
-  success: 0x3ba55d,  // Green
-  info: 0x5865f2      // Blurple
+  error: 0xed4245,
+  warn: 0xfaa61a,
+  cooldown: 0x5865f2,
+  success: 0x3ba55d,
+  info: 0x5865f2
 };
 
 function getEmoji(type) {
   const key = String(type || "error").toLowerCase().trim();
-  return raw[key] || raw.error || "<:error:1563618179891208242>";
+  return raw[key] || raw.error || "❌";
 }
 
 function getColor(type) {
@@ -73,7 +67,6 @@ function buildComponentV2(type, message, options) {
     payload.flags = 32768 | 64;
   }
 
-  // Auto-delete after 10 seconds for warn, error, and cooldown messages
   if (opts.deleteAfter !== undefined) {
     if (Number(opts.deleteAfter) > 0) {
       payload.deleteAfter = Number(opts.deleteAfter);
@@ -82,7 +75,6 @@ function buildComponentV2(type, message, options) {
     payload.deleteAfter = 10000;
   }
 
-  // Attach message reference for direct reply
   if (opts.message_reference) {
     payload.message_reference = opts.message_reference;
   } else if (opts.messageId) {

@@ -254,7 +254,7 @@ function readPluginConfig(dir, readmeBody) {
     if (!/^[a-zA-Z0-9_-]{1,40}$/.test(key) || seen[key]) return;
     seen[key] = 1;
     const rawType = String(f.type || "").toLowerCase().trim();
-    if (rawType === "color") return; // Colors are strictly bot-controlled
+    if (rawType === "color") return;
     let type = "text";
     if (rawType === "password" || rawType === "secret") type = "password";
     else if (rawType === "number" || rawType === "int" || rawType === "integer") type = "number";

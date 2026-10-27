@@ -3505,7 +3505,6 @@ function determineActiveView() {
       return "overview";
     }
 
-    // If path is just /bot/:id, check saved state (persisted across Desktop Site toggle)
     try {
       var bId = botId || (segs[1] ? segs[1].replace(/[^0-9]/g, "") : "");
       if (bId) {
@@ -4509,7 +4508,6 @@ function renderPluginDetail(p) {
   html += '<div class="section-label">Customize</div><div class="config-box">';
   var hasCustomizable = false;
 
-  // Custom Variables (e.g. Lavalink Host, Port, Password, API Tokens)
   var varFields = Array.isArray(p.config) ? p.config : [];
   if (varFields.length) {
     hasCustomizable = true;
@@ -4554,7 +4552,6 @@ function renderPluginDetail(p) {
     });
   }
 
-  // Command Aliases
   if (aliasableCmds.length) {
     hasCustomizable = true;
     aliasableCmds.forEach(function (c) {

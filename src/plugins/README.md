@@ -77,13 +77,12 @@ Used for:
 `ctx.cooldown(seconds)` handles tracking, remaining time calculation, and auto-reply in one call:
 
 ```javascript
-// Rate-limit this command to once every 5 seconds per user
 if (!ctx.cooldown(5)) return;
 ```
 
 #### Method B: Manual Cooldown Reply
 ```javascript
-return ctx.replyCooldown(12); // "Please wait 12 seconds before reusing this command."
+return ctx.replyCooldown(12);
 ```
 * **Styling:** Dynamic `ctx.colors.cooldown` with animated cooldown emoji (`<a:cooldown:...>`).
 * **Auto-Delete:** Automatically deletes after **10 seconds**.
@@ -115,7 +114,6 @@ return ctx.replySuccess("Successfully set server prefix to `" + newPrefix + "`")
 3. In `readme.md`, do **NOT** include `"embed": "color"` in the config schema. Theme colors belong to the bot, not individual plugins.
 
 ```markdown
-<!-- Correct V2 Plugin readme.md configuration -->
 ```config
 {
   "fields": [
@@ -144,26 +142,21 @@ module.exports = {
   ],
 
   onCommand: async function (ctx) {
-    // 1. Guild check
     if (!ctx.guildId) {
       return ctx.replyWarn("This command can only be used inside a server.");
     }
 
-    // 2. Permission check
     if (!ctx.hasPermission("MANAGE_MESSAGES")) {
       return ctx.replyWarn("You need **Manage Messages** permission to use this command.");
     }
 
-    // 3. Cooldown check (5 seconds per user)
     if (!ctx.cooldown(5)) return;
 
-    // 4. Argument validation
     const input = (ctx.options.text || ctx.rawArgs[0] || "").trim();
     if (!input || input.length < 3) {
       return ctx.replyWarn("Please provide text with at least 3 characters.");
     }
 
-    // 5. Successful response (Components V2)
     return ctx.replySuccess("Successfully received input: **" + input + "**");
   }
 };

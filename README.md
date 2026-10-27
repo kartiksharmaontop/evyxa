@@ -55,7 +55,6 @@ All present and future plugins must follow this unified notification standard:
 - **Visuals:** Animated cooldown emoji (`<a:cooldown:...>`), bot's `cooldown` color accent, auto-deletes after 10s.
 - **Example:**
   ```javascript
-  // Limits user to once every 10 seconds
   if (!ctx.cooldown(10)) return;
   ```
 
