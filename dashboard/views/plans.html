@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arixa — Plans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090a0d;
+  --text:#c8cfd9;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{
+  min-height:100%;
+  height:100%;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter","Segoe UI",Roboto,sans-serif;
+  font-size:14px;
+  min-height:100%;
+  min-height:100dvh;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::-webkit-scrollbar{width:0;height:0;display:none}
+html{scrollbar-width:none}
+
+.topbar{
+  flex:0 0 auto;
+  height:60px;
+  display:flex;
+  align-items:center;
+  position:sticky;
+  top:0;
+  padding:0 20px;
+  background:rgba(9, 10, 13, 0.94);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:none;
+  z-index:100;
+}
+.topbar-content{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.back-link{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#1a1e24;
+  border:1px solid #2a2f36;
+  color:#ffffff;
+  text-decoration:none;
+  flex-shrink:0;
+  transition:.15s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.back-link:hover{
+  border-color:#5865f2;
+  background:#1f2430;
+}
+.back-link svg{
+  width:16px;
+  height:16px;
+  stroke:#ffffff;
+  fill:none;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.brand{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:4px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  white-space:nowrap;
+  user-select:none;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.userbox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  margin-left:auto;
+}
+.user-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:none;
+  flex-shrink:0;
+}
+.user-name{
+  color:#8b939f;
+  font-size:12.5px;
+  font-weight:600;
+  font-family:"Inter","Segoe UI",sans-serif;
+  max-width:140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.logout-btn{
+  background:#1a1e24;
+  border:none;
+  color:#8b939f;
+  border-radius:50px;
+  padding:6px 15px;
+  font-size:11.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:.15s;
+  flex-shrink:0;
+}
+.logout-btn:hover{
+  border-color:#5865f2;
+  color:#ffffff;
+  background:#1f2430;
+}
+
+.page-container{
+  flex:1 1 auto;
+  width:100%;
+  max-width:960px;
+  margin:0 auto;
+  padding:0 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.welcome{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:36px 20px 10px;
+}
+.welcome h1{
+  font-size:48px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  line-height:1.15;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.welcome p{
+  color:#9aa2b0;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:10px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+
+.plans-empty{
+  color:#4d5561;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  text-align:center;
+  padding:48px 20px 24px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+
+.footer{
+  flex:0 0 auto;
+  padding:14px 20px 16px;
+  text-align:center;
+  color:#7b8390;
+  font-size:11.5px;
+  font-weight:500;
+  letter-spacing:.6px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  border-top:none;
+  background:#090a0d;
+  margin-top:auto;
+}
+
+@media (min-width:680px){
+  .topbar{height:66px; padding:0 32px}
+  .brand{font-size:24px}
+  .welcome{padding:48px 20px 14px}
+  .welcome h1{font-size:54px}
+  .welcome p{font-size:12px; letter-spacing:1.8px}
+  .plans-empty{font-size:13px; padding:60px 20px 30px}
+  .footer{font-size:12px; padding:16px 20px 18px}
+}
+
+@media (min-width:1024px){
+  .topbar{padding:0 40px}
+  .welcome h1{font-size:58px}
+}
+
+@media (max-width:480px){
+  .topbar{padding:0 12px; height:56px}
+  .brand{font-size:18px; letter-spacing:2px}
+  .user-name{display:none}
+  .user-avatar{width:28px; height:28px}
+  .logout-btn{padding:5px 12px; font-size:10px}
+  .welcome{padding:26px 14px 6px}
+  .welcome h1{font-size:30px}
+  .welcome p{font-size:9.5px; letter-spacing:1.2px}
+  .plans-empty{font-size:10.5px; padding:32px 14px 20px}
+}
+@media (max-width:340px){
+  .brand{font-size:15px; letter-spacing:1px}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-content">
+    <a class="back-link" href="/" title="Back to home"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <span class="brand" id="brandName">{{NAME}}</span>
+    <div class="userbox">
+      <img class="user-avatar" id="userAvatar" src="{{AVATAR}}" alt="avatar" />
+      <span class="user-name" id="userName">{{USER}}</span>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+</header>
+
+<div class="page-container">
+  <main class="welcome">
+    <h1>Plans</h1>
+    <p>Choose the plan that fits your bot.</p>
+  </main>
+  <div class="plans-empty" id="plansEmpty">No Plans Available</div>
+</div>
+
+<footer class="footer"><span id="footerText">{{FOOTER}}</span></footer>
+
+<script>
+var footerText = document.getElementById("footerText");
+if (footerText.textContent.indexOf("{{") > -1) footerText.textContent = "Copyright 2026";
+var brandName = document.getElementById("brandName");
+if (brandName.textContent.indexOf("{{") > -1) brandName.textContent = "Arixa";
+document.getElementById("logoutBtn").addEventListener("click", function () {
+  fetch("/api/auth/logout", { method: "POST" }).then(function () { window.location.href = "/login"; });
+});
+</script>
+</body>
+</html>

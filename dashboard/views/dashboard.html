@@ -1,0 +1,4825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arixa — {{BOTNAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090a0d;
+  --text:#c8cfd9;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{
+  min-height:100%;
+  height:100%;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter","Segoe UI",Roboto,sans-serif;
+  font-size:14px;
+  min-height:100%;
+  min-height:100dvh;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::-webkit-scrollbar{width:0;height:0;display:none}
+html{scrollbar-width:none}
+
+.topbar{
+  flex:0 0 auto;
+  height:60px;
+  display:flex;
+  align-items:center;
+  position:sticky;
+  top:0;
+  padding:0 20px;
+  background:rgba(9, 10, 13, 0.94);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:none;
+  z-index:100;
+}
+.topbar-content{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+}
+.hamburger{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  background:#1a1e24;
+  border:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  cursor:pointer;
+  transition:.15s;
+  flex-shrink:0;
+}
+.hamburger span{
+  display:block;
+  width:16px;
+  height:2px;
+  background:#8b939f;
+  border-radius:2px;
+  transition:.15s;
+}
+.hamburger:hover{
+  border-color:#5865f2;
+}
+.hamburger:hover span{
+  background:#ffffff;
+}
+.brand{
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:4px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.user-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:none;
+  flex-shrink:0;
+  cursor:pointer;
+  transition:.15s;
+}
+.user-avatar:hover{
+  opacity:.85;
+}
+
+.sidebar-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  opacity:0;
+  visibility:hidden;
+  transition:.2s;
+  z-index:199;
+}
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  height:100dvh;
+  width:266px;
+  max-width:82vw;
+  background:#0e1014;
+  border:none;
+  z-index:200;
+  display:flex;
+  flex-direction:column;
+  transform:translateX(-100%);
+  transition:transform .25s ease;
+  overflow-y:auto;
+}
+.sidebar::-webkit-scrollbar{width:0;display:none}
+body.sidebar-open .sidebar{transform:translateX(0)}
+body.sidebar-open .sidebar-overlay{opacity:1; visibility:visible}
+.sidebar-head{
+  height:60px;
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 14px 0 18px;
+  border:none;
+}
+.sidebar-title{
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:3px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.sidebar-close{
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  background:#1a1e24;
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:.15s;
+  flex-shrink:0;
+}
+.sidebar-close svg{width:16px; height:16px; color:#b0b7c3; transition:.15s}
+.sidebar-close:hover,
+.sidebar-close:focus{
+  border-color:#2a2f36;
+  outline:none;
+}
+.sidebar-close:hover svg,
+.sidebar-close:focus svg{color:#ffffff}
+.sidebar-head-right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.sidebar-home,
+.sidebar-docs{
+  width:34px;
+  height:34px;
+  border-radius:11px;
+  background:#5865f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  flex-shrink:0;
+  text-decoration:none;
+  outline:none;
+  border:none;
+  transition:background .15s;
+}
+.sidebar-home:hover,
+.sidebar-home:focus,
+.sidebar-docs:hover,
+.sidebar-docs:focus{
+  background:#4752c4;
+  outline:none;
+}
+.sidebar-home svg,
+.sidebar-docs svg{width:16px; height:16px; color:#ffffff; flex-shrink:0}
+.sidebar-home-text,
+.sidebar-docs-text{
+  display:none;
+  color:#ffffff;
+  font-size:13px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  letter-spacing:.3px;
+  white-space:nowrap;
+}
+.sidebar-nav{
+  padding:16px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.sidebar-link{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:12px 14px;
+  border-radius:13px;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#b0b7c3;
+  font-size:14px;
+  font-weight:600;
+  font-family:"Inter","Segoe UI",sans-serif;
+  text-decoration:none;
+  cursor:pointer;
+  transition:background .15s, color .15s;
+}
+.sidebar-link svg{width:17px; height:17px; color:#b0b7c3; flex-shrink:0; transition:.15s}
+.sidebar-link:hover,
+.sidebar-link:focus,
+.sidebar-link:active{
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#ffffff;
+}
+.sidebar-link.active:hover,
+.sidebar-link.active:focus,
+.sidebar-link.active:active{
+  background:#181c23;
+}
+.sidebar-link:hover svg,
+.sidebar-link:focus svg{color:#ffffff}
+.sidebar-link.active{
+  background:#181c23;
+  color:#ffffff;
+}
+.sidebar-link.active svg{color:#5865f2}
+
+.view{
+  display:none;
+  width:100%;
+  flex-direction:column;
+  align-items:center;
+}
+.view.is-active{display:flex}
+
+.page-head{
+  text-align:center;
+  padding:30px 20px 8px;
+}
+.page-head h1{
+  font-size:26px;
+  font-weight:800;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  letter-spacing:.5px;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:inline-block;
+}
+.page-head p{
+  margin-top:8px;
+  color:#8b939f;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.6px;
+  text-transform:uppercase;
+}
+
+.empty-card{
+  width:100%;
+  max-width:480px;
+  margin:26px auto 40px;
+  background:#14171d;
+  border:none;
+  border-radius:18px;
+  padding:38px 24px;
+  text-align:center;
+}
+.empty-card .empty-icon{
+  width:46px;
+  height:46px;
+  margin:0 auto 14px;
+  border-radius:14px;
+  background:#181c23;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.empty-card .empty-icon svg{width:22px; height:22px; color:#8b939f}
+.empty-card h2{
+  color:#c8cfd9;
+  font-size:15px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.empty-card p{
+  margin-top:7px;
+  color:#8b939f;
+  font-size:12.5px;
+  line-height:1.5;
+}
+
+[hidden]{display:none !important}
+
+.plugins-grid{
+  width:100%;
+  max-width:960px;
+  margin:20px auto 36px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:14px;
+}
+.plugin-card{
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:18px 18px 15px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  transition:all .2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:0 4px 16px rgba(0,0,0,0.2);
+}
+.plugin-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(88,101,242,0.35);
+  box-shadow:0 10px 24px -4px rgba(0,0,0,0.45);
+}
+.plugin-name{
+  color:#f0f3f8;
+  font-size:14.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.plugin-tag{
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:#7289da;
+  background:rgba(88,101,242,0.12);
+  border:1px solid rgba(88,101,242,0.28);
+  border-radius:6px;
+  padding:3px 7px;
+  white-space:nowrap;
+}
+.plugin-version{
+  color:#8b939f;
+  font-size:12.5px;
+  font-weight:600;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.plugin-card-actions{
+  margin-top:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:34px;
+}
+.btn-install{
+  background:#5865f2;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  padding:8px 16px;
+  font-size:12.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:all .18s ease;
+  box-shadow:0 3px 10px rgba(88,101,242,.28);
+}
+.btn-install:hover{
+  background:#4752c4;
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(88,101,242,.4);
+}
+.btn-uninstall-card{
+  background:transparent;
+  border:1px solid rgba(248,81,73,0.35);
+  color:#f85149;
+  border-radius:10px;
+  padding:8px 16px;
+  font-size:12.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.btn-uninstall-card:hover{
+  background:rgba(248,81,73,0.1);
+  border-color:rgba(248,81,73,0.6);
+}
+.btn-manage{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#161b25;
+  border:1px solid rgba(255,255,255,0.08);
+  color:#d0d7e3;
+  border-radius:10px;
+  padding:7px 14px;
+  font-size:12.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.btn-manage svg{width:14px;height:14px;color:#8b939f;transition:color .18s ease}
+.btn-manage:hover{
+  background:#1d2332;
+  border-color:rgba(88,101,242,0.35);
+  color:#fff;
+}
+.btn-manage:hover svg{color:#7289da}
+.plugin-detail{
+  width:100%;
+  max-width:520px;
+  margin:20px auto 36px;
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  padding:22px 22px 26px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.35);
+}
+.detail-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.detail-top-center{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-align:center;
+}
+.detail-top-name{
+  color:#f2f3f5;
+  font-size:16px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  line-height:1.2;
+}
+.detail-back{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  background:#161a25;
+  border:1px solid rgba(255,255,255,0.08);
+  color:#9da6b4;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transition:all .18s ease;
+}
+.detail-back svg{width:16px;height:16px}
+.detail-back:hover{
+  background:#1d2232;
+  color:#ffffff;
+  border-color:rgba(255,255,255,0.18);
+}
+.detail-hero{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:18px;
+}
+.detail-thumb{
+  width:54px;
+  height:54px;
+  border-radius:15px;
+  object-fit:cover;
+  background:#161a25;
+  border:1px solid rgba(255,255,255,0.08);
+  flex-shrink:0;
+}
+.detail-thumb svg{width:22px;height:22px;color:#8b939f}
+.detail-thumb-empty{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.detail-hero-text{min-width:0}
+.detail-hero-text h2{
+  color:#e8eaed;
+  font-size:18px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  margin:0 0 6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.switch{
+  position:relative;
+  width:42px;
+  height:24px;
+  flex-shrink:0;
+  display:inline-block;
+}
+.switch input{opacity:0;width:0;height:0}
+.slider{
+  position:absolute;
+  left:0;
+  top:0;
+  right:0;
+  bottom:0;
+  background:#262b35;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:24px;
+  cursor:pointer;
+  transition:0.2s;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:16px;
+  height:16px;
+  left:3px;
+  top:3px;
+  background:#8b939f;
+  border-radius:50%;
+  transition:0.2s;
+}
+.switch input:checked + .slider{
+  background:#5865f2;
+  border-color:rgba(88,101,242,0.4);
+}
+.switch input:checked + .slider:before{
+  transform:translateX(18px);
+  background:#fff;
+}
+.detail-desc{
+  color:#8b939f;
+  font-size:13px;
+  line-height:1.6;
+  margin-top:14px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.detail-meta{
+  color:#6c737e;
+  font-size:12.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  margin-top:10px;
+}
+.detail-meta strong{color:#8b939f;font-weight:600}
+.meta-dot{color:#3a4048;margin:0 5px}
+.section-label{
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:#6c737e;
+  margin:22px 0 10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-label .count{
+  background:#181c23;
+  border:none;
+  color:#8b939f;
+  border-radius:6px;
+  padding:2px 7px;
+  font-size:10px;
+  letter-spacing:0;
+}
+.detail-empty-note{
+  color:#6c737e;
+  font-size:12.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.cmd-row{
+  background:#12151f;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;
+  padding:13px 15px;
+  margin-bottom:8px;
+  transition:border-color .18s ease;
+}
+.cmd-row:hover{
+  border-color:rgba(255,255,255,0.14);
+}
+.cmd-row:last-child{margin-bottom:0}
+.cmd-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.cmd-name{
+  color:#f0f3f8;
+  font-size:13.5px;
+  font-weight:600;
+  font-family:ui-monospace,"Cascadia Code",monospace;
+}
+.cmd-flags{display:flex;align-items:center;gap:6px}
+.cmd-flag{
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:0.7px;
+  text-transform:uppercase;
+  border-radius:6px;
+  padding:3px 7px;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  white-space:nowrap;
+}
+.cmd-flag.yes{color:#3fb950;background:rgba(63,185,80,0.12);border:1px solid rgba(63,185,80,0.28)}
+.cmd-flag.no{color:#7b8492;background:rgba(123,132,146,0.1);border:1px solid rgba(123,132,146,0.2)}
+.cmd-desc{
+  color:#8b93a0;
+  font-size:12.5px;
+  line-height:1.5;
+  margin-top:6px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.config-box{
+  background:#12151f;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  padding:16px 16px 15px;
+}
+.config-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+.config-label{
+  color:#8b939f;
+  font-size:12.5px;
+  flex:1;
+  min-width:0;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.config-input{
+  background:#161a25;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:9px;
+  color:#e8eaed;
+  font-size:12.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  padding:8px 12px;
+  width:180px;
+  max-width:55%;
+  outline:none;
+  transition:border-color .18s ease;
+}
+.config-input:focus{
+  border-color:#5865f2;
+}
+input.config-input[type="color"]{
+  padding:3px;
+  height:32px;
+  width:52px;
+  cursor:pointer;
+}
+.alias-row{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  padding:13px 15px;
+  background:#161a25;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,0.07);
+  margin-bottom:11px;
+}
+.alias-row .config-label-group{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.alias-row .config-label{
+  color:#f2f3f5;
+  font-size:13.5px;
+  font-weight:600;
+  font-family:"Poppins","Segoe UI",sans-serif;
+}
+.alias-row .config-sublabel{
+  color:#737b88;
+  font-size:11px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.alias-cmd-input{
+  width:100% !important;
+  max-width:100% !important;
+  background:#10131c !important;
+  border:1px solid rgba(255,255,255,0.08) !important;
+  border-radius:8px !important;
+  color:#e8eaed !important;
+  padding:10px 13px !important;
+  font-size:13px !important;
+  font-family:"JetBrains Mono","Inter",monospace !important;
+  box-sizing:border-box !important;
+  outline:none !important;
+  transition:border-color .18s ease, box-shadow .18s ease !important;
+}
+.alias-cmd-input:focus{
+  border-color:#5865f2 !important;
+  box-shadow:0 0 0 3px rgba(88,101,242,0.18) !important;
+}
+.btn-save-config{
+  background:#5865f2;
+  color:#fff;
+  border:none;
+  border-radius:11px;
+  padding:11px 18px;
+  font-size:13px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  width:100%;
+  transition:all .18s ease;
+  box-shadow:0 4px 14px rgba(88,101,242,.32);
+}
+.btn-save-config:hover{
+  background:#4752c4;
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(88,101,242,.42);
+}
+.color-picker-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:15px 17px;
+  background:#161a25;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  margin-bottom:14px;
+}
+.color-picker-label-group{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.color-picker-label-group .config-label{
+  font-weight:600;
+  font-size:13.5px;
+  color:#fff;
+}
+.color-picker-label-group .config-sublabel{
+  font-size:11.5px;
+  color:#8b939f;
+}
+.color-picker-input-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.config-color-picker{
+  -webkit-appearance:none;
+  appearance:none;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  width:44px;
+  height:36px;
+  padding:2px;
+  background:#10131c;
+  cursor:pointer;
+}
+.config-color-picker::-webkit-color-swatch-wrapper{
+  padding:0;
+}
+.config-color-picker::-webkit-color-swatch{
+  border:none;
+  border-radius:6px;
+}
+.color-hex-tag{
+  font-family:"JetBrains Mono",SFMono-Regular,Menlo,monospace;
+  font-size:12px;
+  font-weight:600;
+  color:#c9d1d9;
+  background:#10131c;
+  padding:6px 10px;
+  border-radius:7px;
+  border:1px solid rgba(255,255,255,0.08);
+  letter-spacing:0.5px;
+}
+.embed-stage.color-only .embed-author,
+.embed-stage.color-only .embed-title-row,
+.embed-stage.color-only .embed-description,
+.embed-stage.color-only .embed-thumbnail,
+.embed-stage.color-only .embed-image,
+.embed-stage.color-only .embed-footer{
+  pointer-events:none;
+  opacity:.4;
+  user-select:none;
+}
+.embed-editor-note{
+  color:#8b939f;
+  font-size:11.5px;
+  margin:-4px 0 12px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.embed-stage{
+  background:#313338;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:16px 14px 14px;
+  margin-bottom:14px;
+}
+.embed-stage .message-author{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#f2f3f5;
+  font-size:17px;
+  font-weight:600;
+  margin-bottom:10px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.embed-stage .message-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  flex-shrink:0;
+  object-fit:cover;
+  background:linear-gradient(135deg,#f0b232 0%,#eb459e 100%);
+}
+.embed-stage .stage-name{display:inline-flex;align-items:center}
+.embed-stage .stage-name .bot-badge{margin-left:7px}
+.embed{
+  max-width:432px;
+  background:#2b2d31;
+  border-radius:8px 4px 4px 8px;
+  overflow:hidden;
+  position:relative;
+  padding-left:4px;
+}
+.embed-accent{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:8px;
+  z-index:3;
+  cursor:pointer;
+  background:linear-gradient(to right,var(--accent,#5865f2) 0,var(--accent,#5865f2) 4px,transparent 4px);
+}
+.embed-accent:hover{filter:brightness(1.25)}
+.embed-top{
+  display:flex;
+  gap:16px;
+  padding:8px 16px 0 12px;
+}
+.embed-main{flex:1;min-width:0}
+.embed-author{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.embed-author-icon{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#f0b232 0%,#eb459e 100%);
+  background-size:cover;
+  background-position:center;
+}
+.embed-author-name{
+  color:#f2f3f5;
+  font-size:14px;
+  font-weight:600;
+  word-break:break-word;
+  outline:none;
+}
+.embed-author-name:empty::before{
+  content:"Enter author...";
+  color:#6d6f78;
+  pointer-events:none;
+}
+.embed-title-row{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  margin-bottom:8px;
+}
+.embed-title{
+  flex:1;
+  min-width:0;
+  color:#f2f3f5;
+  font-size:16px;
+  font-weight:600;
+  line-height:1.25;
+  word-break:break-word;
+  outline:none;
+}
+.embed-title:empty::before{
+  content:"Enter title...";
+  color:#6d6f78;
+  pointer-events:none;
+}
+.embed-title.has-link{color:#00a8fc}
+.embed-title-link{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#5865f2 0%,#3ba55d 100%);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.embed-title-link.set{background:linear-gradient(135deg,#f0b232 0%,#eb459e 100%)}
+.embed-title-link svg{width:9px;height:9px;color:#fff}
+.embed-description{
+  flex:1;
+  min-width:0;
+  color:#dbdee1;
+  font-size:15px;
+  line-height:1.3;
+  word-break:break-word;
+  white-space:pre-wrap;
+  outline:none;
+}
+.embed-description:empty::before{
+  content:"Enter description...";
+  color:#6d6f78;
+  pointer-events:none;
+}
+.embed-image{
+  width:100%;
+  height:90px;
+  border-radius:4px;
+  margin:24px 16px 16px;
+  background:linear-gradient(135deg,#5865f2 0%,#eb459e 100%);
+  overflow:hidden;
+  background-size:cover;
+  background-position:center;
+}
+.embed-image:not(:empty){
+  width:fit-content;
+  max-width:100%;
+  height:auto;
+  background:none;
+}
+.embed-image img,
+.embed-image video{
+  display:block;
+  width:auto;
+  height:auto;
+  max-width:100%;
+  max-height:432px;
+}
+.embed-thumbnail{
+  width:56px;
+  height:56px;
+  border-radius:4px;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#3ba55d 0%,#5865f2 100%);
+  cursor:pointer;
+  background-size:cover;
+  background-position:center;
+}
+.embed-thumbnail:hover{box-shadow:0 0 0 2px #5865f2}
+.embed-footer{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0 16px 16px 12px;
+}
+.embed-footer-icon{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#5865f2 0%,#3ba55d 100%);
+  background-size:cover;
+  background-position:center;
+}
+.embed-footer-text{
+  color:#949ba4;
+  font-size:12px;
+  line-height:1.3;
+  outline:none;
+}
+.embed-footer-text:empty::before{
+  content:"Enter footer...";
+  color:#6d6f78;
+  pointer-events:none;
+}
+.url-pop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:250;
+  padding:20px;
+}
+.url-pop[hidden]{display:none}
+.url-pop-card{
+  width:100%;
+  max-width:400px;
+  background:#14171d;
+  border:none;
+  border-radius:8px;
+  padding:20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+.url-pop-title{
+  color:#f2f3f5;
+  font-size:15px;
+  font-weight:600;
+  margin-bottom:12px;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.url-pop-input{
+  width:100%;
+  background:#1e1f22;
+  border:1px solid #3f4147;
+  border-radius:6px;
+  color:#dbdee1;
+  font-size:13.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  padding:9px 11px;
+  outline:none;
+}
+.url-pop-input:focus{border-color:#5865f2}
+.url-pop-input.err{border-color:#f23f43}
+.url-pop-hint{
+  font-size:11.5px;
+  color:#949ba4;
+  margin-top:7px;
+  min-height:15px;
+  line-height:1.4;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.url-pop-hint.err{color:#f23f43}
+.url-pop-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:14px;
+}
+.url-pop-btn{
+  border:none;
+  border-radius:4px;
+  font-size:13px;
+  font-weight:500;
+  font-family:"Inter","Segoe UI",sans-serif;
+  padding:8px 16px;
+  cursor:pointer;
+}
+.url-pop-btn.cancel{background:transparent;color:#dbdee1;border:1px solid #3f4147}
+.url-pop-btn.cancel:hover{background:#2b2d31}
+.url-pop-btn.save{background:#5865f2;color:#fff}
+.url-pop-btn.save:hover{background:#4752c4}
+.colour-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.colour-swatch{
+  height:32px;
+  border-radius:6px;
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,.08);
+}
+.colour-swatch:hover{filter:brightness(1.15)}
+.colour-swatch.sel{box-shadow:0 0 0 2px #fff}
+.colour-custom{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:4px;
+}
+.colour-custom input[type="color"]{
+  width:40px;
+  height:30px;
+  padding:2px;
+  border:1px solid #3f4147;
+  border-radius:6px;
+  background:#1e1f22;
+  cursor:pointer;
+}
+.colour-hex{
+  color:#dbdee1;
+  font-size:13px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+  text-transform:uppercase;
+}
+.btn-uninstall{
+  display:block;
+  width:100%;
+  margin-top:20px;
+  background:transparent;
+  border:1px solid rgba(248,81,73,0.35);
+  color:#f85149;
+  border-radius:11px;
+  padding:11px 18px;
+  font-size:13px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:all .18s ease;
+}
+.btn-uninstall:hover{
+  background:rgba(248,81,73,0.1);
+  border-color:rgba(248,81,73,0.6);
+}
+.detail-readme{
+  color:#9da6b4;
+  font-size:13px;
+  line-height:1.65;
+  font-family:"Inter","Segoe UI",sans-serif;
+  background:#12151f;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  padding:18px 20px;
+}
+.md-h{
+  color:#e8eaed;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  margin:16px 0 8px;
+  line-height:1.3;
+}
+h1.md-h{font-size:18px}
+h2.md-h{font-size:15.5px}
+h3.md-h{font-size:14px}
+.md-h:first-child{margin-top:0}
+.md-p{margin:0 0 10px}
+.md-ul{margin:0 0 12px;padding-left:20px}
+.md-li{margin:3px 0}
+.md-strong{color:#f0f3f8}
+.md-code{
+  background:#161a25;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px;
+  padding:2px 6px;
+  font-family:ui-monospace,"Cascadia Code",monospace;
+  font-size:12px;
+  color:#f0f3f8;
+}
+.plugin-toast{
+  position:fixed;
+  left:50%;
+  bottom:26px;
+  transform:translateX(-50%) translateY(12px);
+  background:#141720;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:12px;
+  padding:11px 18px;
+  color:#f0f3f8;
+  font-size:13px;
+  font-weight:500;
+  font-family:"Inter","Segoe UI",sans-serif;
+  box-shadow:0 12px 32px rgba(0,0,0,0.6);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.25s, transform 0.25s;
+  z-index:80;
+  max-width:calc(100vw - 40px);
+}
+.plugin-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.bot-card-container{
+  width:100%;
+  max-width:560px;
+  margin:18px auto 36px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.status-section-wrap{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+}
+.bot-card-container .bot-profile-card{
+  width:100%;
+  max-width:100%;
+  margin:0;
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:18px;
+  padding:16px 20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+}
+.bot-card-container .bot-profile-card.has-panel-open{
+  border-bottom-left-radius:0 !important;
+  border-bottom-right-radius:0 !important;
+}
+.bot-card-container .status-expand-panel{
+  width:100%;
+  max-width:100%;
+  margin:0 0 4px 0;
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.07);
+  border-top:none;
+  border-radius:0 0 18px 18px;
+  padding:16px 20px 20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+@media (min-width: 768px){
+  .bot-card-container .bot-profile-card{
+    padding:18px 24px;
+    border-radius:20px;
+  }
+  .bot-card-container .status-expand-panel{
+    border-radius:0 0 20px 20px;
+    padding:20px 24px 24px;
+  }
+}
+.bot-settings-card{
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:18px;
+  padding:20px 24px;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
+  transition:all .2s ease;
+}
+.bot-card-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+  user-select:none;
+  padding:0;
+  margin-bottom:0;
+}
+.bot-settings-card.has-panel-open .bot-card-head{
+  margin-bottom:16px;
+}
+.colors-arrow-icon{
+  width:16px;
+  height:16px;
+  stroke:currentColor;
+  stroke-width:2.5;
+  transition:transform .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.colors-arrow-icon.rotated{
+  transform:rotate(90deg) !important;
+}
+.bot-card-dropdown:hover .colors-arrow-icon.rotated{
+  transform:rotate(90deg) translateY(-1.5px) !important;
+}
+.color-expand-panel{
+  display:none;
+  animation:panelSlide .2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.color-expand-panel.open{
+  display:block;
+}
+.advanced-field-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-top:4px;
+}
+.advanced-field-label-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.advanced-field-label{
+  color:#e8eaed;
+  font-size:14px;
+  font-weight:600;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  letter-spacing:.2px;
+}
+.advanced-field-hint{
+  color:#737b88;
+  font-size:11.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  line-height:1.3;
+}
+.advanced-input-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.advanced-text-input{
+  flex:1;
+  background:#151924;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:12px 16px;
+  color:#e8eaed;
+  font-size:13.5px;
+  font-family:ui-monospace,"Cascadia Code",Menlo,monospace;
+  outline:none;
+  transition:all .18s ease;
+}
+.advanced-text-input::placeholder{
+  color:#4d5561;
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:13px;
+}
+.advanced-text-input:focus{
+  border-color:#5865f2;
+  box-shadow:0 0 0 3px rgba(88,101,242,.15);
+}
+.btn-save-advanced{
+  background:#5865f2;
+  border:none;
+  color:#ffffff;
+  border-radius:12px;
+  padding:12px 24px;
+  font-size:13px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:background .18s ease, transform .18s ease;
+  flex-shrink:0;
+  box-shadow:0 4px 12px rgba(88,101,242,.3);
+}
+.btn-save-advanced:hover{
+  background:#4752c4;
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(88,101,242,.42);
+}
+.btn-save-advanced:active{
+  transform:translateY(0);
+}
+.bot-card-title-wrap h2{
+  color:#e8eaed;
+  font-size:16px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  letter-spacing:.3px;
+  margin:0 0 4px;
+}
+.bot-card-title-wrap p{
+  color:#8b939f;
+  font-size:12px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  margin:0;
+}
+.color-items-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.color-item-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:#151924;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  padding:14px 16px;
+  transition:all .18s ease;
+}
+.color-item-row:hover{
+  background:#191e2b;
+  border-color:rgba(255,255,255,0.12);
+}
+.color-item-info{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+}
+.color-name{
+  color:#e8eaed;
+  font-size:14px;
+  font-weight:600;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  letter-spacing:.2px;
+}
+.color-desc{
+  display:none;
+  color:#737b88;
+  font-size:11.5px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  line-height:1.3;
+}
+@media (min-width: 768px){
+  .bot-card-container{
+    max-width:780px;
+    margin:24px auto 44px;
+  }
+  .bot-settings-card{
+    padding:24px 28px;
+    border-radius:20px;
+  }
+  .bot-card-title-wrap h2{
+    font-size:17.5px;
+  }
+  .bot-card-title-wrap p{
+    font-size:12.5px;
+  }
+  .color-item-row{
+    padding:16px 20px;
+  }
+  .color-name{
+    font-size:14.5px;
+  }
+  .color-desc{
+    display:block;
+    font-size:12px;
+  }
+}
+.color-picker-box{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-shrink:0;
+}
+.color-hex-tag{
+  font-family:ui-monospace,"Cascadia Code",Menlo,monospace;
+  font-size:12px;
+  font-weight:600;
+  color:#c8cfd9;
+  background:#181c23;
+  padding:6px 10px;
+  border-radius:8px;
+  border:1px solid #232832;
+  letter-spacing:.5px;
+  user-select:all;
+}
+.color-swatch-label{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  cursor:pointer;
+  display:inline-block;
+  position:relative;
+  border:2px solid rgba(255,255,255,.15);
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  overflow:hidden;
+}
+.color-swatch-label:hover{
+  transform:scale(1.08);
+  border-color:#ffffff;
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
+}
+.color-swatch-label:active{
+  transform:scale(0.96);
+}
+.bot-color-input{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  cursor:pointer;
+  padding:0;
+  margin:0;
+  border:none;
+}
+
+.page-container{
+  flex:1 1 auto;
+  width:100%;
+  max-width:960px;
+  margin:0 auto;
+  padding:0 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.bot-head{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:26px 20px 4px;
+}
+.bot-head h1{
+  font-size:28px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  line-height:1.2;
+  background:linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:block;
+  width:fit-content;
+  margin:0 auto;
+}
+.bot-id-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:8px;
+  width:100%;
+}
+.bot-id-wrap p{
+  color:#6c737e;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin:0;
+  font-family:"Inter","Segoe UI",sans-serif;
+  line-height:1;
+}
+.bot-invite-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  background:#14171c;
+  border:none;
+  color:#8b939f;
+  border-radius:50px;
+  padding:3.5px 8px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:11px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+  transition:all .18s ease;
+  user-select:none;
+  outline:none;
+  position:relative;
+  top:-1.5px;
+  line-height:1;
+}
+.bot-invite-btn:hover{
+  border-color:#5865f2;
+  color:#ffffff;
+  background:#1f2430;
+  box-shadow:0 0 12px rgba(88,101,242,.28);
+  transform:translateY(-1px);
+}
+.bot-invite-btn:active{
+  transform:translateY(0);
+}
+.bot-invite-btn .invite-arrow{
+  width:11px;
+  height:11px;
+  stroke:currentColor;
+  stroke-width:2.4;
+  flex-shrink:0;
+  transition:transform .18s ease;
+}
+.bot-invite-btn:hover .invite-arrow{
+  stroke:#5865f2;
+  transform:translate(1px, -1px);
+}
+.bot-invite-btn .invite-text{
+  display:none;
+  letter-spacing:.4px;
+}
+.bot-invite-btn.disabled{
+  opacity:0.4;
+  cursor:not-allowed !important;
+  color:#6c737e !important;
+  border-color:#262c35 !important;
+  background:#14171c !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+.bot-invite-btn.disabled:hover{
+  border-color:#262c35 !important;
+  color:#6c737e !important;
+  background:#14171c !important;
+  transform:none !important;
+  box-shadow:none !important;
+}
+.bot-invite-btn.disabled:active{
+  transform:none !important;
+}
+.bot-invite-btn.disabled .invite-arrow{
+  stroke:#6c737e !important;
+  transform:none !important;
+}
+
+.bot-controls-wrap{
+  width:100%;
+  max-width:350px;
+  margin:18px auto 0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.control-actions{
+  display:flex;
+  width:100%;
+  gap:8px;
+  justify-content:center;
+}
+.ctrl-btn{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:11px 12px;
+  background:#14171d;
+  border:none;
+  border-radius:50px;
+  color:#e8eaed;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition:all .18s ease;
+  user-select:none;
+  outline:none;
+}
+.ctrl-btn svg{
+  width:15px;
+  height:15px;
+  flex-shrink:0;
+  transition:transform .2s ease;
+}
+.ctrl-btn:hover{
+  transform:translateY(-1.5px);
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.ctrl-btn:active{
+  transform:translateY(0);
+}
+.ctrl-btn:disabled{
+  opacity:0.45;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+.ctrl-btn.btn-start:hover:not(:disabled){
+  border-color:#23a55a;
+  color:#23a55a;
+  background:#132018;
+  box-shadow:0 0 14px rgba(35,165,90,.3);
+}
+.ctrl-btn.btn-start:hover:not(:disabled) svg{
+  fill:#23a55a;
+}
+.ctrl-btn.btn-start svg{
+  fill:#8b939f;
+}
+
+.ctrl-btn.btn-stop:hover:not(:disabled){
+  border-color:#f23f43;
+  color:#f23f43;
+  background:#241416;
+  box-shadow:0 0 14px rgba(242,63,67,.3);
+}
+.ctrl-btn.btn-stop:hover:not(:disabled) svg{
+  fill:#f23f43;
+}
+.ctrl-btn.btn-stop svg{
+  fill:#8b939f;
+}
+
+.ctrl-btn.btn-restart:hover:not(:disabled){
+  border-color:#f59e0b;
+  color:#f59e0b;
+  background:#241d12;
+  box-shadow:0 0 14px rgba(245,158,11,.3);
+}
+.ctrl-btn.btn-restart:hover:not(:disabled) svg{
+  stroke:#f59e0b;
+}
+.ctrl-btn.btn-restart svg{
+  stroke:#8b939f;
+}
+
+.restart-svg.spinning{
+  animation:btn-spin .75s linear infinite;
+}
+@keyframes btn-spin{
+  100%{transform:rotate(360deg)}
+}
+
+.status-card{
+  width:100%;
+  background:#14171d;
+  border:none;
+  border-radius:18px;
+  padding:11px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  transition:box-shadow .25s ease;
+}
+.status-indicator{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.status-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+  display:inline-block;
+  transition:all .3s ease;
+}
+.status-dot.online{
+  background:#23a55a;
+  box-shadow:0 0 10px #23a55a, 0 0 16px rgba(35,165,90,.6);
+  animation:pulse-online 2s infinite ease-in-out;
+}
+.status-dot.idle{
+  background:#f0b232;
+  box-shadow:0 0 10px rgba(240,178,50,.55);
+}
+.status-dot.dnd{
+  background:#f23f43;
+  box-shadow:0 0 10px rgba(242,63,67,.5);
+}
+.status-dot.offline{
+  background:#7d8590;
+  box-shadow:0 0 6px rgba(125,133,144,.35);
+}
+.status-dot.restarting{
+  background:#f59e0b;
+  box-shadow:0 0 10px #f59e0b;
+  animation:pulse-restart 1s infinite ease-in-out;
+}
+@keyframes pulse-online{
+  0%, 100%{transform:scale(1); opacity:1;}
+  50%{transform:scale(1.22); opacity:0.8;}
+}
+@keyframes pulse-restart{
+  0%, 100%{transform:scale(1); opacity:1;}
+  50%{transform:scale(1.3); opacity:0.65;}
+}
+
+.status-badge{
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  transition:color .3s ease;
+}
+.status-badge.online{color:#23a55a;}
+.status-badge.idle{color:#f0b232;}
+.status-badge.dnd{color:#f23f43;}
+.status-badge.offline{color:#7d8590;}
+.status-badge.restarting{color:#f59e0b;}
+
+.status-meta{
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:11px;
+  color:#8b939f;
+  text-align:right;
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:180px;
+}
+.status-right-wrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.host-note{
+  font-size:11.5px;
+  font-weight:600;
+  color:#3fb950;
+  min-height:16px;
+  opacity:0;
+  transition:.25s;
+  text-align:center;
+}
+.host-note.show{opacity:1}
+
+.bot-profile-card{
+  width:100%;
+  max-width:350px;
+  margin:10px auto 20px;
+  background:#14171d;
+  border:none;
+  border-radius:16px;
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-sizing:border-box;
+  position:relative;
+}
+.bot-profile-avatar-wrap{
+  position:relative;
+  width:44px;
+  height:44px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:transparent;
+  cursor:pointer;
+}
+.presence-menu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:14px;
+  min-width:158px;
+  background:#14171d;
+  border:none;
+  border-radius:12px;
+  padding:6px;
+  display:none;
+  flex-direction:column;
+  gap:2px;
+  box-shadow:0 12px 34px rgba(0,0,0,.55);
+  z-index:40;
+}
+.presence-menu.open{
+  display:flex;
+}
+.presence-opt{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  background:transparent;
+  border:none;
+  border-radius:9px;
+  padding:8px 10px;
+  color:#8b939f;
+  font-size:12.5px;
+  font-weight:600;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  text-align:left;
+  transition:.15s;
+}
+.presence-opt:hover{
+  background:#151922;
+  color:#ffffff;
+}
+.presence-opt.active{
+  background:#151922;
+  color:#ffffff;
+}
+.presence-opt-dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.presence-opt-dot.online{background:#23a55a}
+.presence-opt-dot.idle{background:#f0b232}
+.presence-opt-dot.dnd{background:#f23f43}
+.bot-profile-avatar{
+  width:100%;
+  height:100%;
+  border-radius:0;
+  border:none;
+  object-fit:contain;
+  background:transparent;
+  display:block;
+}
+.bot-profile-status-dot{
+  position:absolute;
+  bottom:-2px;
+  right:-2px;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  border:3px solid #14171d;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .25s ease;
+}
+.bot-profile-status-dot.online{
+  background:#23a55a;
+  box-shadow:0 0 6px rgba(35,165,90,.5);
+}
+.bot-profile-status-dot.idle{
+  background:#f0b232;
+  box-shadow:0 0 6px rgba(240,178,50,.5);
+}
+.bot-profile-status-dot.dnd{
+  background:#f23f43;
+  box-shadow:0 0 6px rgba(242,63,67,.5);
+}
+.bot-profile-status-dot.offline{
+  background:#7d8590;
+  box-shadow:0 0 4px rgba(125,133,144,.35);
+}
+.bot-profile-status-dot.restarting{
+  background:#f59e0b;
+}
+.bot-profile-details{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:3px;
+}
+.bot-profile-header{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.bot-profile-name{
+  color:#f2f3f5;
+  font-size:15px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:180px;
+  line-height:1.2;
+}
+.bot-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  background:#5865f2;
+  color:#ffffff;
+  font-size:9.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  letter-spacing:.3px;
+  padding:2px 5px;
+  border-radius:4px;
+  text-transform:uppercase;
+  flex-shrink:0;
+  line-height:1;
+  user-select:none;
+}
+.bot-badge-icon{
+  width:10px;
+  height:10px;
+  flex-shrink:0;
+}
+.bot-profile-status-text{
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:12px;
+  font-weight:500;
+  color:#949ba4;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  line-height:1.3;
+  margin-top:1px;
+  user-select:none;
+}
+.status-desc{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:240px;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.status-desc.fade-out{
+  opacity:0;
+  transform:translateY(-2px);
+}
+.bot-card-dropdown{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  color:#949ba4;
+  cursor:pointer;
+  transition:all .18s ease;
+  flex-shrink:0;
+}
+.bot-card-dropdown:hover{
+  color:#ffffff;
+  background:#1e232b;
+}
+.card-dropdown-icon{
+  width:16px;
+  height:16px;
+  stroke:currentColor;
+  stroke-width:2.4;
+  transition:transform .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bot-card-dropdown:hover .card-dropdown-icon{
+  transform:translateY(1.5px);
+}
+.card-dropdown-icon.rotated{
+  transform:rotate(180deg) !important;
+}
+.bot-card-dropdown:hover .card-dropdown-icon.rotated{
+  transform:rotate(180deg) translateY(-1.5px) !important;
+}
+.bot-profile-card.has-panel-open{
+  border-bottom-left-radius:0 !important;
+  border-bottom-right-radius:0 !important;
+  margin-bottom:0 !important;
+}
+
+.status-expand-panel{
+  display:none;
+  width:100%;
+  max-width:350px;
+  margin:0 auto 20px;
+  background:#14171d;
+  border:none;
+  border-radius:0 0 16px 16px;
+  padding:14px 16px 16px;
+  box-sizing:border-box;
+  animation:panelSlide .2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.status-expand-panel.open{
+  display:block;
+}
+@keyframes panelSlide{
+  from{opacity:0; transform:translateY(-5px);}
+  to{opacity:1; transform:translateY(0);}
+}
+.expand-panel-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.expand-panel-title{
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:11.5px;
+  font-weight:700;
+  color:#c8cfd9;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+}
+.status-type-wrap{
+  position:relative;
+  flex-shrink:0;
+}
+.status-type-select{
+  appearance:none;
+  -webkit-appearance:none;
+  background:#090a0d;
+  border:none;
+  border-radius:10px;
+  color:#8b939f;
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:11.5px;
+  font-weight:600;
+  padding:8px 26px 8px 10px;
+  outline:none;
+  cursor:pointer;
+  max-width:98px;
+  transition:color .15s ease;
+}
+.status-type-select:focus,
+.status-type-select:hover{
+  color:#c8cfd9;
+}
+.status-type-select option{
+  background:#14171d;
+  color:#c8cfd9;
+}
+.status-type-arrow{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:12px;
+  height:12px;
+  stroke:#8b939f;
+  fill:none;
+  stroke-width:2.4;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  pointer-events:none;
+}
+.status-inputs-group{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:12px;
+}
+.status-input-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  position:relative;
+}
+.status-edit-input{
+  flex:1;
+  background:#090a0d;
+  border:1px solid transparent;
+  border-radius:10px;
+  color:#c8cfd9;
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:12px;
+  font-weight:500;
+  padding:8px 12px;
+  outline:none;
+  transition:all .18s ease;
+  box-sizing:border-box;
+}
+.status-edit-input:focus{
+  border-color:#5865f2;
+  box-shadow:0 0 0 2px rgba(88,101,242,.18);
+  background:#101318;
+}
+.status-edit-input::placeholder{
+  color:#555c68;
+}
+.status-settings-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding-top:4px;
+}
+.status-interval-box{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.interval-label{
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:11.5px;
+  color:#949ba4;
+  font-weight:600;
+  user-select:none;
+}
+.interval-input-wrap{
+  display:inline-flex;
+  align-items:center;
+  background:#090a0d;
+  border:1px solid transparent;
+  border-radius:8px;
+  padding:2px 8px;
+  gap:4px;
+  transition:border-color .18s ease;
+}
+.interval-input-wrap:focus-within{
+  border-color:#5865f2;
+}
+.rotation-seconds-input{
+  width:38px;
+  background:transparent;
+  border:none;
+  color:#f2f3f5;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:12.5px;
+  font-weight:700;
+  text-align:center;
+  outline:none;
+  padding:4px 0;
+}
+.rotation-seconds-input::-webkit-outer-spin-button,
+.rotation-seconds-input::-webkit-inner-spin-button{
+  -webkit-appearance:none;
+  margin:0;
+}
+.rotation-seconds-input[type=number]{
+  -moz-appearance:textfield;
+}
+.interval-unit{
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:11px;
+  color:#6c737e;
+  font-weight:600;
+  user-select:none;
+}
+.btn-save-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  background:#5865f2;
+  color:#ffffff;
+  border:none;
+  border-radius:8px;
+  padding:7px 16px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition:all .18s ease;
+  user-select:none;
+  outline:none;
+}
+.btn-save-status:hover{
+  background:#4752c4;
+  box-shadow:0 2px 10px rgba(88,101,242,.4);
+  transform:translateY(-1px);
+}
+.btn-save-status:active{
+  transform:translateY(0);
+}
+.btn-save-status:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+  transform:none !important;
+  box-shadow:none !important;
+}
+.save-status-svg{
+  width:13px;
+  height:13px;
+  stroke:currentColor;
+  stroke-width:2.3;
+}
+.status-panel-note{
+  font-family:"Inter","Segoe UI",sans-serif;
+  font-size:11px;
+  font-weight:600;
+  min-height:14px;
+  margin-top:8px;
+  text-align:center;
+  opacity:0;
+  transition:opacity .2s ease;
+}
+.status-panel-note.show{
+  opacity:1;
+}
+
+.stats-grid{
+  width:100%;
+  max-width:350px;
+  margin:20px auto 4px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.stats-grid .stat-card:last-child{
+  grid-column:span 2;
+}
+.stat-card{
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;
+  padding:14px 14px;
+  text-align:center;
+  box-sizing:border-box;
+  transition:border-color .18s ease;
+}
+.stat-card:hover{
+  border-color:rgba(255,255,255,0.14);
+}
+.stat-card-label{
+  color:#8b939f;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-family:"Inter","Segoe UI",sans-serif;
+}
+.stat-card-value{
+  color:#ffffff;
+  font-size:19px;
+  font-weight:700;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  margin-top:5px;
+  line-height:1.2;
+}
+.stat-card-value.soon{
+  color:#4d5561;
+  font-size:12.5px;
+  font-weight:600;
+  letter-spacing:.4px;
+  margin-top:9px;
+}
+
+.field-label{
+  display:block;
+  text-align:center;
+  color:#c8cfd9;
+  font-size:13.5px;
+  font-weight:600;
+  letter-spacing:.5px;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  margin-top:20px;
+}
+.field-card{
+  width:100%;
+  max-width:350px;
+  margin:10px auto 24px;
+  text-align:center;
+}
+.field-input{
+  display:flex;
+  gap:8px;
+}
+.field-input input{
+  flex:1;
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:13px 20px;
+  color:#c8cfd9;
+  font-size:14px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  outline:none;
+  transition:border-color .18s ease;
+}
+.field-input input::placeholder{color:#4d5561}
+.field-input input:focus{
+  border-color:#5865f2;
+  box-shadow:0 0 0 3px rgba(88,101,242,.15);
+}
+.field-input button{
+  background:#181d29;
+  border:1px solid rgba(255,255,255,0.08);
+  color:#8b939f;
+  border-radius:12px;
+  padding:0 22px;
+  font-size:13px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  transition:all .18s ease;
+  cursor:pointer;
+}
+.field-input button:hover{
+  border-color:rgba(88,101,242,0.4);
+  color:#ffffff;
+  background:#1f2536;
+}
+.field-note{
+  font-size:11.5px;
+  font-weight:600;
+  color:#3fb950;
+  margin-top:8px;
+  opacity:0;
+  transition:.25s;
+}
+.field-note.show{opacity:1}
+
+.footer{
+  flex:0 0 auto;
+  padding:14px 20px 16px;
+  text-align:center;
+  color:#6c737e;
+  font-size:11.5px;
+  font-weight:500;
+  letter-spacing:.6px;
+  font-family:"Inter","Segoe UI",sans-serif;
+  margin-top:auto;
+}
+
+@media (min-width:680px){
+  .topbar{height:66px; padding:0 32px}
+  .sidebar-head{height:66px}
+  .brand{font-size:24px}
+  .bot-head{padding:36px 20px 8px}
+  .bot-head h1{font-size:36px}
+  .bot-head p{font-size:11.5px; letter-spacing:1.8px}
+  .bot-id-wrap{gap:10px; margin-top:10px}
+  .bot-invite-btn{padding:4.5px 12px; font-size:11.5px; top:-2px}
+  .bot-invite-btn .invite-text{display:inline}
+  .bot-invite-btn .invite-arrow{width:12px; height:12px}
+  .bot-controls-wrap{max-width:520px; gap:12px; margin-top:22px}
+  .control-actions{gap:12px}
+  .ctrl-btn{padding:13px 18px; font-size:13.5px}
+  .ctrl-btn svg{width:16px; height:16px}
+  .status-card{padding:14px 22px; border-radius:20px}
+  .status-badge{font-size:13px}
+  .status-meta{font-size:12px; max-width:260px}
+  .bot-profile-card{max-width:680px; padding:14px 20px; border-radius:18px; gap:14px; margin:12px auto 22px}
+  .bot-profile-card.has-panel-open{margin-bottom:0 !important}
+  .status-expand-panel{max-width:680px; padding:16px 20px 18px; border-radius:0 0 18px 18px; margin:0 auto 22px}
+  .status-edit-input{font-size:13px; padding:9px 14px}
+  .status-type-select{font-size:12px; padding:9px 28px 9px 12px; max-width:106px}
+  .btn-save-status{padding:8px 20px; font-size:12.5px}
+  .interval-label{font-size:12px}
+  .rotation-seconds-input{width:44px; font-size:13px}
+  .bot-profile-avatar-wrap{width:48px; height:48px}
+  .bot-profile-status-dot{width:15px; height:15px; border-width:3px}
+  .bot-profile-name{font-size:16px; max-width:280px}
+  .bot-profile-status-text{font-size:13px}
+  .bot-card-dropdown{width:32px; height:32px}
+  .card-dropdown-icon{width:18px; height:18px}
+  .field-label{font-size:14.5px; margin-top:26px}
+  .field-card{max-width:520px; margin:12px auto 26px}
+  .field-input input{padding:15px 22px; font-size:14.5px}
+  .field-input button{padding:0 26px; font-size:13.5px}
+  .footer{font-size:12px; padding:16px 20px 18px}
+  .page-head{padding:40px 20px 10px}
+  .page-head h1{font-size:34px}
+  .empty-card{padding:46px 28px; margin-top:32px}
+  .empty-card h2{font-size:16px}
+  .stats-grid{
+    max-width:680px;
+    grid-template-columns:repeat(4, 1fr);
+    gap:12px;
+    margin:22px auto 10px;
+  }
+  .stats-grid .stat-card:last-child{
+    grid-column:auto;
+  }
+}
+
+@media (min-width:960px){
+  .topbar{
+    padding:0 40px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    background:rgba(9,11,16,0.88);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+  .brand{display:none}
+  .user-avatar{grid-column:2; justify-self:end}
+  .sidebar-head{padding:0 8px 0 16px; gap:6px}
+  .sidebar-head-right{gap:5px; margin-left:auto}
+  .sidebar-home,
+  .sidebar-docs{width:auto; height:32px; padding:0 9px; border-radius:9px; gap:5px}
+  .sidebar-home svg,
+  .sidebar-docs svg{width:14px; height:14px}
+  .sidebar-home-text,
+  .sidebar-docs-text{display:inline; font-size:12px; font-weight:600}
+  .bot-head h1{font-size:38px}
+  .sidebar{
+    transform:translateX(0);
+    width:260px;
+    border-right:1px solid rgba(255,255,255,0.07);
+    background:#0b0d13;
+  }
+  .sidebar-overlay{display:none}
+  .sidebar-close{display:none}
+  .hamburger{display:none}
+  .topbar-content{grid-template-columns:1fr auto}
+  .sidebar-title{font-size:17.5px; letter-spacing:1.5px; flex-shrink:0}
+  body{padding-left:260px}
+
+  .page-container{
+    max-width:1040px;
+    padding:10px 36px 60px;
+  }
+  .stats-grid{
+    max-width:780px;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin:24px auto 14px;
+  }
+  .stats-grid .stat-card:last-child{
+    grid-column:auto;
+  }
+  .stat-card{
+    padding:18px 16px;
+    border-radius:14px;
+  }
+  .bot-controls-wrap{
+    max-width:560px;
+    margin-top:24px;
+  }
+  .bot-profile-card,
+  .status-expand-panel{
+    max-width:780px;
+  }
+  .field-card{
+    max-width:560px;
+    margin:14px auto 32px;
+  }
+  .plugins-grid{
+    max-width:1000px;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:16px;
+    margin:24px auto 44px;
+  }
+  .plugin-card{
+    padding:20px 20px 18px;
+    border-radius:16px;
+  }
+  .plugins-tab-wrap{
+    max-width:380px;
+    margin:20px auto 4px;
+  }
+  .plugin-detail{
+    max-width:820px;
+    margin:24px auto 48px;
+    padding:30px 32px 36px;
+    border-radius:20px;
+    background:#11141d;
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+  }
+  .detail-top{
+    padding-bottom:16px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .detail-top-name{
+    font-size:20px;
+  }
+  .cmd-row{
+    padding:15px 18px;
+    background:#141822;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:14px;
+    transition:border-color .18s ease;
+  }
+  .cmd-row:hover{
+    border-color:rgba(255,255,255,0.12);
+  }
+  .config-box{
+    background:#141822;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:16px;
+    padding:22px 24px;
+  }
+  .alias-row{
+    background:#181d2a;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .detail-readme{
+    background:#141822;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:16px;
+    padding:24px 28px;
+  }
+}
+
+@media (max-width:480px){
+  .topbar{padding:0 12px; height:56px}
+  .sidebar-head{height:56px}
+  .brand{font-size:17px; letter-spacing:2px}
+  .user-avatar{width:28px; height:28px}
+  .bot-head{padding:22px 14px 4px}
+  .bot-head h1{font-size:22px}
+  .bot-head p{font-size:9.5px; letter-spacing:1.2px}
+  .bot-id-wrap{gap:6px; margin-top:6px}
+  .bot-invite-btn{padding:3px 7px; top:-1px}
+  .bot-invite-btn .invite-text{display:none}
+  .bot-invite-btn .invite-arrow{width:10.5px; height:10.5px}
+  .bot-controls-wrap{max-width:320px; margin-top:14px}
+  .control-actions{gap:6px}
+  .ctrl-btn{padding:10px 8px; font-size:11px}
+  .bot-profile-card{max-width:320px; padding:10px 14px; gap:10px; margin:10px auto 16px}
+  .bot-profile-card.has-panel-open{margin-bottom:0 !important}
+  .status-expand-panel{max-width:320px; padding:12px 12px 14px; border-radius:0 0 14px 14px; margin:0 auto 16px}
+  .status-edit-input{font-size:11.5px; padding:7px 10px}
+  .status-type-select{font-size:10.5px; padding:7px 24px 7px 9px; max-width:90px}
+  .btn-save-status{padding:6px 13px; font-size:11px}
+  .interval-label{font-size:11px}
+  .rotation-seconds-input{width:34px; font-size:11.5px}
+  .bot-profile-avatar-wrap{width:40px; height:40px}
+  .bot-profile-status-dot{width:13px; height:13px; border-width:2.5px}
+  .bot-profile-name{font-size:14px; max-width:150px}
+  .bot-badge{font-size:8.5px; padding:1.5px 4.5px}
+  .bot-badge-icon{width:8.5px; height:8.5px}
+  .bot-profile-status-text{font-size:11.5px}
+  .bot-card-dropdown{width:26px; height:26px}
+  .card-dropdown-icon{width:15px; height:15px}
+  .stats-grid{max-width:320px}
+  .field-label{margin-top:16px; font-size:13px}
+  .field-card{max-width:320px; margin:10px auto 20px}
+  .field-input input{padding:12px 18px; font-size:13.5px}
+  .field-input button{padding:0 18px; font-size:12px}
+  .page-head{padding:24px 14px 6px}
+  .page-head h1{font-size:21px}
+  .page-head p{font-size:9.5px; letter-spacing:1.2px}
+  .empty-card{padding:30px 16px; margin:18px auto 30px; border-radius:15px}
+}
+@media (max-width:340px){
+  .brand{font-size:14px; letter-spacing:1px}
+}
+
+.plugins-tab-wrap{
+  width:100%;
+  max-width:350px;
+  margin:16px auto 0;
+  display:flex;
+  justify-content:center;
+  box-sizing:border-box;
+}
+.plugins-tab-switcher{
+  width:100%;
+  display:flex;
+  background:#11141d;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:4px;
+  box-sizing:border-box;
+  gap:4px;
+}
+.plugins-tab-btn{
+  flex:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:9px 16px;
+  border:none;
+  border-radius:9px;
+  background:transparent;
+  color:#8b93a0;
+  font-family:"Poppins","Segoe UI",sans-serif;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .18s ease;
+  user-select:none;
+  outline:none;
+  -webkit-tap-highlight-color:transparent;
+  text-decoration:none;
+}
+.plugins-tab-btn .tab-btn-icon{
+  width:15px;
+  height:15px;
+  flex-shrink:0;
+  stroke:currentColor;
+  transition:stroke .18s ease;
+}
+.plugins-tab-btn:hover{
+  color:#ffffff;
+  background:rgba(255,255,255,0.04);
+}
+.plugins-tab-btn.active{
+  background:#5865f2;
+  color:#ffffff;
+  box-shadow:0 3px 12px rgba(88,101,242,.35);
+}
+.plugins-tab-btn.active .tab-btn-icon{
+  stroke:#ffffff;
+}
+#viewPlugins .page-head,
+#viewManage .page-head{
+  padding:26px 20px 4px;
+}
+
+@media (min-width: 680px){
+  #viewOverview .bot-head,
+  .bot-head{
+    padding:36px 20px 10px !important;
+  }
+  #viewOverview .bot-head h1,
+  .bot-head h1{
+    font-size:38px !important;
+  }
+  #viewOverview .bot-controls-wrap,
+  .bot-controls-wrap{
+    max-width:780px !important;
+    margin:24px auto 0 !important;
+    gap:14px !important;
+    width:100% !important;
+  }
+  #viewOverview .control-actions,
+  .control-actions{
+    gap:12px !important;
+    width:100% !important;
+  }
+  #viewOverview .ctrl-btn,
+  .ctrl-btn{
+    padding:14px 20px !important;
+    font-size:14px !important;
+  }
+  #viewOverview .ctrl-btn svg,
+  .ctrl-btn svg{
+    width:16px !important;
+    height:16px !important;
+  }
+  #viewOverview .status-card,
+  .status-card{
+    padding:16px 24px !important;
+    border-radius:18px !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+  #viewOverview .status-meta,
+  .status-meta{
+    font-size:13.5px !important;
+    max-width:none !important;
+  }
+  #viewOverview .status-badge,
+  .status-badge{
+    font-size:12px !important;
+  }
+  #viewOverview .stats-grid,
+  .stats-grid{
+    max-width:780px !important;
+    margin:24px auto 16px !important;
+    grid-template-columns:repeat(3, 1fr) !important;
+    gap:14px !important;
+    width:100% !important;
+  }
+  #viewOverview .stat-card:last-child,
+  .stat-card:last-child{
+    grid-column:auto !important;
+  }
+  #viewOverview .stat-card,
+  .stat-card{
+    padding:20px 18px !important;
+    border-radius:18px !important;
+  }
+  #viewOverview .stat-card-label,
+  .stat-card-label{
+    font-size:11px !important;
+    letter-spacing:1.4px !important;
+  }
+  #viewOverview .stat-card-value,
+  .stat-card-value{
+    font-size:26px !important;
+    margin-top:7px !important;
+  }
+  .bot-card-container{
+    max-width:780px !important;
+    margin:24px auto 44px !important;
+  }
+  .plugins-tab-wrap{
+    max-width:440px !important;
+    margin:20px auto 0 !important;
+  }
+  .plugins-tab-btn{
+    padding:11px 22px !important;
+    font-size:14px !important;
+  }
+  .plugins-tab-btn .tab-btn-icon{
+    width:16px !important;
+    height:16px !important;
+  }
+  #viewPlugins .page-head,
+  #viewManage .page-head{
+    padding:36px 20px 8px !important;
+  }
+  #pluginsEmpty,
+  #manageEmpty{
+    max-width:780px !important;
+    padding:48px 32px !important;
+    border-radius:20px !important;
+    margin:24px auto 36px !important;
+  }
+  #pluginsGrid,
+  #manageGrid{
+    max-width:780px !important;
+  }
+  .detail-top-name{
+    font-size:18px !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <span class="sidebar-title" id="sidebarTitle">{{NAME}}</span>
+    <div class="sidebar-head-right">
+      <a class="sidebar-home" href="/" id="sidebarHome" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5 12 3l9 7.5"></path>
+          <path d="M5 9.5V21h14V9.5"></path>
+        </svg>
+        <span class="sidebar-home-text">Home</span>
+      </a>
+      <a class="sidebar-docs" href="/docs" target="_blank" id="sidebarDocs" title="Documentation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <span class="sidebar-docs-text">Docs</span>
+      </a>
+      <button class="sidebar-close" id="sidebarClose" aria-label="close sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="sidebar-link" href="/bot/{{BOTID}}" id="sidebarOverview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+      </svg>
+      <span>Overview</span>
+    </a>
+    <a class="sidebar-link" href="/bot/{{BOTID}}/bot" id="sidebarBot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="10" rx="3"></rect>
+        <circle cx="12" cy="5" r="2"></circle>
+        <path d="M12 7v4"></path>
+        <line x1="8" y1="16" x2="8.01" y2="16" stroke-width="2.5"></line>
+        <line x1="16" y1="16" x2="16.01" y2="16" stroke-width="2.5"></line>
+      </svg>
+      <span>Bot</span>
+    </a>
+    <a class="sidebar-link" href="/bot/{{BOTID}}/plugins" id="sidebarPlugins">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+        <path d="M3 8v8l9 5 9-5V8"></path>
+        <path d="M12 13v8"></path>
+      </svg>
+      <span>Plugins</span>
+    </a>
+  </nav>
+</aside>
+
+<header class="topbar">
+  <div class="topbar-content">
+    <button class="hamburger" id="menuBtn" aria-label="menu"><span></span><span></span><span></span></button>
+    <span class="brand" id="brandName">{{NAME}}</span>
+    <img class="user-avatar" id="userAvatar" src="{{AVATAR}}" alt="avatar" />
+  </div>
+</header>
+
+<div class="page-container">
+  <div class="view is-active" id="viewOverview">
+  <div class="bot-head">
+    <h1 id="botName">{{BOTNAME}}</h1>
+    <div class="bot-id-wrap">
+      <p id="botIdText">{{BOTID}}</p>
+      <a id="btnInvite" class="bot-invite-btn disabled" target="_blank" rel="noopener noreferrer" title="Enter Client ID to enable invite" aria-label="Invite Bot">
+        <span class="invite-text">Invite</span>
+        <svg class="invite-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="bot-controls-wrap">
+    <div class="control-actions">
+      <button type="button" class="ctrl-btn btn-start" id="btnStart" title="Start Bot">
+        <svg viewBox="0 0 24 24">
+          <polygon points="6 4 20 12 6 20 6 4"/>
+        </svg>
+        <span>Start</span>
+      </button>
+      <button type="button" class="ctrl-btn btn-stop" id="btnStop" title="Stop Bot">
+        <svg viewBox="0 0 24 24">
+          <rect x="5" y="5" width="14" height="14" rx="2.5"/>
+        </svg>
+        <span>Stop</span>
+      </button>
+      <button type="button" class="ctrl-btn btn-restart" id="btnRestart" title="Restart Bot">
+        <svg class="restart-svg" id="restartSvg" viewBox="0 0 24 24" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/>
+        </svg>
+        <span>Restart</span>
+      </button>
+    </div>
+
+    <div class="status-card" id="statusCard">
+      <div class="status-indicator">
+        <span class="status-dot offline" id="statusDot"></span>
+        <span class="status-badge offline" id="statusBadge">OFFLINE</span>
+      </div>
+      <div class="status-right-wrap">
+        <div class="status-meta" id="statusMeta">Bot is stopped</div>
+      </div>
+    </div>
+    <div class="host-note" id="hostNote"></div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card-label">Total Servers</div>
+      <div class="stat-card-value" id="statServers">{{GUILD_COUNT}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Total Users</div>
+      <div class="stat-card-value" id="statUsers">{{USER_COUNT}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Stats</div>
+      <div class="stat-card-value soon">Coming Soon</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="view" id="viewBot">
+    <div class="page-head">
+      <h1>Bot</h1>
+      <p>Configure bot settings and options</p>
+    </div>
+
+    <div class="bot-card-container">
+      <div class="status-section-wrap">
+        <div class="bot-profile-card">
+          <div class="bot-profile-avatar-wrap" id="botAvatarWrap" title="Change bot status">
+            <img id="botProfileAvatar" class="bot-profile-avatar" src="{{BOTAVATAR}}" alt="Bot Avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'" />
+            <span class="bot-profile-status-dot offline" id="botProfileDot" title="Bot Status"></span>
+          </div>
+          <div class="bot-profile-details">
+            <div class="bot-profile-header">
+              <span class="bot-profile-name" id="botProfileName">{{BOTNAME}}</span>
+              <span class="bot-badge">
+                <svg class="bot-badge-icon" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M6.00016 11.2L2.80016 8L1.86682 8.93333L6.00016 13.0667L14.0002 5.06667L13.0668 4.13333L6.00016 11.2Z"/>
+                </svg>
+                APP
+              </span>
+            </div>
+            <div class="bot-profile-status-text">
+              <span class="status-desc" id="statusDescText">{{CURRENT_ACTIVITY}}</span>
+            </div>
+          </div>
+          <div class="bot-card-dropdown" id="btnToggleStatusPanel" title="Edit Rotating Statuses">
+            <svg class="colors-arrow-icon" id="statusDropdownArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+          <div class="presence-menu" id="presenceMenu">
+            <button type="button" class="presence-opt" data-status="online"><span class="presence-opt-dot online"></span>Online</button>
+            <button type="button" class="presence-opt" data-status="idle"><span class="presence-opt-dot idle"></span>Idle</button>
+            <button type="button" class="presence-opt" data-status="dnd"><span class="presence-opt-dot dnd"></span>Do Not Disturb</button>
+          </div>
+        </div>
+
+        <div class="status-expand-panel" id="statusExpandPanel">
+          <div class="expand-panel-header">
+            <span class="expand-panel-title">Rotating Statuses</span>
+          </div>
+          <div class="status-inputs-group">
+            <div class="status-input-row">
+              <div class="status-type-wrap">
+                <select class="status-type-select" id="statusType1">
+                  <option value="playing">Playing</option>
+                  <option value="listening">Listening</option>
+                  <option value="watching">Watching</option>
+                  <option value="competing">Competing</option>
+                </select>
+                <svg class="status-type-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <input type="text" class="status-edit-input" id="statusInput1" placeholder="Status 1 (e.g. Hosted by {{NAME}})" maxlength="128" autocomplete="off" spellcheck="false" />
+            </div>
+            <div class="status-input-row">
+              <div class="status-type-wrap">
+                <select class="status-type-select" id="statusType2">
+                  <option value="playing">Playing</option>
+                  <option value="listening">Listening</option>
+                  <option value="watching">Watching</option>
+                  <option value="competing">Competing</option>
+                </select>
+                <svg class="status-type-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <input type="text" class="status-edit-input" id="statusInput2" placeholder="Status 2 (e.g. /help for commands)" maxlength="128" autocomplete="off" spellcheck="false" />
+            </div>
+            <div class="status-input-row">
+              <div class="status-type-wrap">
+                <select class="status-type-select" id="statusType3">
+                  <option value="playing">Playing</option>
+                  <option value="listening">Listening</option>
+                  <option value="watching">Watching</option>
+                  <option value="competing">Competing</option>
+                </select>
+                <svg class="status-type-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <input type="text" class="status-edit-input" id="statusInput3" placeholder="Status 3 (e.g. discord.gg/server)" maxlength="128" autocomplete="off" spellcheck="false" />
+            </div>
+          </div>
+          <div class="status-settings-row">
+            <div class="status-interval-box">
+              <label for="statusIntervalInput" class="interval-label">Rotation Interval</label>
+              <div class="interval-input-wrap">
+                <input type="number" id="statusIntervalInput" class="rotation-seconds-input" min="3" max="3600" value="{{STATUS_INTERVAL}}" placeholder="10" />
+                <span class="interval-unit">sec</span>
+              </div>
+            </div>
+            <button type="button" class="btn-save-status" id="btnSaveStatus" title="Save Status Rotation">
+              <svg class="save-status-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Save</span>
+            </button>
+          </div>
+          <div class="status-panel-note" id="statusPanelNote"></div>
+        </div>
+      </div>
+
+      <div class="bot-settings-card" id="themeColorsCard">
+        <div class="bot-card-head" id="btnToggleColorsPanel" title="Click to expand/collapse Theme Colors">
+          <div class="bot-card-title-wrap">
+            <h2>Theme Colors</h2>
+            <p>Customize embed and component colors for your bot</p>
+          </div>
+          <div class="bot-card-dropdown" id="colorsDropdownBtn">
+            <svg class="colors-arrow-icon" id="colorsDropdownArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="color-expand-panel" id="colorsExpandPanel">
+          <div class="color-items-list">
+            <div class="color-item-row">
+              <div class="color-item-info">
+                <span class="color-name">Main v1</span>
+                <span class="color-desc">Primary embed color for general bot responses</span>
+              </div>
+              <div class="color-picker-box">
+                <label class="color-swatch-label" id="swatch_main_v1" style="background-color: #5865F2;" title="Choose color for Main v1">
+                  <input type="color" class="bot-color-input" data-key="main_v1" data-swatch="swatch_main_v1" value="#5865F2" />
+                </label>
+              </div>
+            </div>
+
+            <div class="color-item-row">
+              <div class="color-item-info">
+                <span class="color-name">Main v2</span>
+                <span class="color-desc">Secondary embed and highlight accent color</span>
+              </div>
+              <div class="color-picker-box">
+                <label class="color-swatch-label" id="swatch_main_v2" style="background-color: #57F287;" title="Choose color for Main v2">
+                  <input type="color" class="bot-color-input" data-key="main_v2" data-swatch="swatch_main_v2" value="#57F287" />
+                </label>
+              </div>
+            </div>
+
+            <div class="color-item-row">
+              <div class="color-item-info">
+                <span class="color-name">Warning</span>
+                <span class="color-desc">Color for warning alerts and notices</span>
+              </div>
+              <div class="color-picker-box">
+                <label class="color-swatch-label" id="swatch_warning" style="background-color: #FAA61A;" title="Choose color for Warning">
+                  <input type="color" class="bot-color-input" data-key="warning" data-swatch="swatch_warning" value="#FAA61A" />
+                </label>
+              </div>
+            </div>
+
+            <div class="color-item-row">
+              <div class="color-item-info">
+                <span class="color-name">Error</span>
+                <span class="color-desc">Color for errors and rejection alerts</span>
+              </div>
+              <div class="color-picker-box">
+                <label class="color-swatch-label" id="swatch_error" style="background-color: #ED4245;" title="Choose color for Error">
+                  <input type="color" class="bot-color-input" data-key="error" data-swatch="swatch_error" value="#ED4245" />
+                </label>
+              </div>
+            </div>
+
+            <div class="color-item-row">
+              <div class="color-item-info">
+                <span class="color-name">Cooldown</span>
+                <span class="color-desc">Color for command cooldown reminders</span>
+              </div>
+              <div class="color-picker-box">
+                <label class="color-swatch-label" id="swatch_cooldown" style="background-color: #EB459E;" title="Choose color for Cooldown">
+                  <input type="color" class="bot-color-input" data-key="cooldown" data-swatch="swatch_cooldown" value="#EB459E" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bot-settings-card" id="advancedCard">
+        <div class="bot-card-head" id="btnToggleAdvancedPanel" title="Click to expand/collapse Advanced Settings">
+          <div class="bot-card-title-wrap">
+            <h2>Advanced Settings</h2>
+            <p>Configure Client ID and developer credentials</p>
+          </div>
+          <div class="bot-card-dropdown" id="advancedDropdownBtn">
+            <svg class="colors-arrow-icon" id="advancedDropdownArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="color-expand-panel" id="advancedExpandPanel">
+          <div class="advanced-field-group">
+            <div class="advanced-field-label-wrap">
+              <span class="advanced-field-label">Client ID</span>
+              <span class="advanced-field-hint">Discord Application Client ID for bot invite links and permissions</span>
+            </div>
+            <div class="advanced-input-row">
+              <input type="text" id="clientId" class="advanced-text-input" placeholder="Enter Client ID (e.g. 123456789012345678)" value="{{CLIENTID}}" autocomplete="off" spellcheck="false" />
+              <button type="button" id="addClient" class="btn-save-advanced">Save</button>
+            </div>
+            <div class="field-note" id="clientNote">Client ID added</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="viewPlugins">
+    <div class="page-head">
+      <h1>Plugins</h1>
+      <p>Extend your bot with plugins</p>
+    </div>
+    <div class="plugins-tab-wrap">
+      <div class="plugins-tab-switcher">
+        <button type="button" class="plugins-tab-btn active" data-tab="plugins" id="tabBtnPlugins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="tab-btn-icon">
+            <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+            <path d="M3 8v8l9 5 9-5V8"></path>
+            <path d="M12 13v8"></path>
+          </svg>
+          <span>Plugins</span>
+        </button>
+        <button type="button" class="plugins-tab-btn" data-tab="manage" id="tabBtnManage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="tab-btn-icon">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <circle cx="9" cy="6" r="2"></circle>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <circle cx="15" cy="12" r="2"></circle>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+            <circle cx="9" cy="18" r="2"></circle>
+          </svg>
+          <span>Manage</span>
+        </button>
+      </div>
+    </div>
+    <div class="empty-card" id="pluginsEmpty">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+          <path d="M3 8v8l9 5 9-5V8"></path>
+          <path d="M12 13v8"></path>
+        </svg>
+      </div>
+      <h2>No plugins available yet</h2>
+      <p>Plugins you can install for your bot will show up here.</p>
+    </div>
+    <div class="plugins-grid" id="pluginsGrid" hidden></div>
+  </div>
+
+  <div class="view" id="viewManage">
+    <div class="page-head">
+      <h1>Manage</h1>
+      <p>Manage your installed plugins</p>
+    </div>
+    <div class="plugins-tab-wrap" id="manageTabWrap">
+      <div class="plugins-tab-switcher">
+        <button type="button" class="plugins-tab-btn" data-tab="plugins" id="tabBtnPlugins2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="tab-btn-icon">
+            <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+            <path d="M3 8v8l9 5 9-5V8"></path>
+            <path d="M12 13v8"></path>
+          </svg>
+          <span>Plugins</span>
+        </button>
+        <button type="button" class="plugins-tab-btn active" data-tab="manage" id="tabBtnManage2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="tab-btn-icon">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <circle cx="9" cy="6" r="2"></circle>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <circle cx="15" cy="12" r="2"></circle>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+            <circle cx="9" cy="18" r="2"></circle>
+          </svg>
+          <span>Manage</span>
+        </button>
+      </div>
+    </div>
+    <div class="empty-card" id="manageEmpty">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="15" cy="12" r="2"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="9" cy="18" r="2"></circle>
+        </svg>
+      </div>
+      <h2>No plugins installed</h2>
+      <p>Plugins you install from the Plugins page will appear here.</p>
+    </div>
+    <div class="plugins-grid" id="manageGrid" hidden></div>
+    <div class="plugin-detail" id="pluginDetail" hidden></div>
+  </div>
+</div>
+
+<div class="plugin-toast" id="pluginToast"></div>
+
+<footer class="footer"><span id="footerText">{{FOOTER}}</span></footer>
+
+<script>
+var footerText = document.getElementById("footerText");
+if (footerText.textContent.indexOf("{{") > -1) footerText.textContent = "Copyright 2026";
+var brandName = document.getElementById("brandName");
+if (brandName.textContent.indexOf("{{") > -1) brandName.textContent = "Arixa";
+var sidebarTitle = document.getElementById("sidebarTitle");
+if (sidebarTitle.textContent.indexOf("{{") > -1) sidebarTitle.textContent = "Arixa";
+document.getElementById("menuBtn").addEventListener("click", function () {
+  document.body.classList.add("sidebar-open");
+});
+document.getElementById("sidebarClose").addEventListener("click", function () {
+  document.body.classList.remove("sidebar-open");
+});
+document.getElementById("sidebarOverlay").addEventListener("click", function () {
+  document.body.classList.remove("sidebar-open");
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") document.body.classList.remove("sidebar-open");
+});
+var botName = document.getElementById("botName");
+if (botName.textContent.indexOf("{{") > -1) botName.textContent = "Bot";
+var botProfileName = document.getElementById("botProfileName");
+if (botProfileName && botProfileName.textContent.indexOf("{{") > -1) botProfileName.textContent = "Bot";
+var botProfileAvatar = document.getElementById("botProfileAvatar");
+var botProfileDot = document.getElementById("botProfileDot");
+var botIdText = document.getElementById("botIdText");
+if (botIdText.textContent.indexOf("{{") > -1) botIdText.textContent = "";
+var statServers = document.getElementById("statServers");
+if (statServers && statServers.textContent.indexOf("{{") > -1) statServers.textContent = "0";
+var statUsers = document.getElementById("statUsers");
+if (statUsers && statUsers.textContent.indexOf("{{") > -1) statUsers.textContent = "0";
+
+var statusDescText = document.getElementById("statusDescText");
+if (statusDescText && statusDescText.textContent.indexOf("{{") > -1) {
+  statusDescText.textContent = "Hosted by " + (brandName ? brandName.textContent : "Arixa");
+}
+
+var STATUS_TYPE_LABELS = { playing:"Playing", listening:"Listening to", watching:"Watching", competing:"Competing" };
+
+function normalizeStatusEntry(s) {
+  if (typeof s === "string") return { type: "playing", text: s.trim() };
+  if (s && typeof s === "object") {
+    var t = String(s.type || "playing").toLowerCase();
+    if (!STATUS_TYPE_LABELS[t]) t = "playing";
+    return { type: t, text: String(s.text || s.name || "").trim() };
+  }
+  return { type: "playing", text: "" };
+}
+
+function statusTextOf(s) {
+  var e = normalizeStatusEntry(s);
+  return e.text;
+}
+
+var activeCustomStatuses = [];
+try {
+  var rawCustom = "{{CUSTOM_STATUSES}}";
+  if (rawCustom.indexOf("{{") === -1) {
+    activeCustomStatuses = JSON.parse(rawCustom);
+  }
+} catch (e) {
+  activeCustomStatuses = [];
+}
+if (!Array.isArray(activeCustomStatuses)) activeCustomStatuses = [];
+activeCustomStatuses = activeCustomStatuses.map(normalizeStatusEntry).filter(function (s) { return s.text.length > 0; });
+if (activeCustomStatuses.length === 0) {
+  activeCustomStatuses = [{ type: "playing", text: "Hosted by " + (brandName ? brandName.textContent : "Arixa") }];
+}
+
+var rawInterval = "{{STATUS_INTERVAL}}";
+var activeStatusInterval = 10;
+if (rawInterval.indexOf("{{") === -1) {
+  activeStatusInterval = Math.max(3, parseInt(rawInterval, 10) || 10);
+}
+
+var frontendRotationIndex = 0;
+var frontendRotationTimer = null;
+
+var statusInput1 = document.getElementById("statusInput1");
+var statusInput2 = document.getElementById("statusInput2");
+var statusInput3 = document.getElementById("statusInput3");
+var statusType1 = document.getElementById("statusType1");
+var statusType2 = document.getElementById("statusType2");
+var statusType3 = document.getElementById("statusType3");
+var statusIntervalInput = document.getElementById("statusIntervalInput");
+
+function isUserEditingStatusInputs() {
+  var activeEl = document.activeElement;
+  return activeEl === statusInput1 || activeEl === statusInput2 || activeEl === statusInput3 ||
+    activeEl === statusType1 || activeEl === statusType2 || activeEl === statusType3 ||
+    activeEl === statusIntervalInput;
+}
+
+function setRowStatus(typeEl, inputEl, entry) {
+  var e = normalizeStatusEntry(entry);
+  if (typeEl) typeEl.value = STATUS_TYPE_LABELS[e.type] ? e.type : "playing";
+  if (inputEl) inputEl.value = e.text;
+}
+
+function syncInputsWithStatuses() {
+  if (isUserEditingStatusInputs()) return;
+  setRowStatus(statusType1, statusInput1, activeCustomStatuses[0]);
+  setRowStatus(statusType2, statusInput2, activeCustomStatuses[1]);
+  setRowStatus(statusType3, statusInput3, activeCustomStatuses[2]);
+  if (statusIntervalInput) statusIntervalInput.value = activeStatusInterval;
+}
+syncInputsWithStatuses();
+
+function updateStatusDesc(newText) {
+  var el = document.getElementById("statusDescText");
+  if (!el) return;
+  var txt = String(newText || "").trim();
+  if (!txt || el.textContent === txt) return;
+  el.classList.add("fade-out");
+  setTimeout(function () {
+    el.textContent = txt;
+    el.classList.remove("fade-out");
+  }, 180);
+}
+
+function startFrontendRotation() {
+  stopFrontendRotation();
+  if (activeCustomStatuses.length <= 1) return;
+  frontendRotationTimer = setInterval(function () {
+    if (currentStatus === "online") {
+      frontendRotationIndex = (frontendRotationIndex + 1) % activeCustomStatuses.length;
+      updateStatusDesc(statusTextOf(activeCustomStatuses[frontendRotationIndex]));
+    }
+  }, activeStatusInterval * 1000);
+}
+
+function stopFrontendRotation() {
+  if (frontendRotationTimer) {
+    clearInterval(frontendRotationTimer);
+    frontendRotationTimer = null;
+  }
+}
+
+var clientIdInput = document.getElementById("clientId");
+if (clientIdInput.value.indexOf("{{") > -1) clientIdInput.value = "";
+
+var botId = botIdText.textContent.trim();
+if (!botId) {
+  var pathParts = window.location.pathname.split("/");
+  if (pathParts[1] === "bot" && pathParts[2]) botId = pathParts[2].replace(/[^0-9]/g, "");
+  else botId = pathParts[pathParts.length - 1].replace(/[^0-9]/g, "");
+}
+
+var btnInvite = document.getElementById("btnInvite");
+
+var sidebarOverview = document.getElementById("sidebarOverview");
+if (sidebarOverview) {
+  if (botId) sidebarOverview.setAttribute("href", "/bot/" + botId);
+  else sidebarOverview.style.display = "none";
+}
+
+var sidebarBot = document.getElementById("sidebarBot");
+if (sidebarBot) {
+  if (botId) sidebarBot.setAttribute("href", "/bot/" + botId + "/bot");
+  else sidebarBot.style.display = "none";
+}
+
+var sidebarPlugins = document.getElementById("sidebarPlugins");
+if (sidebarPlugins) {
+  if (botId) sidebarPlugins.setAttribute("href", "/bot/" + botId + "/plugins");
+  else sidebarPlugins.style.display = "none";
+}
+
+var viewOverview = document.getElementById("viewOverview");
+var viewBotPanel = document.getElementById("viewBot");
+var viewPluginsPanel = document.getElementById("viewPlugins");
+var viewManagePanel = document.getElementById("viewManage");
+
+function setActiveLink(linkId) {
+  var linkIds = ["sidebarOverview", "sidebarBot", "sidebarPlugins"];
+  for (var i = 0; i < linkIds.length; i++) {
+    var el = document.getElementById(linkIds[i]);
+    if (el) el.classList.toggle("active", linkIds[i] === linkId);
+  }
+}
+
+function showView(name, fromHistory) {
+  if (!viewOverview || !viewPluginsPanel || !viewManagePanel) return;
+  name = String(name || "overview").toLowerCase().trim();
+  if (name !== "bot" && name !== "plugins" && name !== "manage") {
+    name = "overview";
+  }
+
+  viewOverview.classList.toggle("is-active", name === "overview");
+  if (viewBotPanel) viewBotPanel.classList.toggle("is-active", name === "bot");
+  viewPluginsPanel.classList.toggle("is-active", name === "plugins");
+  viewManagePanel.classList.toggle("is-active", name === "manage");
+
+  if (name === "overview") setActiveLink("sidebarOverview");
+  else if (name === "bot") setActiveLink("sidebarBot");
+  else setActiveLink("sidebarPlugins");
+
+  var tabBtns = document.querySelectorAll(".plugins-tab-btn");
+  for (var tb = 0; tb < tabBtns.length; tb++) {
+    var t = tabBtns[tb].getAttribute("data-tab");
+    tabBtns[tb].classList.toggle("active", t === name);
+  }
+
+  var manageTabEl = document.getElementById("manageTabWrap");
+  if (manageTabEl) {
+    if (name === "manage") {
+      manageTabEl.hidden = Boolean(detailPid || (typeof pendingDetail !== "undefined" && pendingDetail));
+    } else {
+      manageTabEl.hidden = false;
+    }
+  }
+
+  document.body.classList.remove("sidebar-open");
+  window.scrollTo(0, 0);
+
+  if (botId) {
+    try {
+      sessionStorage.setItem("arixa_active_tab_" + botId, name);
+      localStorage.setItem("arixa_active_tab_" + botId, name);
+    } catch (e) {}
+
+    var target = "/bot/" + botId + (name === "overview" ? "" : "/" + name);
+    if (!fromHistory) {
+      if (window.location.pathname !== target && window.history) {
+        if (window.history.pushState) {
+          window.history.pushState({ view: name }, "", target);
+        } else if (window.history.replaceState) {
+          window.history.replaceState({ view: name }, "", target);
+        }
+      }
+    }
+  }
+}
+
+if (sidebarOverview) {
+  sidebarOverview.addEventListener("click", function (e) {
+    e.preventDefault();
+    showView("overview");
+  });
+}
+if (sidebarBot) {
+  sidebarBot.addEventListener("click", function (e) {
+    e.preventDefault();
+    showView("bot");
+  });
+}
+if (sidebarPlugins) {
+  sidebarPlugins.addEventListener("click", function (e) {
+    e.preventDefault();
+    showView("plugins");
+  });
+}
+
+var tabBtns = document.querySelectorAll(".plugins-tab-btn");
+for (var tb = 0; tb < tabBtns.length; tb++) {
+  (function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      var targetTab = btn.getAttribute("data-tab");
+      if (targetTab === "plugins" || targetTab === "manage") {
+        showView(targetTab);
+      }
+    });
+  })(tabBtns[tb]);
+}
+
+var startSegs = window.location.pathname.split("/");
+
+function determineActiveView() {
+  var segs = window.location.pathname.replace(/\/+$/, "").split("/").filter(Boolean);
+  if (segs[0] === "bot") {
+    if (segs[2] === "manage" && segs[3]) {
+      return "manage";
+    }
+    var last = segs[segs.length - 1];
+    if (last === "bot" || last === "plugins" || last === "manage") {
+      return last;
+    }
+    if (last === "overview") {
+      return "overview";
+    }
+
+    // If path is just /bot/:id, check saved state (persisted across Desktop Site toggle)
+    try {
+      var bId = botId || (segs[1] ? segs[1].replace(/[^0-9]/g, "") : "");
+      if (bId) {
+        var saved = sessionStorage.getItem("arixa_active_tab_" + bId) || localStorage.getItem("arixa_active_tab_" + bId);
+        if (saved && (saved === "bot" || saved === "plugins" || saved === "manage" || saved === "overview")) {
+          return saved;
+        }
+      }
+    } catch (e) {}
+  }
+  return "overview";
+}
+
+var startActiveView = determineActiveView();
+showView(startActiveView, true);
+
+window.addEventListener("popstate", function (e) {
+  var v = (e.state && e.state.view) ? e.state.view : determineActiveView();
+  showView(v, true);
+});
+
+var sidebarHome = document.getElementById("sidebarHome");
+if (sidebarHome) {
+  sidebarHome.addEventListener("click", function () {
+    try {
+      if (botId) {
+        sessionStorage.removeItem("arixa_active_tab_" + botId);
+        localStorage.removeItem("arixa_active_tab_" + botId);
+      }
+    } catch (e) {}
+  });
+}
+
+function getClientIdVal() {
+  return (clientIdInput && clientIdInput.value) ? clientIdInput.value.trim() : "";
+}
+
+function updateInviteUrl() {
+  if (!btnInvite) return;
+  var cid = getClientIdVal();
+  if (cid) {
+    btnInvite.classList.remove("disabled");
+    btnInvite.href = "https://discord.com/oauth2/authorize?client_id=" + encodeURIComponent(cid) + "&permissions=8&scope=bot%20applications.commands";
+    btnInvite.setAttribute("title", "Invite Bot");
+    btnInvite.removeAttribute("tabindex");
+  } else {
+    btnInvite.classList.add("disabled");
+    btnInvite.removeAttribute("href");
+    btnInvite.setAttribute("title", "Enter Client ID to enable invite");
+    btnInvite.setAttribute("tabindex", "-1");
+  }
+}
+
+if (btnInvite) {
+  btnInvite.addEventListener("click", function (e) {
+    var cid = getClientIdVal();
+    if (!cid) {
+      e.preventDefault();
+      showView("bot");
+      if (typeof openAdvancedPanel === "function") openAdvancedPanel();
+      showClientNote("Enter Client ID to enable invite button", false);
+      if (clientIdInput) {
+        setTimeout(function () {
+          clientIdInput.focus();
+          clientIdInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+  });
+}
+
+if (clientIdInput) {
+  clientIdInput.addEventListener("input", updateInviteUrl);
+}
+
+updateInviteUrl();
+
+var btnStart = document.getElementById("btnStart");
+var btnStop = document.getElementById("btnStop");
+var btnRestart = document.getElementById("btnRestart");
+var restartSvg = document.getElementById("restartSvg");
+var statusDot = document.getElementById("statusDot");
+var statusBadge = document.getElementById("statusBadge");
+var statusMeta = document.getElementById("statusMeta");
+var hostNote = document.getElementById("hostNote");
+var pollFailed = false;
+
+var currentUptime = 0;
+var currentStatus = "{{BOTSTATUS}}";
+if (currentStatus.indexOf("{{") > -1) currentStatus = "offline";
+var currentPing = null;
+var currentErrorText = null;
+var PRESENCE_LABELS = { online: "Online", idle: "Idle", dnd: "DND" };
+
+function normalizePresenceVal(v) {
+  var t = String(v || "").toLowerCase().trim();
+  return (t === "idle" || t === "dnd") ? t : "online";
+}
+
+var currentPresence = normalizePresenceVal("{{PRESENCE_STATUS}}");
+var pollTimer = null;
+var tickerTimer = null;
+
+function showHostNote(text, ok) {
+  hostNote.textContent = text;
+  hostNote.style.color = ok ? "#3fb950" : "#f85149";
+  hostNote.classList.add("show");
+  setTimeout(function () { hostNote.classList.remove("show"); }, 2800);
+}
+
+function showClientNote(text, ok) {
+  var note = document.getElementById("clientNote");
+  note.textContent = text;
+  note.style.color = ok ? "#3fb950" : "#f85149";
+  note.classList.add("show");
+  setTimeout(function () { note.classList.remove("show"); }, 2500);
+}
+
+function formatUptime(seconds) {
+  if (!seconds || seconds <= 0) return "0s";
+  var s = Math.floor(seconds);
+  var d = Math.floor(s / 86400);
+  s %= 86400;
+  var h = Math.floor(s / 3600);
+  s %= 3600;
+  var m = Math.floor(s / 60);
+  s %= 60;
+  if (d > 0) return d + "d " + h + "h " + m + "m";
+  if (h > 0) return h + "h " + m + "m " + s + "s";
+  if (m > 0) return m + "m " + s + "s";
+  return s + "s";
+}
+
+function renderStatus(status, uptime, ping, errorMsg) {
+  var prevStatus = currentStatus;
+  currentStatus = status || "offline";
+  currentUptime = uptime || 0;
+  currentPing = ping || null;
+  currentErrorText = errorMsg || null;
+
+  var visualClass = currentStatus === "online"
+    ? currentPresence
+    : (currentStatus === "restarting" || currentStatus === "connecting") ? "restarting" : "offline";
+
+  var topVisualClass = currentStatus === "online"
+    ? "online"
+    : (currentStatus === "restarting" || currentStatus === "connecting") ? "restarting" : "offline";
+
+  statusDot.className = "status-dot " + topVisualClass;
+  statusBadge.className = "status-badge " + topVisualClass;
+
+  if (currentStatus === "online") {
+    statusBadge.textContent = "ONLINE";
+    var meta = "Hosted Online • " + formatUptime(currentUptime);
+    if (ping) meta += " • " + ping + "ms";
+    statusMeta.textContent = meta;
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    btnRestart.disabled = false;
+    restartSvg.classList.remove("spinning");
+    if (prevStatus !== "online" || !frontendRotationTimer) {
+      startFrontendRotation();
+    }
+  } else if (currentStatus === "restarting") {
+    statusBadge.textContent = "RESTARTING";
+    statusMeta.textContent = "Reconnecting to Discord...";
+    btnStart.disabled = true;
+    btnStop.disabled = true;
+    btnRestart.disabled = true;
+    restartSvg.classList.add("spinning");
+    stopFrontendRotation();
+  } else if (currentStatus === "connecting") {
+    statusBadge.textContent = "CONNECTING";
+    statusMeta.textContent = "Connecting to Gateway...";
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    btnRestart.disabled = true;
+    restartSvg.classList.remove("spinning");
+    stopFrontendRotation();
+  } else {
+    statusBadge.textContent = "OFFLINE";
+    statusMeta.textContent = errorMsg ? errorMsg : "Bot is stopped";
+    btnStart.disabled = false;
+    btnStop.disabled = true;
+    btnRestart.disabled = false;
+    restartSvg.classList.remove("spinning");
+    stopFrontendRotation();
+  }
+
+  if (botProfileDot) {
+    botProfileDot.className = "bot-profile-status-dot " + visualClass;
+  }
+}
+
+function fetchStatus() {
+  if (!botId) return;
+  fetch("/api/bot/" + botId + "/status")
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        pollFailed = false;
+        renderStatus(data.status, data.uptime, data.ping, data.error);
+        if (data.presenceStatus) {
+          var remotePresence = normalizePresenceVal(data.presenceStatus);
+          if (remotePresence !== currentPresence) {
+            currentPresence = remotePresence;
+            markActivePresenceOpt();
+            renderStatus(currentStatus, currentUptime, currentPing, currentErrorText);
+          }
+        }
+        if (data.botAvatar && botProfileAvatar) {
+          botProfileAvatar.src = data.botAvatar;
+        }
+        if (data.botName && botProfileName) {
+          botProfileName.textContent = data.botName;
+        }
+        if (data.clientId && !clientIdInput.value) {
+          clientIdInput.value = data.clientId;
+          updateInviteUrl();
+        }
+        if (data.themeColors && window.__applyThemeColors) {
+          window.__applyThemeColors(data.themeColors);
+        }
+        if (statServers && typeof data.guildCount === "number") {
+          statServers.textContent = data.guildCount;
+        }
+        if (statUsers && typeof data.memberCount === "number") {
+          statUsers.textContent = data.memberCount;
+        }
+        if (data.currentActivity) {
+          updateStatusDesc(data.currentActivity);
+        }
+        if (Array.isArray(data.customStatuses) && data.customStatuses.length > 0) {
+          var remoteStatuses = data.customStatuses.map(normalizeStatusEntry).filter(function (s) { return s.text.length > 0; });
+          var statusesChanged = JSON.stringify(remoteStatuses) !== JSON.stringify(activeCustomStatuses) || (data.statusInterval && data.statusInterval !== activeStatusInterval);
+          if (statusesChanged && remoteStatuses.length > 0) {
+            activeCustomStatuses = remoteStatuses;
+            if (data.statusInterval) activeStatusInterval = Math.max(3, parseInt(data.statusInterval, 10) || 10);
+            syncInputsWithStatuses();
+            if (currentStatus === "online") {
+              startFrontendRotation();
+            }
+          }
+        }
+      }
+    })
+    .catch(function () {
+      if (!pollFailed) {
+        pollFailed = true;
+        showHostNote("Couldn't refresh status — network error", false);
+      }
+    });
+}
+
+btnStart.addEventListener("click", function () {
+  btnStart.disabled = true;
+  renderStatus("connecting", 0, null, null);
+  showHostNote("Starting bot...", true);
+  fetch("/api/bot/" + botId + "/start", { method: "POST" })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        showHostNote("Bot hosted online!", true);
+        fetchStatus();
+      } else {
+        showHostNote(data.error || "Failed to start bot", false);
+        fetchStatus();
+      }
+    })
+    .catch(function () {
+      showHostNote("Network error starting bot", false);
+      fetchStatus();
+    });
+});
+
+btnStop.addEventListener("click", function () {
+  btnStop.disabled = true;
+  showHostNote("Stopping bot...", true);
+  fetch("/api/bot/" + botId + "/stop", { method: "POST" })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        showHostNote("Bot stopped", true);
+        renderStatus("offline", 0, null, null);
+      } else {
+        showHostNote(data.error || "Failed to stop bot", false);
+        fetchStatus();
+      }
+    })
+    .catch(function () {
+      showHostNote("Network error stopping bot", false);
+      fetchStatus();
+    });
+});
+
+btnRestart.addEventListener("click", function () {
+  renderStatus("restarting", 0, null, null);
+  showHostNote("Restarting bot...", true);
+  fetch("/api/bot/" + botId + "/restart", { method: "POST" })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        showHostNote("Bot restarted online!", true);
+        fetchStatus();
+      } else {
+        showHostNote(data.error || "Failed to restart bot", false);
+        fetchStatus();
+      }
+    })
+    .catch(function () {
+      showHostNote("Network error restarting bot", false);
+      fetchStatus();
+    });
+});
+
+document.getElementById("addClient").addEventListener("click", function () {
+  var val = clientIdInput.value.trim();
+  if (!val) {
+    showClientNote("Enter a Client ID first", false);
+    return;
+  }
+  fetch("/api/bot/" + botId + "/client-id", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: val })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        showClientNote("Client ID saved", true);
+        updateInviteUrl();
+      } else {
+        showClientNote(data.error || "Error saving Client ID", false);
+      }
+    })
+    .catch(function () {
+      showClientNote("Saved locally", true);
+      updateInviteUrl();
+    });
+});
+
+var btnToggleStatusPanel = document.getElementById("btnToggleStatusPanel");
+var statusExpandPanel = document.getElementById("statusExpandPanel");
+var statusDropdownArrow = document.getElementById("statusDropdownArrow");
+var botProfileCard = document.querySelector(".bot-profile-card");
+
+if (btnToggleStatusPanel && statusExpandPanel) {
+  btnToggleStatusPanel.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var isOpen = statusExpandPanel.classList.toggle("open");
+    if (statusDropdownArrow) {
+      statusDropdownArrow.classList.toggle("rotated", isOpen);
+    }
+    if (botProfileCard) {
+      botProfileCard.classList.toggle("has-panel-open", isOpen);
+    }
+  });
+}
+
+var btnSaveStatus = document.getElementById("btnSaveStatus");
+var statusPanelNote = document.getElementById("statusPanelNote");
+
+function showPanelNote(text, ok) {
+  if (!statusPanelNote) return;
+  statusPanelNote.textContent = text;
+  statusPanelNote.style.color = ok ? "#3fb950" : "#f85149";
+  statusPanelNote.classList.add("show");
+  setTimeout(function () {
+    statusPanelNote.classList.remove("show");
+  }, 2800);
+}
+
+if (btnSaveStatus) {
+  btnSaveStatus.addEventListener("click", function () {
+    var rows = [
+      { type: statusType1, input: statusInput1 },
+      { type: statusType2, input: statusInput2 },
+      { type: statusType3, input: statusInput3 }
+    ];
+    var statuses = [];
+    rows.forEach(function (row) {
+      var text = row.input ? row.input.value.trim() : "";
+      if (!text) return;
+      var type = row.type && row.type.value ? String(row.type.value).toLowerCase() : "playing";
+      if (!STATUS_TYPE_LABELS[type]) type = "playing";
+      statuses.push({ type: type, text: text });
+    });
+    if (statuses.length === 0) {
+      statuses = [{ type: "playing", text: "Hosted by " + (brandName ? brandName.textContent : "Arixa") }];
+    }
+    var interval = parseInt(statusIntervalInput ? statusIntervalInput.value : "10", 10) || 10;
+    if (interval < 3) interval = 3;
+    if (statusIntervalInput) statusIntervalInput.value = interval;
+
+    btnSaveStatus.disabled = true;
+    showPanelNote("Saving status settings...", true);
+
+    fetch("/api/bot/" + botId + "/custom-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ statuses: statuses, interval: interval })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        btnSaveStatus.disabled = false;
+        if (data.ok) {
+          activeCustomStatuses = (Array.isArray(data.customStatuses) ? data.customStatuses : statuses)
+            .map(normalizeStatusEntry)
+            .filter(function (s) { return s.text.length > 0; });
+          if (activeCustomStatuses.length === 0) activeCustomStatuses = statuses;
+          activeStatusInterval = data.statusInterval || interval;
+          frontendRotationIndex = 0;
+          updateStatusDesc(statusTextOf(activeCustomStatuses[0]) || data.currentActivity || "");
+          if (currentStatus === "online") {
+            startFrontendRotation();
+          }
+          showPanelNote("Statuses saved & syncing live!", true);
+        } else {
+          showPanelNote(data.error || "Failed to save statuses", false);
+        }
+      })
+      .catch(function () {
+        btnSaveStatus.disabled = false;
+        showPanelNote("Network error saving statuses", false);
+      });
+  });
+}
+
+var botAvatarWrap = document.getElementById("botAvatarWrap");
+var presenceMenu = document.getElementById("presenceMenu");
+
+function markActivePresenceOpt() {
+  if (!presenceMenu) return;
+  var opts = presenceMenu.querySelectorAll(".presence-opt");
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].classList.toggle("active", opts[i].getAttribute("data-status") === currentPresence);
+  }
+}
+
+function setPresenceLocal(presence) {
+  currentPresence = normalizePresenceVal(presence);
+  markActivePresenceOpt();
+  renderStatus(currentStatus, currentUptime, currentPing, currentErrorText);
+}
+
+if (botAvatarWrap && presenceMenu) {
+  botAvatarWrap.addEventListener("click", function (e) {
+    e.stopPropagation();
+    markActivePresenceOpt();
+    presenceMenu.classList.toggle("open");
+  });
+  presenceMenu.addEventListener("click", function (e) { e.stopPropagation(); });
+
+  var presenceOpts = presenceMenu.querySelectorAll(".presence-opt");
+  for (var pi = 0; pi < presenceOpts.length; pi++) {
+    (function (opt) {
+      opt.addEventListener("click", function () {
+        var want = normalizePresenceVal(opt.getAttribute("data-status"));
+        var prev = currentPresence;
+        presenceMenu.classList.remove("open");
+        if (want === prev) return;
+        setPresenceLocal(want);
+        fetch("/api/bot/" + botId + "/presence-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: want })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.ok) {
+              setPresenceLocal(d.presenceStatus || want);
+              showHostNote("Status set to " + (PRESENCE_LABELS[currentPresence] || currentPresence), true);
+            } else {
+              setPresenceLocal(prev);
+              showHostNote(d.error || "Failed to change status", false);
+            }
+          })
+          .catch(function () {
+            setPresenceLocal(prev);
+            showHostNote("Network error changing status", false);
+          });
+      });
+    })(presenceOpts[pi]);
+  }
+
+  document.addEventListener("click", function () {
+    presenceMenu.classList.remove("open");
+  });
+}
+markActivePresenceOpt();
+
+renderStatus(currentStatus, 0, null, null);
+if (currentStatus === "online") {
+  startFrontendRotation();
+}
+fetchStatus();
+
+pollTimer = setInterval(fetchStatus, 3500);
+
+tickerTimer = setInterval(function () {
+  if (currentStatus === "online") {
+    currentUptime++;
+    var meta = "Hosted Online • " + formatUptime(currentUptime);
+    if (currentPing) meta += " • " + currentPing + "ms";
+    statusMeta.textContent = meta;
+  }
+}, 1000);
+
+var pluginsEmpty = document.getElementById("pluginsEmpty");
+var pluginsGrid = document.getElementById("pluginsGrid");
+var manageEmpty = document.getElementById("manageEmpty");
+var manageGrid = document.getElementById("manageGrid");
+var pluginDetail = document.getElementById("pluginDetail");
+var manageTabWrap = document.getElementById("manageTabWrap");
+var pluginToastEl = document.getElementById("pluginToast");
+var pluginCatalog = [];
+var detailPid = null;
+var pathSegsList = window.location.pathname.replace(/\/+$/, "").split("/").filter(Boolean);
+var pendingDetail = (pathSegsList[0] === "bot" && pathSegsList[2] === "manage" && pathSegsList[3] && /^[0-9a-zA-Z_-]+$/.test(pathSegsList[3])) ? pathSegsList[3] : null;
+if (!pendingDetail && startSegs[1] === "bot" && startSegs[3] === "manage" && startSegs[4] && /^[0-9a-zA-Z_-]+$/.test(startSegs[4])) {
+  pendingDetail = startSegs[4];
+}
+var pluginToastTimer = null;
+
+var PLUGIN_BOX_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>';
+var PLUGIN_SLIDER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="9" cy="6" r="2"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="15" cy="12" r="2"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="9" cy="18" r="2"></circle></svg>';
+var BACK_ARROW_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>';
+
+function escPluginHtml(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function pluginToastShow(text, ok) {
+  if (!pluginToastEl) return;
+  pluginToastEl.textContent = text;
+  pluginToastEl.style.borderColor = ok ? "#3fb95055" : "#f8514955";
+  pluginToastEl.style.color = ok ? "#3fb950" : "#f85149";
+  pluginToastEl.classList.add("show");
+  if (pluginToastTimer) clearTimeout(pluginToastTimer);
+  pluginToastTimer = setTimeout(function () { pluginToastEl.classList.remove("show"); }, 2600);
+}
+
+function renderPluginMd(src) {
+  var clean = String(src || "").replace(/```config\s*\r?\n[\s\S]*?```/g, "");
+  var lines = clean.split(/\r?\n/);
+  var out = [];
+  var inList = false;
+  var inFence = false;
+  function inline(s) {
+    return s.replace(/\*\*(.+?)\*\*/g, '<strong class="md-strong">$1</strong>').replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
+  }
+  lines.forEach(function (line) {
+    var t = line.trim();
+    if (t.indexOf("```") === 0) { inFence = !inFence; return; }
+    if (inFence) return;
+    if (!t) { if (inList) { out.push("</ul>"); inList = false; } return; }
+    var m = t.match(/^(#{1,3})\s+(.*)$/);
+    if (m) {
+      if (inList) { out.push("</ul>"); inList = false; }
+      out.push("<h" + m[1].length + ' class="md-h">' + inline(m[2]) + "</h" + m[1].length + ">");
+      return;
+    }
+    m = t.match(/^[-*]\s+(.*)$/);
+    if (m) {
+      if (!inList) { out.push('<ul class="md-ul">'); inList = true; }
+      out.push('<li class="md-li">' + inline(m[1]) + "</li>");
+      return;
+    }
+    if (inList) { out.push("</ul>"); inList = false; }
+    out.push('<p class="md-p">' + inline(t) + "</p>");
+  });
+  if (inList) out.push("</ul>");
+  return out.join("");
+}
+
+function renderPluginsCatalog() {
+  if (!pluginsGrid || !pluginsEmpty) return;
+  if (!pluginCatalog.length) {
+    pluginsEmpty.hidden = false;
+    pluginsGrid.hidden = true;
+    pluginsGrid.innerHTML = "";
+    return;
+  }
+  pluginsEmpty.hidden = true;
+  pluginsGrid.hidden = false;
+  pluginsGrid.innerHTML = pluginCatalog.map(function (p) {
+    var action = p.installed
+      ? '<button class="btn-uninstall-card" data-id="' + escPluginHtml(p.id) + '">Uninstall</button>'
+      : '<button class="btn-install" data-id="' + escPluginHtml(p.id) + '">Install</button>';
+    return '<div class="plugin-card">' +
+      '<span class="plugin-name">' + escPluginHtml(p.name) + "</span>" +
+      '<div class="plugin-card-actions"><span class="plugin-version">v' + escPluginHtml(p.version) + "</span>" + action + "</div></div>";
+  }).join("");
+}
+
+function renderManageGrid() {
+  if (!manageGrid || !manageEmpty || !pluginDetail) return;
+  if (manageTabWrap) manageTabWrap.hidden = false;
+  var installed = pluginCatalog.filter(function (p) { return p.installed; });
+  if (!installed.length) {
+    manageEmpty.hidden = false;
+    manageGrid.hidden = true;
+    pluginDetail.hidden = true;
+    return;
+  }
+  manageEmpty.hidden = true;
+  manageGrid.hidden = false;
+  pluginDetail.hidden = true;
+  pluginDetail.innerHTML = "";
+  manageGrid.innerHTML = installed.map(function (p) {
+    return '<div class="plugin-card">' +
+      '<span class="plugin-name">' + escPluginHtml(p.name) + "</span>" +
+      '<div class="plugin-card-actions"><span class="plugin-version">v' + escPluginHtml(p.version) + "</span>" +
+      '<button class="btn-manage" data-id="' + escPluginHtml(p.id) + '" title="Manage plugin">' + PLUGIN_SLIDER_SVG + "Manage</button></div></div>";
+  }).join("");
+}
+
+function postPluginAction(action, data, cb) {
+  fetch("/api/bot/" + botId + "/plugins/" + action, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  }).then(function (r) { return r.json(); }).then(cb).catch(function () {
+    pluginToastShow("Could not reach the server", false);
+  });
+}
+
+function loadPlugins() {
+  if (!botId) return;
+  fetch("/api/bot/" + botId + "/plugins").then(function (r) { return r.json(); }).then(function (d) {
+    if (!d.ok) return;
+    pluginCatalog = d.plugins || [];
+    renderPluginsCatalog();
+    if (detailPid) {
+      var still = pluginCatalog.filter(function (p) { return p.id === detailPid && p.installed; })[0];
+      if (still) openPluginDetail(detailPid);
+      else closePluginDetail(true);
+    } else {
+      renderManageGrid();
+    }
+    if (pendingDetail) {
+      var pid = pendingDetail;
+      pendingDetail = null;
+      var p = pluginCatalog.filter(function (x) { return x.id === pid && x.installed; })[0];
+      if (p) openPluginDetail(pid);
+    }
+  }).catch(function () {});
+}
+
+function closePluginDetail(resetUrl) {
+  detailPid = null;
+  window.__embedPops = null;
+  if (pluginDetail) { pluginDetail.hidden = true; pluginDetail.innerHTML = ""; }
+  if (manageTabWrap) manageTabWrap.hidden = false;
+  renderManageGrid();
+  if (resetUrl && window.history && window.history.replaceState) {
+    window.history.replaceState(null, "", "/bot/" + botId + "/manage");
+  }
+}
+
+function openPluginDetail(pid) {
+  if (!botId || !pluginDetail) return;
+  detailPid = pid;
+  fetch("/api/bot/" + botId + "/plugins/" + encodeURIComponent(pid)).then(function (r) { return r.json(); }).then(function (d) {
+    if (!d.ok) {
+      pluginToastShow(d.error || "Failed to load plugin", false);
+      closePluginDetail(true);
+      return;
+    }
+    renderPluginDetail(d.plugin);
+  }).catch(function () {
+    pluginToastShow("Could not reach the server", false);
+    closePluginDetail(true);
+  });
+}
+
+function defaultEmbedState(src) {
+  src = (src && typeof src === "object") ? src : {};
+  return {
+    color: src.color || "#5865f2",
+    title: src.title || "",
+    titleUrl: src.titleUrl || "",
+    description: src.description || "",
+    authorName: src.authorName || "",
+    authorIcon: src.authorIcon || "",
+    footerText: src.footerText || "",
+    footerIcon: src.footerIcon || "",
+    thumbnail: src.thumbnail || ""
+  };
+}
+
+function stageBotName() {
+  var el = document.getElementById("botProfileName") || document.getElementById("botName");
+  var n = el && el.textContent ? el.textContent.trim() : "";
+  if (!n || n.indexOf("{{") > -1) n = "Bot";
+  return n;
+}
+
+function embedIsHttp(url) {
+  return /^https?:\/\/\S+$/i.test(url);
+}
+
+function embedProbeImage(url, cb) {
+  var probe = new Image();
+  probe.onload = function () { cb(true); };
+  probe.onerror = function () { cb(false); };
+  probe.src = url;
+}
+
+function embedEditorHtml() {
+  var name = stageBotName();
+  var botAvEl = document.getElementById("botProfileAvatar");
+  var botAv = botAvEl && botAvEl.src && botAvEl.src.indexOf("{{") === -1 ? botAvEl.src : "https://cdn.discordapp.com/embed/avatars/0.png";
+  var userAvEl = document.getElementById("userAvatar");
+  var userAv = userAvEl && userAvEl.src && userAvEl.src.indexOf("{{") === -1 ? userAvEl.src : "https://cdn.discordapp.com/embed/avatars/0.png";
+  userAv = userAv.replace("size=64", "size=1024");
+  if (userAv.indexOf("size=") === -1 && userAv.indexOf("cdn.discordapp.com/avatars/") > -1) {
+    userAv += (userAv.indexOf("?") > -1 ? "&" : "?") + "size=1024";
+  }
+  return '<div class="embed-editor-note">Live preview of the command reply with your own avatar. The image, author icon and footer icon are set by the plugin.</div>' +
+    '<div class="embed-stage">' +
+      '<div class="message-author">' +
+        '<img class="message-avatar" src="' + escPluginHtml(botAv) + '" alt="" onerror="this.onerror=null;this.src=\'https://cdn.discordapp.com/embed/avatars/0.png\'">' +
+        '<span class="stage-name">' + escPluginHtml(name) +
+          '<span class="bot-badge"><svg class="bot-badge-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6.00016 11.2L2.80016 8L1.86682 8.93333L6.00016 13.0667L14.0002 5.06667L13.0668 4.13333L6.00016 11.2Z"/></svg>APP</span>' +
+        '</span>' +
+      '</div>' +
+      '<div class="embed">' +
+        '<div class="embed-accent" title="Click to change colour"></div>' +
+        '<div class="embed-top">' +
+          '<div class="embed-main">' +
+            '<div class="embed-author">' +
+              '<div class="embed-author-icon"></div>' +
+              '<div class="embed-author-name" contenteditable="true" spellcheck="false"></div>' +
+            '</div>' +
+            '<div class="embed-title-row">' +
+              '<div class="embed-title-link" title="Set title link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>' +
+              '<div class="embed-title" contenteditable="true" spellcheck="false"></div>' +
+            '</div>' +
+            '<div class="embed-description" contenteditable="true" spellcheck="false"></div>' +
+          '</div>' +
+          '<div class="embed-thumbnail" title="Set thumbnail image URL"></div>' +
+        '</div>' +
+        '<div class="embed-image"><img src="' + escPluginHtml(userAv) + '" alt="Avatar preview" onerror="this.onerror=null;this.remove()"></div>' +
+        '<div class="embed-footer">' +
+          '<div class="embed-footer-icon"></div>' +
+          '<div class="embed-footer-text" contenteditable="true" spellcheck="false"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="url-pop" id="embedUrlPop" hidden>' +
+      '<div class="url-pop-card">' +
+        '<div class="url-pop-title" id="embedUrlTitle">Image URL</div>' +
+        '<input type="text" class="url-pop-input" id="embedUrlInput" placeholder="https://..." spellcheck="false" autocomplete="off">' +
+        '<div class="url-pop-hint" id="embedUrlHint"></div>' +
+        '<div class="url-pop-actions">' +
+          '<button class="url-pop-btn cancel" id="embedUrlCancel">Cancel</button>' +
+          '<button class="url-pop-btn save" id="embedUrlSave">Save</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="url-pop" id="embedColourPop" hidden>' +
+      '<div class="url-pop-card">' +
+        '<div class="url-pop-title">Embed colour</div>' +
+        '<div class="colour-grid" id="embedColourGrid"></div>' +
+        '<div class="colour-custom">' +
+          '<input type="color" id="embedColourInput" value="#5865f2">' +
+          '<span class="colour-hex" id="embedColourHex">#5865F2</span>' +
+        '</div>' +
+        '<div class="url-pop-actions">' +
+          '<button class="url-pop-btn cancel" id="embedColourCancel">Cancel</button>' +
+          '<button class="url-pop-btn save" id="embedColourSave">Save</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function bindEmbedEditor(emb) {
+  var root = pluginDetail;
+  if (!root) return;
+  var authorIcon = root.querySelector(".embed-author-icon");
+  var footerIcon = root.querySelector(".embed-footer-icon");
+  var authorName = root.querySelector(".embed-author-name");
+  var footerText = root.querySelector(".embed-footer-text");
+  var titleText = root.querySelector(".embed-title");
+  var titleLink = root.querySelector(".embed-title-link");
+  var thumbEl = root.querySelector(".embed-thumbnail");
+  var descEl = root.querySelector(".embed-description");
+  var accentEl = root.querySelector(".embed-accent");
+  var embedBox = root.querySelector(".embed");
+  if (!embedBox) return;
+
+  function syncIcons() {
+    authorIcon.style.display = authorName.textContent.trim() === "" ? "none" : "";
+    footerIcon.style.display = footerText.textContent.trim() === "" ? "none" : "";
+    titleLink.style.display = titleText.textContent.trim() === "" ? "none" : "flex";
+  }
+
+  function setBg(el, url) {
+    if (url) el.style.backgroundImage = "url('" + String(url).replace(/'/g, "%27") + "')";
+    else el.style.backgroundImage = "";
+  }
+
+  embedBox.style.setProperty("--accent", emb.color);
+  titleText.textContent = emb.title;
+  descEl.textContent = emb.description;
+  authorName.textContent = emb.authorName;
+  footerText.textContent = emb.footerText;
+  setBg(thumbEl, emb.thumbnail);
+  setBg(authorIcon, emb.authorIcon);
+  setBg(footerIcon, emb.footerIcon);
+  if (emb.titleUrl) {
+    titleLink.classList.add("set");
+    titleText.classList.add("has-link");
+  }
+  syncIcons();
+
+  root.querySelectorAll(".embed-stage [contenteditable]").forEach(function (el) {
+    el.addEventListener("input", function () {
+      if (el.textContent.trim() === "") el.innerHTML = "";
+      var t = el.textContent;
+      if (el === titleText) emb.title = t;
+      else if (el === descEl) emb.description = t;
+      else if (el === authorName) emb.authorName = t;
+      else if (el === footerText) emb.footerText = t;
+      syncIcons();
+    });
+  });
+
+  var IMG_HINT = "Image URL - https://.../photo.png";
+  var ANY_HINT = "Enter any link (https://...)";
+  var URL_ERR = "Enter a valid URL starting with https://";
+  var LOAD_ERR = "This is not a valid image URL. Please enter a URL that opens as an image.";
+
+  var urlPop = root.querySelector("#embedUrlPop");
+  var urlTitle = root.querySelector("#embedUrlTitle");
+  var urlInput = root.querySelector("#embedUrlInput");
+  var urlHint = root.querySelector("#embedUrlHint");
+  var urlApply = null;
+
+  function openUrlPop(title, current, hint, apply) {
+    urlTitle.textContent = title;
+    urlInput.value = current || "";
+    urlHint.textContent = hint;
+    urlHint.classList.remove("err");
+    urlInput.classList.remove("err");
+    urlApply = apply;
+    urlPop.hidden = false;
+    urlInput.focus();
+  }
+
+  function closeUrlPop() {
+    urlPop.hidden = true;
+    urlApply = null;
+  }
+
+  root.querySelector("#embedUrlCancel").addEventListener("click", closeUrlPop);
+  urlPop.addEventListener("click", function (e) { if (e.target === urlPop) closeUrlPop(); });
+  urlInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") root.querySelector("#embedUrlSave").click();
+  });
+  root.querySelector("#embedUrlSave").addEventListener("click", function () {
+    if (!urlApply) return;
+    urlApply(urlInput.value.trim(), function (err) {
+      if (!err) { closeUrlPop(); return; }
+      urlHint.textContent = err;
+      urlHint.classList.add("err");
+      urlInput.classList.add("err");
+    });
+  });
+
+  var PRESET_COLOURS = ["#5865F2", "#3BA55D", "#FAA61A", "#ED4245", "#EB459E", "#00A8FC", "#F2F3F5", "#949BA4", "#747F8D", "#1E1F22"];
+  var colourPop = root.querySelector("#embedColourPop");
+  var colourGrid = root.querySelector("#embedColourGrid");
+  var colourInput = root.querySelector("#embedColourInput");
+  var colourHex = root.querySelector("#embedColourHex");
+  var originalColour = emb.color;
+  var pendingColour = emb.color;
+
+  function renderSwatches() {
+    colourGrid.innerHTML = "";
+    PRESET_COLOURS.forEach(function (c) {
+      var sw = document.createElement("div");
+      sw.className = "colour-swatch" + (c === pendingColour ? " sel" : "");
+      sw.style.background = c;
+      sw.addEventListener("click", function () { selectColour(c); });
+      colourGrid.appendChild(sw);
+    });
+  }
+
+  function selectColour(colour) {
+    pendingColour = colour.toUpperCase();
+    colourInput.value = pendingColour;
+    colourHex.textContent = pendingColour;
+    embedBox.style.setProperty("--accent", pendingColour);
+    renderSwatches();
+  }
+
+  function openColourPop() {
+    originalColour = emb.color;
+    pendingColour = emb.color;
+    colourInput.value = pendingColour;
+    colourHex.textContent = pendingColour;
+    renderSwatches();
+    colourPop.hidden = false;
+  }
+
+  function closeColourPop(revert) {
+    if (revert) embedBox.style.setProperty("--accent", emb.color);
+    colourPop.hidden = true;
+  }
+
+  accentEl.addEventListener("click", openColourPop);
+  colourInput.addEventListener("input", function () { selectColour(colourInput.value); });
+  root.querySelector("#embedColourCancel").addEventListener("click", function () { closeColourPop(true); });
+  root.querySelector("#embedColourSave").addEventListener("click", function () {
+    emb.color = pendingColour;
+    closeColourPop(false);
+  });
+  colourPop.addEventListener("click", function (e) { if (e.target === colourPop) closeColourPop(true); });
+
+  thumbEl.addEventListener("click", function () {
+    openUrlPop("Thumbnail image URL", emb.thumbnail, IMG_HINT, function (url, done) {
+      if (!url) {
+        emb.thumbnail = "";
+        setBg(thumbEl, "");
+        return done();
+      }
+      if (!embedIsHttp(url)) return done(URL_ERR);
+      embedProbeImage(url, function (ok) {
+        if (!ok) return done(LOAD_ERR);
+        emb.thumbnail = url;
+        setBg(thumbEl, url);
+        done();
+      });
+    });
+  });
+
+  titleLink.addEventListener("click", function () {
+    openUrlPop("Title link URL", emb.titleUrl, ANY_HINT, function (url, done) {
+      if (!url) {
+        emb.titleUrl = "";
+        titleLink.classList.remove("set");
+        titleText.classList.remove("has-link");
+        return done();
+      }
+      if (!embedIsHttp(url)) return done(URL_ERR);
+      emb.titleUrl = url;
+      titleLink.classList.add("set");
+      titleText.classList.add("has-link");
+      done();
+    });
+  });
+
+  window.__embedPops = { url: urlPop, colour: colourPop };
+  window.__embedCloseUrl = closeUrlPop;
+  window.__embedCloseColour = closeColourPop;
+  if (!window.__embedEscBound) {
+    window.__embedEscBound = true;
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !window.__embedPops) return;
+      if (window.__embedPops.url && !window.__embedPops.url.hidden && window.__embedCloseUrl) window.__embedCloseUrl();
+      else if (window.__embedPops.colour && !window.__embedPops.colour.hidden && window.__embedCloseColour) window.__embedCloseColour(true);
+    });
+  }
+}
+
+function renderPluginDetail(p) {
+  var cmds = p.commands || [];
+  var html = '<div class="detail-top">' +
+    '<button class="detail-back" id="detailBack" title="Back">' + BACK_ARROW_SVG + "</button>" +
+    '<div class="detail-top-center">' +
+      '<h2 class="detail-top-name">' + escPluginHtml(p.name) + '</h2>' +
+      (p.tag ? '<span class="plugin-tag">' + escPluginHtml(p.tag) + '</span>' : '') +
+    '</div>' +
+    '<label class="switch"><input type="checkbox" id="pluginToggle"' + (p.enabled ? " checked" : "") + '><span class="slider"></span></label>' +
+    "</div>" +
+    '<div class="detail-meta" style="text-align:center; margin-top:8px;"><strong>v' + escPluginHtml(p.version) + "</strong><span class=\"meta-dot\">·</span>" + escPluginHtml(p.author || "@unknown") + "</div>";
+  html += '<div class="section-label">Commands <span class="count">' + cmds.length + "</span></div>";
+  if (!cmds.length) {
+    html += '<p class="detail-empty-note">This plugin has no commands.</p>';
+  }
+  cmds.forEach(function (c) {
+    var nameHtml = (c.slash ? "/" : "") + escPluginHtml(c.name);
+    html += '<div class="cmd-row">' +
+      '<div class="cmd-head"><span class="cmd-name">' + nameHtml + "</span>" +
+      '<span class="cmd-flags">' +
+      '<span class="cmd-flag ' + (c.slash ? "yes" : "no") + '">' + (c.slash ? "✓" : "✕") + " Slash</span>" +
+      '<span class="cmd-flag ' + (c.prefix ? "yes" : "no") + '">' + (c.prefix ? "✓" : "✕") + " Prefix</span>" +
+      "</span></div>" +
+      (c.description ? '<div class="cmd-desc">' + escPluginHtml(c.description) + "</div>" : "") +
+      "</div>";
+  });
+  var savedCfg = (p.configValues && typeof p.configValues === "object") ? p.configValues : {};
+  var savedAliases = (savedCfg.aliases && typeof savedCfg.aliases === "object") ? savedCfg.aliases : {};
+
+  var aliasableCmds = cmds.filter(function (c) {
+    return c && (c.allowAliases !== false && c.allowAlias !== false);
+  });
+
+  html += '<div class="section-label">Customize</div><div class="config-box">';
+  var hasCustomizable = false;
+
+  // Custom Variables (e.g. Lavalink Host, Port, Password, API Tokens)
+  var varFields = Array.isArray(p.config) ? p.config : [];
+  if (varFields.length) {
+    hasCustomizable = true;
+    varFields.forEach(function (f) {
+      var val = (savedCfg[f.key] !== undefined && savedCfg[f.key] !== null) ? String(savedCfg[f.key]) : (f.def || "");
+      var sublabel = f.description ? escPluginHtml(f.description) : ("Variable: " + escPluginHtml(f.key));
+      
+      if (f.type === "toggle") {
+        var isChecked = (val === "true" || val === "1" || val === true);
+        html += '<div class="config-row alias-row" style="flex-direction:row;align-items:center;justify-content:space-between;">' +
+          '<div class="config-label-group">' +
+            '<span class="config-label">' + escPluginHtml(f.label || f.key) + '</span>' +
+            '<span class="config-sublabel">' + sublabel + '</span>' +
+          '</div>' +
+          '<label class="switch"><input type="checkbox" class="plugin-var-input" data-key="' + escPluginHtml(f.key) + '" data-type="toggle"' + (isChecked ? " checked" : "") + '><span class="slider"></span></label>' +
+        '</div>';
+      } else if (f.type === "password") {
+        html += '<div class="config-row alias-row">' +
+          '<div class="config-label-group">' +
+            '<span class="config-label">' + escPluginHtml(f.label || f.key) + '</span>' +
+            '<span class="config-sublabel">' + sublabel + '</span>' +
+          '</div>' +
+          '<input class="config-input alias-cmd-input plugin-var-input" type="password" data-key="' + escPluginHtml(f.key) + '" data-type="password" placeholder="' + escPluginHtml(f.placeholder || "Enter secret...") + '" value="' + escPluginHtml(val) + '" autocomplete="off" spellcheck="false">' +
+        '</div>';
+      } else if (f.type === "number") {
+        html += '<div class="config-row alias-row">' +
+          '<div class="config-label-group">' +
+            '<span class="config-label">' + escPluginHtml(f.label || f.key) + '</span>' +
+            '<span class="config-sublabel">' + sublabel + '</span>' +
+          '</div>' +
+          '<input class="config-input alias-cmd-input plugin-var-input" type="number" data-key="' + escPluginHtml(f.key) + '" data-type="number" placeholder="' + escPluginHtml(f.placeholder || "0") + '" value="' + escPluginHtml(val) + '" autocomplete="off">' +
+        '</div>';
+      } else {
+        html += '<div class="config-row alias-row">' +
+          '<div class="config-label-group">' +
+            '<span class="config-label">' + escPluginHtml(f.label || f.key) + '</span>' +
+            '<span class="config-sublabel">' + sublabel + '</span>' +
+          '</div>' +
+          '<input class="config-input alias-cmd-input plugin-var-input" type="text" data-key="' + escPluginHtml(f.key) + '" data-type="text" placeholder="' + escPluginHtml(f.placeholder || "Enter value...") + '" value="' + escPluginHtml(val) + '" autocomplete="off" spellcheck="false">' +
+        '</div>';
+      }
+    });
+  }
+
+  // Command Aliases
+  if (aliasableCmds.length) {
+    hasCustomizable = true;
+    aliasableCmds.forEach(function (c) {
+      var currentAliases = savedAliases[c.name];
+      if (Array.isArray(currentAliases)) {
+        currentAliases = currentAliases.join(", ");
+      } else if (typeof currentAliases !== "string") {
+        currentAliases = (Array.isArray(c.aliases) && c.aliases.length) ? c.aliases.join(", ") : "";
+      }
+      var defaultNote = (Array.isArray(c.aliases) && c.aliases.length) ? 'Creator aliases: ' + escPluginHtml(c.aliases.join(", ")) : '';
+
+      html += '<div class="config-row alias-row">' +
+        '<div class="config-label-group">' +
+          '<span class="config-label">/' + escPluginHtml(c.name) + ' Aliases</span>' +
+          '<span class="config-sublabel">' + (defaultNote ? escPluginHtml(defaultNote) + ' · ' : '') + 'Add custom aliases (comma-separated, e.g. p, latency)</span>' +
+        '</div>' +
+        '<input class="config-input alias-cmd-input" type="text" data-cmd="' + escPluginHtml(c.name) + '" placeholder="e.g. p, latency" value="' + escPluginHtml(currentAliases) + '" autocomplete="off" spellcheck="false">' +
+      '</div>';
+    });
+  }
+
+  if (hasCustomizable) {
+    html += '<button class="btn-save-config" id="btnSaveConfig">Save</button>';
+  } else {
+    html += '<p class="detail-empty-note">No customizable options available for this plugin.</p>';
+  }
+  html += '</div>';
+  if (p.readme) html += '<div class="section-label">Readme</div><div class="detail-readme">' + renderPluginMd(p.readme) + "</div>";
+  html += '<button class="btn-uninstall" id="btnUninstallPlugin" data-id="' + escPluginHtml(p.id) + '">Uninstall</button>';
+  pluginDetail.innerHTML = html;
+  manageEmpty.hidden = true;
+  manageGrid.hidden = true;
+  if (manageTabWrap) manageTabWrap.hidden = true;
+  pluginDetail.hidden = false;
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, "", "/bot/" + botId + "/manage/" + encodeURIComponent(p.id));
+  }
+  document.getElementById("detailBack").addEventListener("click", function () {
+    closePluginDetail(true);
+  });
+  var toggle = document.getElementById("pluginToggle");
+  if (toggle) toggle.addEventListener("change", function () {
+    var wanted = toggle.checked;
+    postPluginAction("toggle", { pluginId: p.id, enabled: wanted }, function (d2) {
+      if (!d2.ok) {
+        toggle.checked = !wanted;
+        pluginToastShow(d2.error || "Failed to update", false);
+        return;
+      }
+      var entry = pluginCatalog.filter(function (x) { return x.id === p.id; })[0];
+      if (entry) entry.enabled = d2.enabled;
+      if (d2.disabledPlugins && d2.disabledPlugins.length) {
+        d2.disabledPlugins.forEach(function (disId) {
+          var other = pluginCatalog.filter(function (x) { return x.id === disId; })[0];
+          if (other) other.enabled = false;
+        });
+      }
+      if (d2.disabledDetails && d2.disabledDetails.length) {
+        var names = d2.disabledDetails.map(function (d) { return d.name; }).join(", ");
+        pluginToastShow((d2.enabled ? "Plugin enabled" : "Plugin disabled") + " (Auto-disabled conflicting: " + names + ")", true);
+      } else if (d2.warnings && d2.warnings.length) {
+        pluginToastShow(d2.warnings[0], false);
+      } else {
+        pluginToastShow(d2.enabled ? "Plugin enabled" : "Plugin disabled", true);
+      }
+    });
+  });
+  var saveBtn = document.getElementById("btnSaveConfig");
+  if (saveBtn) saveBtn.addEventListener("click", function () {
+    var aliasInputs = pluginDetail.querySelectorAll(".alias-cmd-input:not(.plugin-var-input)");
+    var aliasesMap = {};
+    for (var i = 0; i < aliasInputs.length; i++) {
+      var cmd = aliasInputs[i].getAttribute("data-cmd");
+      if (!cmd) continue;
+      var val = aliasInputs[i].value.trim();
+      var arr = val ? val.split(",").map(function (s) {
+        return s.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+      }).filter(Boolean) : [];
+      aliasesMap[cmd] = arr;
+    }
+
+    var valuesPayload = { aliases: aliasesMap };
+    var varInputs = pluginDetail.querySelectorAll(".plugin-var-input");
+    for (var j = 0; j < varInputs.length; j++) {
+      var vKey = varInputs[j].getAttribute("data-key");
+      var vType = varInputs[j].getAttribute("data-type");
+      if (!vKey) continue;
+      if (vType === "toggle") {
+        valuesPayload[vKey] = varInputs[j].checked ? "true" : "false";
+      } else {
+        valuesPayload[vKey] = varInputs[j].value.trim();
+      }
+    }
+
+    postPluginAction("config", { pluginId: p.id, values: valuesPayload }, function (d2) {
+      pluginToastShow(d2.ok ? "Configuration saved successfully" : (d2.error || "Failed to save"), !!d2.ok);
+      if (d2.ok && d2.values) {
+        if (!p.configValues) p.configValues = {};
+        p.configValues = Object.assign(p.configValues, d2.values);
+      }
+    });
+  });
+  var unBtn = document.getElementById("btnUninstallPlugin");
+  if (unBtn) unBtn.addEventListener("click", function () {
+    postPluginAction("uninstall", { pluginId: p.id }, function (d2) {
+      pluginToastShow(d2.ok ? "Plugin uninstalled" : (d2.error || "Failed to uninstall"), !!d2.ok);
+      closePluginDetail(false);
+      loadPlugins();
+    });
+  });
+}
+
+if (pluginsGrid) pluginsGrid.addEventListener("click", function (e) {
+  var unBtn = e.target && e.target.closest ? e.target.closest(".btn-uninstall-card") : null;
+  if (unBtn) {
+    postPluginAction("uninstall", { pluginId: unBtn.getAttribute("data-id") }, function (d) {
+      pluginToastShow(d.ok ? "Plugin uninstalled" : (d.error || "Failed to uninstall"), !!d.ok);
+      loadPlugins();
+    });
+    return;
+  }
+  var btn = e.target && e.target.closest ? e.target.closest(".btn-install") : null;
+  if (!btn) return;
+  if (!getClientIdVal()) {
+    showView("bot");
+    if (typeof openAdvancedPanel === "function") openAdvancedPanel();
+    pluginToastShow("Add your bot's Client ID first", false);
+    if (clientIdInput) {
+      setTimeout(function () {
+        clientIdInput.focus();
+        clientIdInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+    }
+    return;
+  }
+  btn.disabled = true;
+  postPluginAction("install", { pluginId: btn.getAttribute("data-id") }, function (d) {
+    if (!d.ok) {
+      pluginToastShow(d.error || "Install failed", false);
+      btn.disabled = false;
+      return;
+    }
+    if (d.disabledDetails && d.disabledDetails.length) {
+      var names = d.disabledDetails.map(function (x) { return x.name; }).join(", ");
+      pluginToastShow("Plugin installed (Auto-disabled conflicting: " + names + ")", true);
+    } else if (d.warnings && d.warnings.length) {
+      pluginToastShow(d.warnings[0], false);
+    } else {
+      pluginToastShow("Plugin installed", true);
+    }
+    loadPlugins();
+  });
+});
+
+if (manageGrid) manageGrid.addEventListener("click", function (e) {
+  var btn = e.target && e.target.closest ? e.target.closest(".btn-manage") : null;
+  if (!btn) return;
+  openPluginDetail(btn.getAttribute("data-id"));
+});
+
+(function initBotColorPickers() {
+  var colorInputs = document.querySelectorAll(".bot-color-input");
+  if (!colorInputs.length) return;
+
+  var currentThemeColors = {
+    main_v1: "#5865F2",
+    main_v2: "#57F287",
+    warning: "#FAA61A",
+    error: "#ED4245",
+    cooldown: "#EB459E"
+  };
+
+  function applyColors(colors) {
+    if (!colors || typeof colors !== "object") return;
+    colorInputs.forEach(function (input) {
+      var key = input.getAttribute("data-key");
+      var hexEl = document.getElementById(input.getAttribute("data-hex"));
+      var swatchEl = document.getElementById(input.getAttribute("data-swatch"));
+      if (colors[key]) {
+        currentThemeColors[key] = colors[key];
+        input.value = colors[key];
+        if (hexEl) hexEl.textContent = colors[key].toUpperCase();
+        if (swatchEl) swatchEl.style.backgroundColor = colors[key];
+      }
+    });
+  }
+
+  var saveTimer = null;
+  function persistColors() {
+    if (!botId) return;
+    var payload = {};
+    colorInputs.forEach(function (inp) {
+      var k = inp.getAttribute("data-key");
+      if (k) payload[k] = (inp.value || "").toUpperCase();
+    });
+    fetch("/api/bot/" + botId + "/theme-colors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d && d.ok && d.themeColors) applyColors(d.themeColors);
+    }).catch(function () {});
+  }
+
+  colorInputs.forEach(function (input) {
+    var key = input.getAttribute("data-key");
+    var hexEl = document.getElementById(input.getAttribute("data-hex"));
+    var swatchEl = document.getElementById(input.getAttribute("data-swatch"));
+
+    input.addEventListener("input", function () {
+      var val = (input.value || "").toUpperCase();
+      if (hexEl) hexEl.textContent = val;
+      if (swatchEl) swatchEl.style.backgroundColor = val;
+      currentThemeColors[key] = val;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistColors, 350);
+    });
+  });
+
+  window.__applyThemeColors = applyColors;
+})();
+
+var btnToggleColorsPanel = document.getElementById("btnToggleColorsPanel");
+var colorsExpandPanel = document.getElementById("colorsExpandPanel");
+var colorsDropdownArrow = document.getElementById("colorsDropdownArrow");
+var themeColorsCard = document.getElementById("themeColorsCard");
+
+if (btnToggleColorsPanel && colorsExpandPanel) {
+  btnToggleColorsPanel.addEventListener("click", function () {
+    var isOpen = colorsExpandPanel.classList.toggle("open");
+    if (colorsDropdownArrow) {
+      colorsDropdownArrow.classList.toggle("rotated", isOpen);
+    }
+    if (themeColorsCard) {
+      themeColorsCard.classList.toggle("has-panel-open", isOpen);
+    }
+  });
+}
+
+var btnToggleAdvancedPanel = document.getElementById("btnToggleAdvancedPanel");
+var advancedExpandPanel = document.getElementById("advancedExpandPanel");
+var advancedDropdownArrow = document.getElementById("advancedDropdownArrow");
+var advancedCard = document.getElementById("advancedCard");
+
+function openAdvancedPanel() {
+  if (advancedExpandPanel && !advancedExpandPanel.classList.contains("open")) {
+    advancedExpandPanel.classList.add("open");
+    if (advancedDropdownArrow) advancedDropdownArrow.classList.add("rotated");
+    if (advancedCard) advancedCard.classList.add("has-panel-open");
+  }
+}
+
+if (btnToggleAdvancedPanel && advancedExpandPanel) {
+  btnToggleAdvancedPanel.addEventListener("click", function () {
+    var isOpen = advancedExpandPanel.classList.toggle("open");
+    if (advancedDropdownArrow) {
+      advancedDropdownArrow.classList.toggle("rotated", isOpen);
+    }
+    if (advancedCard) {
+      advancedCard.classList.toggle("has-panel-open", isOpen);
+    }
+  });
+}
+
+if (botId) loadPlugins();
+</script>
+</body>
+</html>

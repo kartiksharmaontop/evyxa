@@ -1,0 +1,3351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Developer Documentation — {{NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #090a0d;
+  --bg-sidebar: #0e1014;
+  --bg-card: #14171d;
+  --bg-code: #0b0d10;
+  --border: transparent;
+  --border-light: transparent;
+  --text: #c8cfd9;
+  --text-muted: #9aa2b0;
+  --text-dim: #606875;
+  --primary: #5865f2;
+  --primary-hover: #4752c4;
+  --primary-glow: rgba(88, 101, 242, 0.2);
+  --success: #3ba55d;
+  --success-glow: rgba(59, 165, 93, 0.15);
+  --warning: #faa61a;
+  --danger: #ed4245;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Poppins", var(--font-sans);
+  --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.65;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a1e24; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #252a33; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  height: 64px;
+  background: rgba(9, 10, 13, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: none;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+.topbar-inner {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.brand-title {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.search-input-wrap {
+  position: relative;
+  width: 260px;
+}
+.search-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px 8px 34px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+}
+.topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 15px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.topbar-btn:hover {
+  border-color: var(--primary);
+  color: #fff;
+  background: #1b2029;
+}
+.topbar-btn.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.topbar-btn.primary:hover {
+  background: var(--primary-hover);
+}
+.mobile-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px;
+}
+
+.docs-layout {
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  position: relative;
+}
+
+.docs-sidebar {
+  width: 290px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding: 24px 16px 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.sidebar-category {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  padding: 0 10px;
+  margin-bottom: 4px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-radius: 6px;
+  color: #b0b7c3;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.sidebar-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+.sidebar-link.active {
+  color: #fff;
+  background: rgba(88, 101, 242, 0.15);
+  font-weight: 600;
+  border-left: 3px solid var(--primary);
+  border-radius: 0 6px 6px 0;
+}
+.nav-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.tag-v2 { background: rgba(59, 165, 93, 0.2); color: #4ade80; }
+.tag-sdk { background: var(--primary-glow); color: #818cf8; }
+.tag-core { background: rgba(250, 166, 26, 0.2); color: #fbbf24; }
+
+.docs-content {
+  flex: 1;
+  min-width: 0;
+  padding: 36px 48px 80px 48px;
+  max-width: 960px;
+}
+
+/* Dedicated Concept Page */
+.doc-page {
+  display: none;
+}
+.doc-page.active {
+  display: block;
+  animation: fadeInPage 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInPage {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  margin-bottom: 30px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.doc-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+.doc-breadcrumb span { color: var(--text-muted); }
+.doc-breadcrumb .current { color: var(--primary); }
+
+.page-header h1 {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #b8d4ff 0%, #6ea4fe 35%, #5865f2 75%, #3d46a8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  margin-bottom: 10px;
+  line-height: 1.25;
+}
+.page-header p.lead {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.doc-page h2 {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  margin: 36px 0 14px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.doc-page h3 {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #fff;
+  margin: 24px 0 10px 0;
+}
+.doc-page p {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-size: 14.5px;
+}
+.doc-page ul, .doc-page ol {
+  color: var(--text-muted);
+  margin: 0 0 20px 24px;
+  font-size: 14px;
+}
+.doc-page li {
+  margin-bottom: 6px;
+}
+
+.callout {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 22px 0;
+  display: flex;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.callout.tip {
+  border-left: 4px solid var(--success);
+  background: rgba(59, 165, 93, 0.05);
+}
+.callout.info {
+  border-left: 4px solid var(--primary);
+  background: rgba(88, 101, 242, 0.05);
+}
+.callout.warning {
+  border-left: 4px solid var(--warning);
+  background: rgba(250, 166, 26, 0.05);
+}
+.callout-icon { flex-shrink: 0; margin-top: 2px; }
+.callout-body { flex: 1; font-size: 13.5px; }
+.callout-body strong { color: #fff; display: block; margin-bottom: 4px; font-size: 14px; }
+.callout-body p { margin-bottom: 0; color: var(--text); }
+
+.code-wrapper {
+  position: relative;
+  margin: 18px 0 24px 0;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.code-badge {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.copy-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+.copy-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-light);
+}
+.copy-btn.copied {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.1);
+}
+pre {
+  margin: 0;
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #c9d1d9;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #f0f6fc;
+}
+pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: inherit;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin: 20px 0 28px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13.5px;
+}
+th {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #fff;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255, 255, 255, 0.015); }
+
+.pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.pill.blue { background: rgba(88, 101, 242, 0.15); color: #7983f5; }
+.pill.green { background: rgba(59, 165, 93, 0.15); color: #4ade80; }
+.pill.amber { background: rgba(250, 166, 26, 0.15); color: #fbbf24; }
+.pill.red { background: rgba(237, 66, 69, 0.15); color: #f87171; }
+
+.page-pagination {
+  margin-top: 50px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.page-nav-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  min-width: 180px;
+  cursor: pointer;
+}
+.page-nav-btn.next { align-items: flex-end; text-align: right; }
+.page-nav-btn:hover {
+  border-color: var(--primary);
+  background: #1b2029;
+}
+.nav-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.nav-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.footer {
+  flex: 0 0 auto;
+  padding: 14px 20px 16px;
+  text-align: center;
+  color: #7b8390;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: .6px;
+  font-family: var(--font-sans);
+  border-top: none;
+  background: #090a0d;
+  margin-top: auto;
+}
+
+@media (max-width: 992px) {
+  .docs-content { padding: 32px 24px 60px 24px; }
+  .docs-sidebar {
+    position: fixed;
+    left: -320px;
+    top: 64px;
+    width: 300px;
+    z-index: 999;
+    transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  }
+  .docs-sidebar.open { left: 0; }
+  .mobile-toggle { display: block; }
+  .search-input-wrap { display: none; }
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 64px 0 0 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+  }
+  .overlay.active { display: block; }
+}
+
+@media (max-width: 640px) {
+  .topbar { padding: 0 16px; }
+  .brand-title { font-size: 17px; letter-spacing: 2px; }
+  .page-header h1 { font-size: 25px; }
+  .doc-page h2 { font-size: 19px; }
+  .page-pagination { flex-direction: column; }
+  .page-nav-btn { width: 100%; text-align: left; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <button class="mobile-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h14M4 12h14M4 18h14"/></svg>
+      </button>
+      <a href="/dashboard" class="brand-group">
+        <span class="brand-title">{{NAME}}</span>
+      </a>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="search-input-wrap">
+        <svg class="search-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input type="text" class="search-input" id="searchBox" placeholder="Quick search concept..." autocomplete="off">
+      </div>
+      <a href="/dashboard" class="topbar-btn primary">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Dashboard
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="overlay" id="mobileOverlay"></div>
+
+<div class="docs-layout">
+  <aside class="docs-sidebar" id="docsSidebar">
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Getting Started</div>
+      <a href="#overview" class="sidebar-link active" data-page="overview">Overview & Runtime</a>
+      <a href="#folder-structure" class="sidebar-link" data-page="folder-structure">Folder Structure</a>
+      <a href="#manifest-spec" class="sidebar-link" data-page="manifest-spec">readme.md & Config</a>
+    </div>
+
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Commands & Routing</div>
+      <a href="#commands-core" class="sidebar-link" data-page="commands-core">Defining Commands <span class="nav-tag tag-core">Dual</span></a>
+      <a href="#command-options" class="sidebar-link" data-page="command-options">Options & Arguments</a>
+      <a href="#subcommands" class="sidebar-link" data-page="subcommands">Subcommands & Groups</a>
+      <a href="#prefix-advanced" class="sidebar-link" data-page="prefix-advanced">Prefix Engine & Aliases</a>
+    </div>
+
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Responses & Components</div>
+      <a href="#responses" class="sidebar-link" data-page="responses">Replies & Embed Styling</a>
+      <a href="#components-v2" class="sidebar-link" data-page="components-v2">Components V2 Cards <span class="nav-tag tag-v2">V2</span></a>
+      <a href="#buttons" class="sidebar-link" data-page="buttons">Buttons & Action Rows</a>
+      <a href="#select-menus" class="sidebar-link" data-page="select-menus">Dropdown Select Menus</a>
+      <a href="#modals" class="sidebar-link" data-page="modals">Form Modals (Pop-ups)</a>
+      <a href="#in-place-updates" class="sidebar-link" data-page="in-place-updates">In-Place Updates (Type 7)</a>
+    </div>
+
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Storage & System</div>
+      <a href="#storage" class="sidebar-link" data-page="storage">Plugin Storage (ctx.storage) <span class="nav-tag tag-sdk">Core</span></a>
+      <a href="#permissions" class="sidebar-link" data-page="permissions">Permissions & Owner Check</a>
+      <a href="#live-metrics" class="sidebar-link" data-page="live-metrics">Bot Ping & Uptime</a>
+      <a href="#cooldowns-emojis" class="sidebar-link" data-page="cooldowns-emojis">Cooldowns & Emojis</a>
+    </div>
+
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Discord Control SDK</div>
+      <a href="#channel-sdk" class="sidebar-link" data-page="channel-sdk">Channels Management</a>
+      <a href="#member-sdk" class="sidebar-link" data-page="member-sdk">Members & Moderation</a>
+      <a href="#gateway-events" class="sidebar-link" data-page="gateway-events">Gateway Raw Events</a>
+    </div>
+
+    <div class="sidebar-category">
+      <div class="sidebar-heading">Production & Quality</div>
+      <a href="#example-tickets" class="sidebar-link" data-page="example-tickets">Ticket System Plugin</a>
+      <a href="#example-economy" class="sidebar-link" data-page="example-economy">Economy System Plugin</a>
+      <a href="#best-practices" class="sidebar-link" data-page="best-practices">Glitch Prevention & Standards <span class="nav-tag tag-core">Must Read</span></a>
+      <a href="#api-reference" class="sidebar-link" data-page="api-reference">ctx API Reference Table</a>
+    </div>
+  </aside>
+
+  <main class="docs-content">
+
+    <!-- PAGE 1: OVERVIEW -->
+    <article class="doc-page active" id="page-overview">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Getting Started <span>/</span> <span class="current">Overview & Architecture</span></div>
+        <h1>Engine Overview & Architecture</h1>
+        <p class="lead">Build crash-proof, enterprise-grade Discord bot plugins on {{NAME}} with complete isolation, zero boilerplate, and native Discord Components V2 support.</p>
+      </div>
+
+      <h2>How the Plugin Engine Works</h2>
+      <p>The {{NAME}} Bot Host runs on a lightweight micro-kernel architecture. Instead of writing monolithic discord.js code, every feature is an isolated, hot-loadable <strong>Plugin</strong>. When a user runs a Slash Command, types a prefix command, clicks a button, or submits a modal, the engine handles all token auth, Discord Gateway WebSockets, cooldowns, permission caching, and invokes your plugin handler with a unified <code>ctx</code> (Context) object.</p>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>Zero Gateway Headache</strong>
+          <p>You never have to manually manage WebSocket shards, heartbeat ACKs, Discord rate-limits, or bot reconnection loops. The host engine manages Gateway lifecycle automatically and provides real-time latency via <code>ctx.botPing</code> and <code>ctx.botUptime</code>.</p>
+        </div>
+      </div>
+
+      <h2>Core System Guarantees</h2>
+      <ul>
+        <li><strong>Crash-Proof Error Isolation:</strong> If a plugin encounters an uncaught exception or async promise rejection, the host traps the error and sends a formatted error card to the user. The bot never crashes, and other active plugins remain unaffected.</li>
+        <li><strong>Universal Dual-Engine Execution:</strong> Plugins write their logic once in <code>onCommand(ctx)</code>. The engine automatically handles both Discord Slash Interactions and Gateway Text Message Prefixes (including custom server prefixes and bot mentions).</li>
+        <li><strong>Universal Conflict Resolver:</strong> If a bot owner enables two plugins that share the same command (e.g., Prefix V1 and Prefix V2), the conflict engine automatically disables the older version and synchronizes the dashboard UI in real time.</li>
+        <li><strong>Isolated Persistent Storage:</strong> Every plugin has access to its own disk-backed JSON key-value store (<code>ctx.storage</code>) that persists across bot restarts.</li>
+      </ul>
+
+      <h2>Quick Start in 3 Steps</h2>
+      <ol>
+        <li>Create a self-contained plugin folder (e.g. <code>my-plugin/</code>).</li>
+        <li>Create a <code>readme.md</code> containing metadata and optional configuration fields.</li>
+        <li>Create a <code>main/index.js</code> exporting commands, handlers, and optional event listeners. Enable it via the dashboard with one click!</li>
+      </ol>
+
+      <div class="page-pagination">
+        <div></div>
+        <a class="page-nav-btn next" data-nav="folder-structure">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Folder Structure →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 2: FOLDER STRUCTURE -->
+    <article class="doc-page" id="page-folder-structure">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Getting Started <span>/</span> <span class="current">Folder Structure</span></div>
+        <h1>Plugin Directory & File Layout</h1>
+        <p class="lead">Conventions, directory organization, and file requirements for building modular, plug-and-play plugins.</p>
+      </div>
+
+      <h2>Standard Plugin Directory Hierarchy</h2>
+      <p>Every plugin is packaged as a self-contained module. Plugins can be installed from the store or uploaded as a ZIP archive through the dashboard:</p>
+
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Plugin Directory Structure</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>my-plugin/
+├── readme.md          # Manifest, Dashboard Docs, and Config Schema
+├── main/
+│   ├── index.js       # Main entry point (Exports commands, handlers, events)
+│   ├── helpers.js     # (Optional) Internal helper functions
+│   └── constants.js   # (Optional) Color constants, emojis, etc.
+└── assets/            # (Optional) Static icons or images</code></pre>
+      </div>
+
+      <h2>Plugin Naming Convention</h2>
+      <p>Plugin package names follow the standard format <code>&lt;index&gt;-&lt;slug&gt;-&lt;version&gt;</code>, for example: <code>utility-ping-v1</code>, <code>moderation-suite-v1</code>, or <code>prefix-v2</code>. This ensures clean identification and isolated storage boundaries.</p>
+
+      <h2>Example 1: Minimal Single-File Plugin</h2>
+      <p>For simple utility commands, you only need <code>readme.md</code> and <code>main/index.js</code>:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "hello",
+      description: "Say hello to the bot",
+      slash: true,
+      prefix: true
+    }
+  ],
+  onCommand: function (ctx) {
+    return ctx.reply({ content: "Hello @" + ctx.user.username + "! Welcome to {{NAME}}." });
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Modular Enterprise Layout</h2>
+      <p>For complex plugins (like Tickets, Economy, Moderation), split code into dedicated sub-modules and require them inside <code>main/index.js</code>:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>const { handleTicketCreate, handleTicketClose } = require("./ticketHandlers.js");
+const { buildSetupPanel } = require("./panels.js");
+
+module.exports = {
+  commands: [
+    {
+      name: "ticket",
+      description: "Manage ticket system",
+      slash: true,
+      prefix: true,
+      options: [
+        { type: 1, name: "setup", description: "Send ticket creation panel" }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    if (ctx.subcommand === "setup") return buildSetupPanel(ctx);
+  },
+
+  components: {
+    "ticket_create": handleTicketCreate,
+    "ticket_close": handleTicketClose
+  }
+};</code></pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Node.js Modules Only</strong>
+          <p>Always use CommonJS (<code>require</code> and <code>module.exports</code>). Do not use ES module <code>import/export</code> statements as plugins are dynamically loaded with Node's native module loader.</p>
+        </div>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="overview">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Overview & Architecture</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="manifest-spec">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">readme.md & Config →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 3: MANIFEST SPEC -->
+    <article class="doc-page" id="page-manifest-spec">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Getting Started <span>/</span> <span class="current">readme.md & Config</span></div>
+        <h1>readme.md Specification & Config Schema</h1>
+        <p class="lead">Define metadata, documentation, and customizable settings rendered natively in the dashboard.</p>
+      </div>
+
+      <h2>Manifest Structure</h2>
+      <p>Every plugin directory must contain a <code>readme.md</code>. The top of the file contains YAML-style metadata lines, followed by user documentation, and an optional <code>```config</code> JSON block:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>name</code></td><td>String</td><td>Human-readable plugin name (e.g. <code>Prefix V2</code>).</td></tr>
+            <tr><td><code>tag</code></td><td>String</td><td>Category tag (e.g. <code>Utility</code>, <code>Moderation</code>, <code>Fun</code>).</td></tr>
+            <tr><td><code>description</code></td><td>String</td><td>Short summary displayed on plugin cards in the dashboard.</td></tr>
+            <tr><td><code>version</code></td><td>String</td><td>SemVer string (e.g. <code>1.0.0</code>).</td></tr>
+            <tr><td><code>author</code></td><td>String</td><td>Creator identifier (e.g. <code>@TuZhiStudio</code>).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Custom Variables & Config Schema</h2>
+      <p>Plugin creators can define custom functional variables (such as <strong>Lavalink Node host/port/password</strong> for music, API tokens, webhook URLs, or numeric limits). These are rendered in the dashboard's <strong>Customize</strong> section so the bot owner can configure them.</p>
+
+      <div class="callout tip">
+        <div class="callout-icon">🎨</div>
+        <div class="callout-body">
+          <strong>Bot Master Color Engine</strong>
+          <p>Embed colors are strictly unified to the Bot Master Color set by the bot owner. Plugin creators do not define or override colors—the engine automatically injects the bot's branding color into all embeds!</p>
+        </div>
+      </div>
+
+      <p>You can define variables either in <code>main/index.js</code> via <code>module.exports.config</code> (recommended) or in <code>readme.md</code> via a <code>```config</code> JSON block:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Variable Type</th><th>Rendered Input</th><th>Usage Examples</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>"text"</code></td><td>Standard text box</td><td>Lavalink host (<code>ssl.lavalink.rocks</code>), default prefix, channel IDs.</td></tr>
+            <tr><td><code>"password"</code></td><td>Masked secret field</td><td>Lavalink password (<code>youshallnotpass</code>), Spotify API secrets, Webhook URLs.</td></tr>
+            <tr><td><code>"number"</code></td><td>Numeric input</td><td>Lavalink port (<code>2333</code>), default volume percentage, max queue limit.</td></tr>
+            <tr><td><code>"toggle"</code></td><td>Interactive toggle switch</td><td>Auto-leave voice channel, 24/7 mode, auto-pause.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Music Plugin Variables in `main/index.js` (Recommended)</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  name: "Lavalink Music",
+  version: "1.0.0",
+
+  // Custom Variables configured by the Bot Owner in Dashboard
+  config: [
+    {
+      key: "lavalink_host",
+      label: "Lavalink Host / Node",
+      type: "text",
+      description: "Host URL or IP of your Lavalink server",
+      placeholder: "e.g. ssl.lavalink.rocks",
+      default: "127.0.0.1"
+    },
+    {
+      key: "lavalink_port",
+      label: "Lavalink Port",
+      type: "number",
+      description: "WebSocket port for connection",
+      placeholder: "2333",
+      default: 2333
+    },
+    {
+      key: "lavalink_pass",
+      label: "Lavalink Password",
+      type: "password", // Masked in dashboard UI
+      description: "Authentication password for node",
+      default: "youshallnotpass"
+    },
+    {
+      key: "auto_leave",
+      label: "Auto Leave Voice Channel",
+      type: "toggle",
+      description: "Leave when no members are listening",
+      default: true
+    }
+  ],
+
+  commands: [ /* ... */ ]
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Reading Variables & Sending Auto-Color Embeds</h2>
+      <p>Inside any command, access your variables via <code>ctx.config</code>. Use <code>ctx.replyEmbed</code> to automatically apply the bot's unified color:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "nodeinfo", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    // Read variables configured in dashboard
+    const host = ctx.config.lavalink_host || "127.0.0.1";
+    const port = ctx.config.lavalink_port || 2333;
+    const isAutoLeave = ctx.config.auto_leave === "true" || ctx.config.auto_leave === true;
+
+    // replyEmbed automatically applies the bot owner's unified master color!
+    return ctx.replyEmbed({
+      title: "🎵 Music Node Status",
+      description: "> Connected to node `" + host + ":" + port + "`",
+      fields: [
+        { name: "Auto Leave", value: isAutoLeave ? "Enabled ✅" : "Disabled ❌", inline: true },
+        { name: "Bot Ping", value: "`" + (ctx.botPing || 0) + " ms`", inline: true }
+      ]
+    });
+  }
+};</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>Config Fallbacks</strong>
+          <p>Always provide sensible fallbacks when reading <code>ctx.config</code> so your plugin functions out-of-the-box even before the user visits the dashboard Manage tab.</p>
+        </div>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="folder-structure">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Folder Structure</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="commands-core">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Defining Commands →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 4: COMMANDS CORE -->
+    <article class="doc-page" id="page-commands-core">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Commands & Routing <span>/</span> <span class="current">Defining Commands</span></div>
+        <h1>Defining Commands & Dual Engine Execution</h1>
+        <p class="lead">Declare slash and prefix commands that execute seamlessly on both Discord interactions and text messages.</p>
+      </div>
+
+      <h2>The `commands` Array</h2>
+      <p>Every plugin exports a <code>commands</code> array. When the bot connects, the engine automatically registers all slash commands globally with Discord's REST API and binds prefix dispatchers:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>name</code></td><td>String</td><td>Required</td><td>Command name (1-32 chars, lowercase, no spaces).</td></tr>
+            <tr><td><code>description</code></td><td>String</td><td>name</td><td>Brief explanation (up to 100 chars).</td></tr>
+            <tr><td><code>category</code></td><td>String</td><td><code>"General"</code></td><td>Category classification (e.g. <code>Music</code>, <code>Moderation</code>, <code>Utility</code>, <code>Economy</code>, <code>Fun</code>).</td></tr>
+            <tr><td><code>cooldown</code></td><td>Number</td><td><code>null</code></td><td>Per-user cooldown in seconds (automatically rate-limited with Component V2 animated cooldown card).</td></tr>
+            <tr><td><code>userPermissions</code></td><td>Array&lt;String&gt;</td><td><code>[]</code></td><td>Required user Discord permissions (e.g. <code>["MODERATE_MEMBERS"]</code>). Auto-checked by engine before executing!</td></tr>
+            <tr><td><code>botPermissions</code></td><td>Array&lt;String&gt;</td><td><code>[]</code></td><td>Required bot permissions (e.g. <code>["CONNECT", "SPEAK"]</code>).</td></tr>
+            <tr><td><code>slash</code></td><td>Boolean</td><td><code>true</code></td><td>Register as a Discord Slash Command (<code>/name</code>).</td></tr>
+            <tr><td><code>prefix</code></td><td>Boolean</td><td><code>false</code></td><td>Enable execution via message prefix (e.g. <code>!name</code>).</td></tr>
+            <tr><td><code>aliases</code></td><td>Array&lt;String&gt;</td><td><code>[]</code></td><td>Alternative text trigger keywords.</td></tr>
+            <tr><td><code>options</code></td><td>Array&lt;Object&gt;</td><td><code>[]</code></td><td>Slash command options or arguments.</td></tr>
+            <tr><td><code>execute</code></td><td>Function</td><td><code>onCommand</code></td><td>Direct command handler receiving <code>ctx</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Universal Slash & Prefix Command</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "say",
+      description: "Repeat a message back in the channel",
+      slash: true,
+      prefix: true,
+      cooldown: 5,
+      aliases: ["repeat", "echo"],
+      options: [
+        {
+          type: 3, // STRING
+          name: "message",
+          description: "The text to repeat",
+          required: true
+        }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    // Reads from slash options OR text prefix arguments
+    const text = ctx.options.message || ctx.rawText || "No text provided!";
+    return ctx.reply({ content: text });
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Per-Command Execution Handlers</h2>
+      <p>If your plugin defines multiple distinct commands, you can specify individual <code>execute</code> functions directly on each command object:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "coinflip",
+      description: "Flip a two-sided coin",
+      slash: true,
+      prefix: true,
+      execute: function (ctx) {
+        const result = Math.random() < 0.5 ? "Heads" : "Tails";
+        return ctx.reply({ content: "🪙 The coin landed on: **" + result + "**!" });
+      }
+    },
+    {
+      name: "roll",
+      description: "Roll a 6-sided die",
+      slash: true,
+      prefix: true,
+      execute: function (ctx) {
+        const num = Math.floor(Math.random() * 6) + 1;
+        return ctx.reply({ content: "🎲 You rolled a **" + num + "**!" });
+      }
+    }
+  ]
+};</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <div class="callout-body">
+          <strong>Automatic Message References</strong>
+          <p>When a command is triggered via text prefix (e.g. <code>!say hello</code>), calling <code>ctx.reply(...)</code> automatically sets <code>message_reference</code>, replying directly to the user's triggering message without extra code.</p>
+        </div>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="manifest-spec">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">readme.md & Config</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="command-options">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Options & Arguments →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 5: COMMAND OPTIONS -->
+    <article class="doc-page" id="page-command-options">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Commands & Routing <span>/</span> <span class="current">Options & Arguments</span></div>
+        <h1>Command Options & Arguments</h1>
+        <p class="lead">Specify arguments, dropdown choices, user mentions, channels, and integers with automatic prefix fallback.</p>
+      </div>
+
+      <h2>Discord Option Types (1 to 11)</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Type ID</th><th>Name</th><th>Input Value</th><th>Prefix Text Parsing</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>1</code></td><td>SUB_COMMAND</td><td>Subcommand block</td><td>First keyword following command.</td></tr>
+            <tr><td><code>2</code></td><td>SUB_COMMAND_GROUP</td><td>Group container</td><td>First keyword of group hierarchy.</td></tr>
+            <tr><td><code>3</code></td><td>STRING</td><td>Text string</td><td>Matches word or remaining line.</td></tr>
+            <tr><td><code>4</code></td><td>INTEGER</td><td>Whole number</td><td>Parsed with <code>parseInt(arg, 10)</code>.</td></tr>
+            <tr><td><code>5</code></td><td>BOOLEAN</td><td>true / false</td><td>Matches <code>yes</code>, <code>true</code>, <code>1</code>, <code>no</code>, <code>false</code>.</td></tr>
+            <tr><td><code>6</code></td><td>USER</td><td>User ID or Mention</td><td>Extracts snowflake from <code>&lt;@123...&gt;</code>.</td></tr>
+            <tr><td><code>7</code></td><td>CHANNEL</td><td>Channel ID or Mention</td><td>Extracts snowflake from <code>&lt;#123...&gt;</code>.</td></tr>
+            <tr><td><code>8</code></td><td>ROLE</td><td>Role ID or Mention</td><td>Extracts snowflake from <code>&lt;@&amp;123...&gt;</code>.</td></tr>
+            <tr><td><code>9</code></td><td>MENTIONABLE</td><td>User or Role</td><td>Extracts user or role snowflake.</td></tr>
+            <tr><td><code>10</code></td><td>NUMBER</td><td>Decimal float</td><td>Parsed with <code>parseFloat(arg)</code>.</td></tr>
+            <tr><td><code>11</code></td><td>ATTACHMENT</td><td>Discord File Object</td><td>Uploaded file reference.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Multiple Argument Types</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "giveaway",
+      description: "Start a server giveaway",
+      slash: true,
+      prefix: true,
+      options: [
+        { type: 3, name: "prize", description: "Prize description", required: true },
+        { type: 4, name: "winners", description: "Number of winners", required: true },
+        { type: 7, name: "channel", description: "Channel to host in", required: false }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    const prize = ctx.options.prize;
+    const winners = parseInt(ctx.options.winners, 10) || 1;
+    const targetChannel = (ctx.options.channel && ctx.options.channel.id) || ctx.channelId;
+
+    return ctx.replySuccess("Giveaway started for **" + prize + "** (" + winners + " winners) in &lt;#" + targetChannel + "&gt;!");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Option Choices (Predefined Dropdown)</h2>
+      <p>Use <code>choices: [{ name, value }]</code> to restrict user input in Slash Commands:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "weather",
+      description: "Check weather forecast units",
+      slash: true,
+      prefix: true,
+      options: [
+        {
+          type: 3,
+          name: "unit",
+          description: "Temperature scale",
+          required: true,
+          choices: [
+            { name: "Celsius (°C)", value: "metric" },
+            { name: "Fahrenheit (°F)", value: "imperial" }
+          ]
+        }
+      ]
+    }
+  ],
+
+  onCommand: function (ctx) {
+    const unit = ctx.options.unit || "metric";
+    return ctx.reply({ content: "Selected scale: `" + unit + "`" });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="commands-core">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Defining Commands</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="subcommands">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Subcommands & Groups →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 6: SUBCOMMANDS -->
+    <article class="doc-page" id="page-subcommands">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Commands & Routing <span>/</span> <span class="current">Subcommands & Groups</span></div>
+        <h1>Subcommands & Subcommand Groups</h1>
+        <p class="lead">Structure complex plugin commands into clean subcommand trees with automated route parsing.</p>
+      </div>
+
+      <h2>Routing Architecture</h2>
+      <p>Subcommands (Type <code>1</code>) and Subcommand Groups (Type <code>2</code>) allow you to bundle related actions under a single parent command. Inside <code>onCommand</code>, the engine exposes:</p>
+      <ul>
+        <li><code>ctx.subcommand</code> — Active subcommand name (e.g. <code>"set"</code>, <code>"view"</code>, <code>"reset"</code>).</li>
+        <li><code>ctx.subcommandGroup</code> — Active group name if nested inside a group (e.g. <code>"channel"</code>).</li>
+        <li><code>ctx.options</code> — Options specific to that subcommand.</li>
+      </ul>
+
+      <h2>Example 1: Two-Tier Subcommand Router (Prefix V2 Style)</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "prefix",
+      description: "Manage server prefix settings",
+      slash: true,
+      prefix: true,
+      options: [
+        {
+          type: 1,
+          name: "info",
+          description: "View current server prefix"
+        },
+        {
+          type: 1,
+          name: "set",
+          description: "Set a custom server prefix",
+          options: [
+            { type: 3, name: "new_prefix", description: "New prefix symbol (1-5 chars)", required: true }
+          ]
+        },
+        {
+          type: 1,
+          name: "reset",
+          description: "Reset prefix to default"
+        }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    const sub = (ctx.subcommand || "info").toLowerCase();
+
+    if (sub === "info") {
+      const p = ctx.storage.get("prefix_" + ctx.guildId, "!");
+      return ctx.reply({ content: "> Server Prefix is: `" + p + "`" });
+    }
+
+    if (sub === "set") {
+      const val = (ctx.options.new_prefix || ctx.rawArgs[0] || "").trim();
+      if (!val || val.length > 5) return ctx.replyWarn("Prefix must be 1 to 5 characters!");
+      ctx.storage.set("prefix_" + ctx.guildId, val);
+      return ctx.replySuccess("Successfully set server prefix to `" + val + "`");
+    }
+
+    if (sub === "reset") {
+      ctx.storage.delete("prefix_" + ctx.guildId);
+      return ctx.replySuccess("Successfully reset prefix to default `!`");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Three-Tier Subcommand Group</h2>
+      <p>Use <code>type: 2</code> (SUB_COMMAND_GROUP) for deep administrative hierarchies:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "admin",
+      description: "Server administration suite",
+      slash: true,
+      prefix: true,
+      options: [
+        {
+          type: 2, // Group
+          name: "logs",
+          description: "Logging configuration",
+          options: [
+            {
+              type: 1, // Subcommand
+              name: "enable",
+              description: "Enable logging in a channel",
+              options: [{ type: 7, name: "channel", description: "Log channel", required: true }]
+            },
+            {
+              type: 1, // Subcommand
+              name: "disable",
+              description: "Disable logging"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  onCommand: function (ctx) {
+    if (ctx.subcommandGroup === "logs") {
+      if (ctx.subcommand === "enable") {
+        return ctx.replySuccess("Logging enabled in &lt;#" + ctx.options.channel.id + "&gt;");
+      }
+      if (ctx.subcommand === "disable") {
+        return ctx.replySuccess("Logging disabled.");
+      }
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="command-options">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Options & Arguments</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="prefix-advanced">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Prefix Engine & Aliases →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 7: PREFIX ADVANCED -->
+    <article class="doc-page" id="page-prefix-advanced">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Commands & Routing <span>/</span> <span class="current">Prefix Engine & Aliases</span></div>
+        <h1>Prefix Engine, Mentions & Custom Aliases</h1>
+        <p class="lead">How the engine evaluates incoming chat messages, resolves mentions, and handles customizable aliases.</p>
+      </div>
+
+      <h2>Message Prefix Resolution Flow</h2>
+      <p>When a Discord guild message arrives on <code>MESSAGE_CREATE</code>, the prefix dispatcher checks three tiers in order:</p>
+      <ol>
+        <li><strong>Bot Mention Prefix:</strong> <code>&lt;@botId&gt; command</code> or <code>&lt;@!botId&gt; command</code> (always enabled).</li>
+        <li><strong>Server Custom Prefix:</strong> Guild-specific prefix stored in database (e.g. <code>?</code>).</li>
+        <li><strong>Global Fallback Prefix:</strong> Bot's default prefix (configured in bot settings, default <code>!</code>).</li>
+      </ol>
+
+      <h2>Custom Aliases Support</h2>
+      <p>Every command supports aliases defined in its manifest (<code>aliases: [...]</code>) as well as dashboard user-configured aliases stored in <code>ctx.config.aliases</code>. Both are automatically matched:</p>
+
+      <h2>Example 1: Multiple Subcommand Aliases</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "avatar",
+      description: "Display user avatar",
+      slash: true,
+      prefix: true,
+      aliases: ["av", "pfp", "icon"],
+      options: [
+        { type: 6, name: "user", description: "Target user", required: false }
+      ]
+    }
+  ],
+
+  onCommand: function (ctx) {
+    const target = ctx.options.user || ctx.user;
+    const url = "https://cdn.discordapp.com/avatars/" + target.id + "/" + (target.avatar || "0") + ".png?size=1024";
+    return ctx.reply({
+      embeds: [{
+        title: target.username + "\x27s Avatar",
+        image: { url: url }
+      }]
+    });
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Reading Raw Arguments</h2>
+      <p>When users invoke commands via prefix, access raw unparsed arguments directly:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "poll", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    // ctx.rawArgs: Array of words ["Should", "we", "add", "features?"]
+    // ctx.rawText: Full string "Should we add features?"
+    const question = ctx.rawText || ctx.options.question || "Default Poll";
+
+    const msg = await ctx.reply({ content: "📊 **Poll:** " + question });
+    if (msg && msg.body && msg.body.id) {
+      // Add quick reactions
+      await ctx.discordRequest("PUT", "/channels/" + ctx.channelId + "/messages/" + msg.body.id + "/reactions/%E2%9C%85/@me");
+      await ctx.discordRequest("PUT", "/channels/" + ctx.channelId + "/messages/" + msg.body.id + "/reactions/%E2%9D%8C/@me");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="subcommands">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Subcommands & Groups</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="responses">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Replies & Embed Styling →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 8: RESPONSES -->
+    <article class="doc-page" id="page-responses">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">Replies & Embed Styling</span></div>
+        <h1>Replies & Embed Styling</h1>
+        <p class="lead">Universal response handling, embed color resolution, and message referencing.</p>
+      </div>
+
+      <h2>The Unified `ctx.reply` Method</h2>
+      <p><code>ctx.reply(payload)</code> handles all Discord output transparently:</p>
+      <ul>
+        <li>For Slash Commands, it sends a Discord Interaction Callback (<code>type: 4</code>).</li>
+        <li>For Prefix Messages, it calls <code>ctx.sendChannel</code> with an automatic <code>message_reference</code>.</li>
+        <li>Supports <code>content</code>, <code>embeds</code>, <code>components</code>, <code>allowed_mentions</code>, and <code>ephemeral</code>.</li>
+      </ul>
+
+      <h2>Bot Master Color Engine (Automated)</h2>
+      <p>In {{NAME}}, all Embed V1 responses automatically synchronize with the bot owner's unified master color. You don't need manual color resolution functions or hardcoded hex strings. The engine automatically injects the bot's color into every embed, ensuring a consistent visual brand across all installed plugins.</p>
+
+      <div class="callout tip">
+        <div class="callout-icon">✨</div>
+        <div class="callout-body">
+          <strong>The `ctx.replyEmbed` Method</strong>
+          <p>Use <code>ctx.replyEmbed(embedData)</code> to reply with an embed without specifying any color. The engine automatically resolves and applies <code>ctx.color</code> (integer) and <code>ctx.hexColor</code> (string).</p>
+        </div>
+      </div>
+
+      <h2>Example 1: Clean Rich Embed (Auto-Themed)</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "serverinfo", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    // replyEmbed automatically inherits the bot's master color!
+    return ctx.replyEmbed({
+      title: ctx.guildName,
+      fields: [
+        { name: "Server ID", value: "`" + ctx.guildId + "`", inline: true },
+        { name: "Owner ID", value: "`" + (ctx.guildOwnerId || "N/A") + "`", inline: true }
+      ],
+      footer: { text: "Requested by " + ctx.user.username }
+    });
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Ephemeral Secret Reply</h2>
+      <p>Set <code>ephemeral: true</code> (or <code>flags: 64</code>) so only the command runner can see the message:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "token", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "🔒 Here is your private authentication key: `XYZ-12345`",
+      ephemeral: true
+    });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="prefix-advanced">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Prefix Engine & Aliases</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="components-v2">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Components V2 Cards →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 9: COMPONENTS V2 -->
+    <article class="doc-page" id="page-components-v2">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">Components V2 Cards</span></div>
+        <h1>Discord Components V2 Cards</h1>
+        <p class="lead">Modern Discord containers (type 17) and text displays (type 10) with custom emoji notification helpers.</p>
+      </div>
+
+      <h2>Why Discord Components V2?</h2>
+      <p>Components V2 is Discord's modern UI layout engine. Unlike traditional embeds, Components V2 renders sleek dark-mode cards with native mobile responsiveness, border accents, and zero character-per-field limitations.</p>
+      <ul>
+        <li><code>type: 17</code> — Container card with custom <code>accent_color</code>.</li>
+        <li><code>type: 10</code> — Text Display element inside the container.</li>
+      </ul>
+
+      <h2>Built-in System Helpers</h2>
+      <p>The host engine equips every <code>ctx</code> with automatic Components V2 notification helpers:</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Helper Method</th><th>Custom Emoji Used</th><th>Auto-Delete</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.replySuccess(text, opts)</code></td><td>None (Permanent card)</td><td>No (Permanent)</td><td>Confirm successful actions (prefix set, ticket opened, etc.).</td></tr>
+            <tr><td><code>ctx.replyWarn(text, opts)</code></td><td><code>&lt;:Warning:1563618139051131033&gt;</code></td><td><strong>10 seconds</strong></td><td>Input errors, invalid syntax, missing arguments.</td></tr>
+            <tr><td><code>ctx.replyError(text, opts)</code></td><td><code>&lt;:error:1563618179891208242&gt;</code></td><td><strong>10 seconds</strong></td><td>Exceptions, missing permissions, API failures.</td></tr>
+            <tr><td><code>ctx.replyCooldown(sec, opts)</code></td><td><code>&lt;a:cooldown:1563618102841708624&gt;</code></td><td><strong>10 seconds</strong></td><td>Animated cooldown warning with seconds remaining.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Using Built-in Helpers</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "setname", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    if (!ctx.hasPermission("MANAGE_GUILD")) {
+      return ctx.replyWarn("You need **Manage Server** permission to use this command!");
+    }
+
+    const name = ctx.options.name || ctx.rawArgs[0];
+    if (!name) {
+      return ctx.replyWarn("Please specify a valid server name!");
+    }
+
+    return ctx.replySuccess("Successfully updated server name to **" + name + "**");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Constructing Custom Components V2 Cards</h2>
+      <p>You can construct raw Container (Type 17) objects with buttons or select menus nested inside:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "card", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      components: [
+        {
+          type: 17, // Container
+          accent_color: 0x5865F2, // Blurple accent line
+          components: [
+            {
+              type: 10, // Text Display
+              content: "# System Announcement\n> This server has been upgraded to **{{NAME}} 2.0**!\nEnjoy crash-proof bot hosting."
+            }
+          ]
+        }
+      ]
+    });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="responses">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Replies & Embed Styling</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="buttons">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Buttons & Action Rows →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 10: BUTTONS -->
+    <article class="doc-page" id="page-buttons">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">Buttons & Action Rows</span></div>
+        <h1>Buttons & Action Rows</h1>
+        <p class="lead">Add interactive clickable buttons, link buttons, and handle click events cleanly.</p>
+      </div>
+
+      <h2>Button Styles (1 to 5)</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Style ID</th><th>Style Name</th><th>Visual Appearance</th><th>Requires</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>1</code></td><td>PRIMARY</td><td>Blurple</td><td><code>custom_id</code></td></tr>
+            <tr><td><code>2</code></td><td>SECONDARY</td><td>Grey</td><td><code>custom_id</code></td></tr>
+            <tr><td><code>3</code></td><td>SUCCESS</td><td>Green</td><td><code>custom_id</code></td></tr>
+            <tr><td><code>4</code></td><td>DANGER</td><td>Red</td><td><code>custom_id</code></td></tr>
+            <tr><td><code>5</code></td><td>LINK</td><td>Grey with external icon</td><td><code>url</code> (No custom_id)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Dispatching Button Clicks</h2>
+      <p>When a user clicks a button, the engine dispatches the interaction to enabled plugins using a 5-tier resolution hierarchy:</p>
+      <ol>
+        <li><code>mod.components[customId]</code> — Exact match for fixed IDs (e.g. <code>"confirm_delete"</code>).</li>
+        <li><code>mod.onButton(ctx)</code> — General button hook for <code>component_type === 2</code> (best for prefix matching or dynamic IDs).</li>
+        <li><code>mod.onSelect(ctx)</code> — Invoked for dropdown select menus (<code>component_type &gt;= 3</code>).</li>
+        <li><code>mod.onComponent(ctx)</code> — Generic component fallback for any interaction type.</li>
+        <li><code>mod.components["*"](ctx)</code> — Universal wildcard fallback.</li>
+      </ol>
+
+      <div class="callout warning">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Avoiding "This component is not recognized."</strong>
+          <p>If none of the enabled plugins register a matching handler for a button's <code>custom_id</code>, the engine sends an ephemeral warning: <em>"This component is not recognized."</em> Always ensure dynamic or session-based buttons (e.g. <code>mute_confirm_xyz</code>) are handled via <code>onButton</code>, <code>components: { "*": fn }</code>, or a Proxy object.</p>
+        </div>
+      </div>
+
+      <h2>Example 1: Confirmation Action Row</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    { name: "deleteall", slash: true, prefix: true }
+  ],
+
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "⚠️ Are you sure you want to delete all temporary files?",
+      components: [
+        {
+          type: 1, // Action Row
+          components: [
+            { type: 2, style: 3, label: "Confirm", custom_id: "confirm_delete" },
+            { type: 2, style: 4, label: "Cancel", custom_id: "cancel_delete" }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "confirm_delete": function (ctx) {
+      return ctx.update({ content: "✅ Files successfully deleted!", components: [] });
+    },
+    "cancel_delete": function (ctx) {
+      return ctx.update({ content: "❌ Action cancelled.", components: [] });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Interactive Counter Button</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "counter", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    ctx.storage.set("count_" + ctx.channelId, 0);
+    return ctx.reply({
+      content: "Current Count: **0**",
+      components: [
+        {
+          type: 1,
+          components: [
+            { type: 2, style: 1, label: "+1 Count", custom_id: "btn_count" }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "btn_count": function (ctx) {
+      const key = "count_" + ctx.channelId;
+      const count = (ctx.storage.get(key, 0)) + 1;
+      ctx.storage.set(key, count);
+      return ctx.update({
+        content: "Current Count: **" + count + "** by @" + ctx.user.username,
+        components: [
+          {
+            type: 1,
+            components: [
+              { type: 2, style: 1, label: "+1 Count", custom_id: "btn_count" }
+            ]
+          }
+        ]
+      });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 3: Configurable Button Expiration & Self-Deleting Cancel</h2>
+      <p>Allow server owners to customize button timeouts via the dashboard (or disable expiration with <code>0</code>) while embedding state directly into <code>custom_id</code> with colon delimiters:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">readme.md (Dashboard Setting)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>```config
+{
+  "embed": "color",
+  "fields": [
+    { "key": "button_timeout", "label": "Button Timeout in Seconds (0 = Never)", "type": "text", "default": "60" }
+  ]
+}
+```</code></pre>
+      </div>
+
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js (Configurable Expiration & Dispatch)</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>async function handleButton(ctx) {
+  const cid = String(ctx.customId || "");
+  if (!cid.startsWith("mod:")) return;
+
+  const parts = cid.split(":");
+  const action = parts[1];    // "c" (confirm) or "x" (cancel)
+  const authorId = parts[2];
+  const targetId = parts[3];
+  const expiresAt = Number(parts[4] || 0);
+
+  // Security: Only the command author can use the buttons
+  if (authorId && String(ctx.user.id) !== String(authorId)) {
+    return ctx.reply({ content: "> Only <@" + authorId + "> can use these buttons.", ephemeral: true });
+  }
+
+  // Check expiration (0 = never expires)
+  if (expiresAt > 0 && Math.floor(Date.now() / 1000) > expiresAt) {
+    return ctx.reply({ content: "> This confirmation has expired.", ephemeral: true });
+  }
+
+  // Cancel Button: Delete prompt completely
+  if (action === "x") {
+    ctx.deferUpdate(); // Acknowledge Discord interaction (type 6)
+    const msgId = (ctx.interaction && ctx.interaction.message && ctx.interaction.message.id) || (ctx.message && ctx.message.id);
+    if (msgId && typeof ctx.deleteMessage === "function") {
+      ctx.deleteMessage(ctx.channelId, msgId).catch(function () {});
+    }
+    return;
+  }
+
+  // Confirm Button: Perform action and update message in-place (Type 7)
+  if (action === "c") {
+    // Execute action using targetId...
+    return ctx.update({
+      content: "> Action successfully executed for <@" + targetId + "> by <@" + ctx.user.id + ">",
+      components: [] // Clear action row
+    });
+  }
+}
+
+// Universal Proxy matcher guarantees instant dispatch in any engine mode
+const componentsProxy = new Proxy({ "*": handleButton }, {
+  get: function (target, prop) {
+    if (typeof prop === "string" && (prop.startsWith("mod:") || prop === "*")) return handleButton;
+    return target[prop];
+  }
+});
+
+module.exports = {
+  commands: [{ name: "moderate", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    const target = ctx.options.user || ctx.user;
+    const cfg = ctx.config || {};
+    const timeoutSec = parseInt(cfg.button_timeout || "60", 10);
+    const expiresAt = timeoutSec > 0 ? Math.floor(Date.now() / 1000) + timeoutSec : 0;
+    const countdown = expiresAt > 0 ? " (<t:" + expiresAt + ":R>)" : "";
+
+    return ctx.reply({
+      content: "Are you sure you want to execute this moderation action for <@" + target.id + ">?" + countdown,
+      components: [{
+        type: 1,
+        components: [
+          { type: 2, style: 3, label: "Confirm", custom_id: "mod:c:" + ctx.user.id + ":" + target.id + ":" + expiresAt },
+          { type: 2, style: 4, label: "Cancel", custom_id: "mod:x:" + ctx.user.id + ":" + expiresAt }
+        ]
+      }]
+    });
+  },
+  components: componentsProxy,
+  onButton: handleButton
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="components-v2">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Components V2 Cards</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="select-menus">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Dropdown Select Menus →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 11: SELECT MENUS -->
+    <article class="doc-page" id="page-select-menus">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">Dropdown Select Menus</span></div>
+        <h1>Dropdown Select Menus</h1>
+        <p class="lead">Add string, user, role, and channel select menus and read selections via ctx.values.</p>
+      </div>
+
+      <h2>Discord Select Menu Types</h2>
+      <ul>
+        <li><code>type: 3</code> — String Select Menu (custom options list).</li>
+        <li><code>type: 5</code> — User Select Menu (Discord auto-populates server members).</li>
+        <li><code>type: 6</code> — Role Select Menu (Discord auto-populates server roles).</li>
+        <li><code>type: 7</code> — Mentionable Select Menu (Users + Roles).</li>
+        <li><code>type: 8</code> — Channel Select Menu (Discord auto-populates guild channels).</li>
+      </ul>
+
+      <h2>Reading Selected Values</h2>
+      <p>Inside your component handler, <code>ctx.values</code> contains an array of the selected IDs or strings.</p>
+
+      <h2>Example 1: String Dropdown Menu</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "roles", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "Select your notification preference:",
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 3, // String Select Menu
+              custom_id: "select_notifs",
+              placeholder: "Choose notification pings...",
+              options: [
+                { label: "Announcements", value: "announcements", description: "Important server news" },
+                { label: "Updates", value: "updates", description: "Plugin release notes" },
+                { label: "Giveaways", value: "giveaways", description: "Free coin giveaways" }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "select_notifs": function (ctx) {
+      const selected = ctx.values[0]; // e.g. "announcements"
+      return ctx.update({
+        content: "✅ You subscribed to: **" + selected + "**!",
+        components: []
+      });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Discord Channel Picker (Type 8)</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "setlogs", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "Choose a channel for bot logs:",
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 8, // Channel Select
+              custom_id: "choose_log_channel",
+              placeholder: "Select log channel..."
+            }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "choose_log_channel": function (ctx) {
+      const channelId = ctx.values[0];
+      ctx.storage.set("log_channel_" + ctx.guildId, channelId);
+      return ctx.update({
+        content: "✅ Logging channel set to &lt;#" + channelId + "&gt;!",
+        components: []
+      });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="buttons">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Buttons & Action Rows</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="modals">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Form Modals (Pop-ups) →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 12: MODALS -->
+    <article class="doc-page" id="page-modals">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">Form Modals (Pop-ups)</span></div>
+        <h1>Pop-up Form Modals</h1>
+        <p class="lead">Prompt users with native modal dialogs, multi-line textareas, and handle form submissions.</p>
+      </div>
+
+      <h2>Modal Specifications</h2>
+      <p>Modals are opened in response to an Interaction (Slash command or Button click). You cannot open a modal from a text message prefix command because Discord requires a direct interaction token.</p>
+      <ul>
+        <li><code>type: 9</code> — Modal callback payload.</li>
+        <li><code>title</code> — Window title (up to 45 chars).</li>
+        <li><code>custom_id</code> — Unique identifier for the modal.</li>
+        <li><code>components</code> — Action rows containing Text Inputs (<code>type: 4</code>).</li>
+      </ul>
+
+      <h2>Example 1: Bug Report Modal Form</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    { name: "bugreport", slash: true, prefix: false, description: "Submit a bug report" }
+  ],
+
+  onCommand: function (ctx) {
+    return ctx.reply({
+      type: 9, // Modal
+      title: "Report a Bug",
+      customId: "modal_bug_report",
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 4, // Text Input
+              custom_id: "bug_title",
+              label: "Bug Summary",
+              style: 1, // Short Single-Line
+              placeholder: "Brief description of the issue",
+              min_length: 5,
+              max_length: 100,
+              required: true
+            }
+          ]
+        },
+        {
+          type: 1,
+          components: [
+            {
+              type: 4,
+              custom_id: "bug_details",
+              label: "Reproduction Steps",
+              style: 2, // Paragraph Multi-Line
+              placeholder: "1. Type command...\n2. Click button...",
+              required: true
+            }
+          ]
+        }
+      ]
+    });
+  },
+
+  modals: {
+    "modal_bug_report": function (ctx) {
+      // Access values via ctx.fields
+      const title = ctx.fields["bug_title"];
+      const details = ctx.fields["bug_details"];
+
+      return ctx.replySuccess("Thank you! Bug report recorded:\n> **" + title + "**");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Triggering Modals from Buttons</h2>
+      <p>A common pattern is having a button trigger a modal:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "apply", slash: true, prefix: false }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "Click below to submit your staff application:",
+      components: [
+        {
+          type: 1,
+          components: [{ type: 2, style: 1, label: "Apply Now", custom_id: "btn_open_app" }]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "btn_open_app": function (ctx) {
+      return ctx.reply({
+        type: 9,
+        title: "Staff Application",
+        customId: "staff_modal",
+        components: [
+          {
+            type: 1,
+            components: [
+              { type: 4, custom_id: "experience", label: "Prior Experience", style: 2, required: true }
+            ]
+          }
+        ]
+      });
+    }
+  },
+
+  modals: {
+    "staff_modal": function (ctx) {
+      return ctx.replySuccess("Application received! Staff will review it shortly.");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="select-menus">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Dropdown Select Menus</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="in-place-updates">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">In-Place Updates (Type 7) →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 13: IN-PLACE UPDATES -->
+    <article class="doc-page" id="page-in-place-updates">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Responses & Components <span>/</span> <span class="current">In-Place Updates (Type 7)</span></div>
+        <h1>In-Place Updates & Deferring</h1>
+        <p class="lead">Update messages directly without posting new ones and defer long-running operations.</p>
+      </div>
+
+      <h2>In-Place Update (Type 7)</h2>
+      <p>When a user clicks a button or selects an option, posting a brand-new message can clutter the channel. Calling <code>ctx.update(payload)</code> uses Discord Callback <code>type: 7</code> to modify the existing message in-place:</p>
+
+      <h2>Example 1: Multi-Step Interactive Wizard</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "wizard", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    return ctx.reply({
+      content: "### Setup Wizard — Step 1 of 2\nChoose your primary server language:",
+      components: [
+        {
+          type: 1,
+          components: [
+            { type: 2, style: 2, label: "English", custom_id: "wiz_lang_en" },
+            { type: 2, style: 2, label: "Hindi", custom_id: "wiz_lang_hi" }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "wiz_lang_en": function (ctx) {
+      return ctx.update({
+        content: "### Setup Wizard — Step 2 of 2\nLanguage set to **English**. Click Complete to finish.",
+        components: [
+          {
+            type: 1,
+            components: [{ type: 2, style: 3, label: "Complete Setup", custom_id: "wiz_done" }]
+          }
+        ]
+      });
+    },
+    "wiz_done": function (ctx) {
+      return ctx.update({
+        content: "🎉 **Setup Finished!** Your server is ready.",
+        components: []
+      });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Deferring Long-Running Tasks</h2>
+      <p>If your plugin needs to query an external API or perform a heavy computation that takes longer than 3 seconds, call <code>await ctx.deferReply()</code> followed by <code>ctx.editReply()</code>:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "analyze", slash: true, prefix: false }],
+  onCommand: async function (ctx) {
+    // Acknowledge interaction within 3 seconds
+    await ctx.deferReply();
+
+    // Simulate heavy async job
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Update the loading placeholder
+    return ctx.editReply({
+      content: "✅ Analysis complete! All server systems are healthy."
+    });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="modals">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Form Modals (Pop-ups)</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="storage">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Plugin Storage →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 14: STORAGE -->
+    <article class="doc-page" id="page-storage">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Storage & System <span>/</span> <span class="current">Plugin Storage (ctx.storage)</span></div>
+        <h1>Isolated Plugin Storage (`ctx.storage`)</h1>
+        <p class="lead">Built-in JSON database automatically partitioned per-user, per-bot, and per-plugin.</p>
+      </div>
+
+      <h2>How Storage Works</h2>
+      <p>Every plugin instance gets its own secure, sandboxed persistent storage engine managed automatically by {{NAME}}. Data persists across bot reboots and is fully isolated per bot and plugin without requiring any SQL databases, external drivers, or file path configurations:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Arguments</th><th>Return Value</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.storage.get(key, fallback)</code></td><td>key: string, fallback: any</td><td>any</td><td>Retrieve stored value or fallback if undefined.</td></tr>
+            <tr><td><code>ctx.storage.set(key, value)</code></td><td>key: string, value: any</td><td>value</td><td>Store any JSON-serializable value.</td></tr>
+            <tr><td><code>ctx.storage.has(key)</code></td><td>key: string</td><td>boolean</td><td>Check if a key exists.</td></tr>
+            <tr><td><code>ctx.storage.delete(key)</code></td><td>key: string</td><td>boolean</td><td>Delete key from store.</td></tr>
+            <tr><td><code>ctx.storage.all()</code></td><td>none</td><td>object</td><td>Get complete dictionary of all stored keys.</td></tr>
+            <tr><td><code>ctx.storage.clear()</code></td><td>none</td><td>void</td><td>Wipe all data for this plugin.</td></tr>
+            <tr><td><code>ctx.createStorage(pid)</code></td><td>pid: string</td><td>Storage instance</td><td>Access storage of another plugin ID.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: User Warnings Counter</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "warn",
+      slash: true,
+      prefix: true,
+      options: [
+        { type: 6, name: "user", description: "User to warn", required: true },
+        { type: 3, name: "reason", description: "Warning reason", required: false }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    if (!ctx.hasPermission("KICK_MEMBERS")) return ctx.replyWarn("Missing permissions!");
+
+    const targetUser = ctx.options.user || ctx.rawArgs[0];
+    const targetId = typeof targetUser === "object" ? targetUser.id : targetUser;
+    const reason = ctx.options.reason || "Rule violation";
+
+    const key = "warns_" + ctx.guildId + "_" + targetId;
+    const currentWarns = ctx.storage.get(key, []);
+    currentWarns.push({ reason: reason, date: Date.now(), moderator: ctx.user.username });
+    ctx.storage.set(key, currentWarns);
+
+    return ctx.replySuccess("Warned &lt;@" + targetId + "&gt;! Total warnings: **" + currentWarns.length + "**");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Cross-Plugin Shared Storage</h2>
+      <p>Read or update data managed by another plugin via <code>ctx.createStorage("other-plugin-id")</code>:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "myprefix", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    // Read server prefix saved by prefix-v2 or prefix-v1
+    const prefixStore = ctx.createStorage("00005-prefix-v2");
+    const serverPrefix = prefixStore.get("prefix_" + ctx.guildId, "!");
+
+    return ctx.reply({ content: "Active server prefix is: `" + serverPrefix + "`" });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="in-place-updates">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">In-Place Updates (Type 7)</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="permissions">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Permissions & Owner Check →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 15: PERMISSIONS -->
+    <article class="doc-page" id="page-permissions">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Storage & System <span>/</span> <span class="current">Permissions & Owner Check</span></div>
+        <h1>Permissions & Server Owner Check</h1>
+        <p class="lead">Safeguard commands with server owner bypass, administrator rights, and cached role permissions.</p>
+      </div>
+
+      <h2>How the Engine Resolves Permissions</h2>
+      <p>Permission checking works identically across both Slash interactions and Prefix chat messages:</p>
+      <ul>
+        <li><code>ctx.isServerOwner</code> — Evaluates to <code>true</code> if the command runner's Discord ID matches the Guild Owner ID.</li>
+        <li><code>ctx.hasPermission(nameOrBit)</code> — Checks if user has a permission. If user has <code>ADMINISTRATOR</code> (<code>8n</code>) or is the server owner, it returns <code>true</code> immediately.</li>
+        <li>Automatic Guild Cache: When a message prefix command arrives, the engine fetches and caches the guild's roles without rate-limiting Discord.</li>
+      </ul>
+
+      <h2>Supported Permission Names</h2>
+      <p>Pass string names (case-insensitive) to <code>ctx.hasPermission()</code>:</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Permission Key</th><th>Bit Value</th><th>Typical Roles</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ADMINISTRATOR</code></td><td><code>0x8</code></td><td>Server Administrators</td></tr>
+            <tr><td><code>MANAGE_GUILD</code></td><td><code>0x20</code></td><td>Server Managers / Staff</td></tr>
+            <tr><td><code>MANAGE_CHANNELS</code></td><td><code>0x10</code></td><td>Channel Moderators</td></tr>
+            <tr><td><code>MANAGE_ROLES</code></td><td><code>0x10000000</code></td><td>Role Managers</td></tr>
+            <tr><td><code>KICK_MEMBERS</code></td><td><code>0x2</code></td><td>Moderators</td></tr>
+            <tr><td><code>BAN_MEMBERS</code></td><td><code>0x4</code></td><td>Moderators / Security</td></tr>
+            <tr><td><code>MANAGE_MESSAGES</code></td><td><code>0x2000</code></td><td>Chat Moderators</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Protecting Admin Commands</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "lockdown", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    // Grants access if Server Owner, Administrator, or has MANAGE_CHANNELS
+    if (!ctx.isServerOwner && !ctx.hasPermission("MANAGE_CHANNELS")) {
+      return ctx.replyWarn("You need the **Manage Channels** permission to lock this channel!");
+    }
+
+    // Lock channel for @everyone (deny SEND_MESSAGES 0x800)
+    await ctx.setChannelPermissions(ctx.channelId, ctx.guildId, "0", "2048", 0);
+    return ctx.replySuccess("🔒 Channel locked! Only staff may send messages.");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Owner-Only Diagnostic Command</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "serverwipe", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    if (!ctx.isServerOwner) {
+      return ctx.replyError("Only the **Server Owner** (&lt;@" + ctx.guildOwnerId + "&gt;) can use this command!");
+    }
+    return ctx.reply({ content: "Owner confirmed! Initiating procedure..." });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="storage">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Plugin Storage (ctx.storage)</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="live-metrics">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Bot Ping & Uptime →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 16: LIVE METRICS -->
+    <article class="doc-page" id="page-live-metrics">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Storage & System <span>/</span> <span class="current">Bot Ping & Uptime</span></div>
+        <h1>Bot Ping & Online Uptime Metrics</h1>
+        <p class="lead">Access the bot's live Discord Gateway WebSocket ping and session uptime.</p>
+      </div>
+
+      <h2>Accurate Bot-Level Metrics</h2>
+      <p>Unlike basic scripts that report Node engine uptime (<code>process.uptime()</code>) or host server ping, the engine provides metrics specific to <strong>that bot's Discord Gateway connection</strong>:</p>
+      <ul>
+        <li><code>ctx.botPing</code> / <code>ctx.ping</code> / <code>ctx.getBotPing()</code> — Live Discord Gateway WebSocket Heartbeat roundtrip in milliseconds (equivalent to discord.js <code>client.ws.ping</code>).</li>
+        <li><code>ctx.botUptime</code> / <code>ctx.uptime</code> / <code>ctx.getBotUptime()</code> — Total seconds the bot has been online since connecting.</li>
+        <li><code>ctx.uptimeStart</code> — Epoch timestamp (ms) when the bot received Discord <code>READY</code>.</li>
+      </ul>
+
+      <h2>Example 1: Complete `/ping` Implementation</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">00006-ping-v1/main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>const DISCORD_EPOCH = 1420070400000n;
+
+function getLatency(ctx) {
+  try {
+    const id = (ctx.data && ctx.data.id) || (ctx.interaction && ctx.interaction.id);
+    if (!id) return null;
+    const created = Number((BigInt(id) >> 22n) + DISCORD_EPOCH);
+    return Math.max(0, Date.now() - created);
+  } catch (e) {
+    return null;
+  }
+}
+
+module.exports = {
+  commands: [{ name: "ping", slash: true, prefix: true, cooldown: 5 }],
+  onCommand: async function (ctx) {
+    const latency = getLatency(ctx);
+    const botPing = ctx.botPing || ctx.getBotPing() || 0;
+
+    return ctx.reply({
+      embeds: [{
+        description: "> **Latency :** `" + (latency !== null ? latency + " ms" : "N/A") + "`\n" +
+                     "> **Bot Ping :** `" + botPing + " ms`",
+        color: 0x5865F2
+      }]
+    });
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Complete `/uptime` Implementation</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">00007-uptime-v1/main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>function formatUptime(totalSeconds) {
+  const total = Math.max(0, Math.floor(totalSeconds));
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (d > 0) return d + "d " + h + "h, " + m + "m, " + s + "s";
+  if (h > 0) return h + "h, " + m + "m, " + s + "s";
+  if (m > 0) return m + "m, " + s + "s";
+  return s + "s";
+}
+
+module.exports = {
+  commands: [{ name: "uptime", slash: true, prefix: true, cooldown: 5 }],
+  onCommand: function (ctx) {
+    const botSeconds = ctx.botUptime || ctx.getBotUptime() || 0;
+    return ctx.reply({
+      embeds: [{
+        description: "> **My Uptime :** `" + formatUptime(botSeconds) + "`",
+        color: 0x5865F2
+      }]
+    });
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="permissions">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Permissions & Owner Check</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="cooldowns-emojis">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Cooldowns & Emojis →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 17: COOLDOWNS EMOJIS -->
+    <article class="doc-page" id="page-cooldowns-emojis">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Storage & System <span>/</span> <span class="current">Cooldowns & Dynamic Emojis</span></div>
+        <h1>Cooldowns & System Emojis</h1>
+        <p class="lead">Rate-limit commands dynamically and use custom Discord animated emojis with auto-delete timers.</p>
+      </div>
+
+      <h2>Dynamic Cooldown Helper</h2>
+      <p>Calling <code>ctx.cooldown(seconds)</code> checks if the user is on cooldown for this command. If active, it automatically calls <code>ctx.replyCooldown(remainingSeconds)</code> and returns <code>false</code>. If not active, it records the cooldown and returns <code>true</code>:</p>
+
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Using ctx.cooldown()</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "claim", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    // 60-second cooldown per user
+    if (!ctx.cooldown(60)) return;
+
+    return ctx.replySuccess("You claimed your hourly reward of 100 coins!");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Built-in Discord Emojis</h2>
+      <p>The host uses custom Discord emojis defined in <code>utils/system/emoji.js</code>:</p>
+      <ul>
+        <li>Error: <code>&lt;:error:1563618179891208242&gt;</code></li>
+        <li>Warning: <code>&lt;:Warning:1563618139051131033&gt;</code></li>
+        <li>Cooldown: <code>&lt;a:cooldown:1563618102841708624&gt;</code> (Animated)</li>
+      </ul>
+
+      <h2>Auto-Delete Behavior</h2>
+      <p>All warning, error, and cooldown replies include <code>deleteAfter: 10000</code> by default. After 10 seconds, the engine automatically deletes the alert message from Discord, keeping chat clean!</p>
+
+      <h2>Example 1: Administrator Cooldown Bypass</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "broadcast", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    // Admins bypass the 30-second cooldown
+    const isAdmin = ctx.isServerOwner || ctx.hasPermission("ADMINISTRATOR");
+    if (!isAdmin && !ctx.cooldown(30)) return;
+
+    return ctx.replySuccess("Broadcast sent to all server channels!");
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="live-metrics">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Bot Ping & Uptime</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="channel-sdk">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Channels Management →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 18: CHANNEL SDK -->
+    <article class="doc-page" id="page-channel-sdk">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Discord Control SDK <span>/</span> <span class="current">Channels Management</span></div>
+        <h1>Channels Management SDK</h1>
+        <p class="lead">Create, edit, delete, and configure permissions on Discord guild channels.</p>
+      </div>
+
+      <h2>Channel SDK Methods on `ctx`</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Arguments</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.createChannel(gid, options)</code></td><td>gid: string, options: object</td><td>Create channel (text, voice, category).</td></tr>
+            <tr><td><code>ctx.editChannel(cid, options)</code></td><td>cid: string, options: object</td><td>Rename, set topic, or modify channel.</td></tr>
+            <tr><td><code>ctx.deleteChannel(cid)</code></td><td>cid: string</td><td>Delete a channel.</td></tr>
+            <tr><td><code>ctx.fetchChannel(cid)</code></td><td>cid: string</td><td>Get channel object from Discord.</td></tr>
+            <tr><td><code>ctx.setChannelPermissions(cid, targetId, allow, deny, type)</code></td><td>cid, targetId, allow, deny, type</td><td>Set overwrite permissions (type 0: Role, 1: Member).</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Creating a Private Ticket Channel</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "newticket", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    const res = await ctx.createChannel(ctx.guildId, {
+      name: "ticket-" + ctx.user.username.toLowerCase().replace(/[^a-z0-9]/g, ""),
+      type: 0, // Guild Text Channel
+      topic: "Support Ticket for " + ctx.user.username + " (" + ctx.user.id + ")",
+      permission_overwrites: [
+        { id: ctx.guildId, type: 0, allow: "0", deny: "1024" }, // Hide from @everyone (VIEW_CHANNEL 1024)
+        { id: ctx.user.id, type: 1, allow: "3072", deny: "0" }   // Allow user VIEW + SEND
+      ]
+    });
+
+    if (res && res.body && res.body.id) {
+      return ctx.replySuccess("Created ticket: &lt;#" + res.body.id + "&gt;");
+    } else {
+      return ctx.replyError("Failed to create ticket channel!");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Channel Slowmode Setter</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "slowmode",
+      slash: true,
+      prefix: true,
+      options: [{ type: 4, name: "seconds", description: "Slowmode delay (0-21600s)", required: true }]
+    }
+  ],
+  onCommand: async function (ctx) {
+    if (!ctx.hasPermission("MANAGE_CHANNELS")) return ctx.replyWarn("Missing Manage Channels permission!");
+    const sec = parseInt(ctx.options.seconds, 10) || 0;
+    await ctx.editChannel(ctx.channelId, { rate_limit_per_user: sec });
+    return ctx.replySuccess("Channel slowmode set to **" + sec + " seconds**.");
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="cooldowns-emojis">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Cooldowns & Emojis</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="member-sdk">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Members & Moderation →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 19: MEMBER SDK -->
+    <article class="doc-page" id="page-member-sdk">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Discord Control SDK <span>/</span> <span class="current">Members & Moderation</span></div>
+        <h1>Members & Moderation SDK</h1>
+        <p class="lead">Add roles, remove roles, timeout, kick, ban, unban, and send direct messages (DMs).</p>
+      </div>
+
+      <h2>Moderation Methods on `ctx`</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Arguments</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.fetchMember(gid, uid)</code></td><td>gid, uid</td><td>Fetch guild member and their roles.</td></tr>
+            <tr><td><code>ctx.addRole(gid, uid, roleId)</code></td><td>gid, uid, roleId</td><td>Assign role to user.</td></tr>
+            <tr><td><code>ctx.removeRole(gid, uid, roleId)</code></td><td>gid, uid, roleId</td><td>Remove role from user.</td></tr>
+            <tr><td><code>ctx.timeoutMember(gid, uid, durationMs)</code></td><td>gid, uid, ms</td><td>Timeout member (pass <code>null</code> to unmute).</td></tr>
+            <tr><td><code>ctx.kickMember(gid, uid)</code></td><td>gid, uid</td><td>Kick user from server.</td></tr>
+            <tr><td><code>ctx.banMember(gid, uid, options)</code></td><td>gid, uid, options</td><td>Ban user (with optional <code>delete_message_seconds</code>).</td></tr>
+            <tr><td><code>ctx.unbanMember(gid, uid)</code></td><td>gid, uid</td><td>Unban previously banned user.</td></tr>
+            <tr><td><code>ctx.sendDM(uid, payload)</code></td><td>uid, payload</td><td>Open DM channel and send direct message.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example 1: Native Discord Timeout / Mute</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "timeout",
+      slash: true,
+      prefix: true,
+      options: [
+        { type: 6, name: "user", description: "Target member", required: true },
+        { type: 4, name: "minutes", description: "Duration in minutes", required: true }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    if (!ctx.hasPermission("MODERATE_MEMBERS") && !ctx.hasPermission("ADMINISTRATOR")) {
+      return ctx.replyWarn("Missing Moderate Members permission!");
+    }
+
+    const targetUser = ctx.options.user || ctx.rawArgs[0];
+    const targetId = typeof targetUser === "object" ? targetUser.id : targetUser;
+    const mins = parseInt(ctx.options.minutes, 10) || 5;
+
+    await ctx.timeoutMember(ctx.guildId, targetId, mins * 60 * 1000);
+    return ctx.replySuccess("Timed out &lt;@" + targetId + "&gt; for **" + mins + " minutes**.");
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Welcome DM on Verify</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "verify", slash: true, prefix: true }],
+  onCommand: async function (ctx) {
+    const roleId = ctx.storage.get("verified_role_" + ctx.guildId);
+    if (!roleId) return ctx.replyWarn("Verified role not configured!");
+
+    await ctx.addRole(ctx.guildId, ctx.user.id, roleId);
+    await ctx.sendDM(ctx.user.id, "🎉 You have been verified in **" + ctx.guildName + "**!");
+
+    return ctx.replySuccess("Verification complete! Check your DMs.");
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="channel-sdk">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Channels Management</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="gateway-events">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Gateway Raw Events →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 20: GATEWAY EVENTS -->
+    <article class="doc-page" id="page-gateway-events">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Discord Control SDK <span>/</span> <span class="current">Gateway Raw Events</span></div>
+        <h1>Gateway Raw Event Listeners</h1>
+        <p class="lead">Listen to any Discord Gateway dispatch event including member joins, message deletes, and reactions.</p>
+      </div>
+
+      <h2>The `events` Export Object</h2>
+      <p>Plugins can export an <code>events: { ... }</code> dictionary. Whenever Discord sends a Gateway dispatch event (OP 0), the engine invokes matching handlers with <code>ctx.event</code> and <code>ctx.data</code>:</p>
+
+      <h2>Example 1: Auto-Delete Bad Words</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>const BANNED_WORDS = ["scamlink.xyz", "free-nitro.ru"];
+
+module.exports = {
+  events: {
+    MESSAGE_CREATE: async function (ctx) {
+      const data = ctx.data;
+      if (!data || (data.author && data.author.bot) || !data.content) return;
+
+      const content = data.content.toLowerCase();
+      const hasBanned = BANNED_WORDS.some(w => content.includes(w));
+
+      if (hasBanned) {
+        // Delete message immediately
+        await ctx.deleteMessage(data.channel_id, data.id);
+        // Send ephemeral warning
+        return ctx.replyWarn("&lt;@" + data.author.id + "&gt;, posting suspicious links is prohibited!");
+      }
+    }
+  }
+};</code></pre>
+      </div>
+
+      <h2>Example 2: Member Join Greeter</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  events: {
+    GUILD_MEMBER_ADD: async function (ctx) {
+      const member = ctx.data;
+      const channelId = ctx.storage.get("welcome_channel_" + ctx.guildId);
+      if (!channelId) return;
+
+      const user = member.user || {};
+      return ctx.sendChannel(channelId, {
+        content: "👋 Welcome &lt;@" + user.id + "&gt; to **" + ctx.guildName + "**!"
+      });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="member-sdk">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Members & Moderation</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="example-tickets">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Ticket System Plugin →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 21: EXAMPLE TICKETS -->
+    <article class="doc-page" id="page-example-tickets">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Production Examples <span>/</span> <span class="current">Ticket System Plugin</span></div>
+        <h1>Production Example: Advanced Ticket System</h1>
+        <p class="lead">A complete, production-ready Discord Ticket System plugin utilizing Buttons, Private Channels, and Storage.</p>
+      </div>
+
+      <h2>Full Runnable Code</h2>
+      <p>Save this inside your plugin's <code>main/index.js</code>:</p>
+
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "ticketpanel",
+      description: "Send the interactive ticket creation panel",
+      slash: true,
+      prefix: true
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    if (!ctx.hasPermission("MANAGE_CHANNELS")) {
+      return ctx.replyWarn("You need Manage Channels permission to send the ticket panel!");
+    }
+
+    return ctx.reply({
+      components: [
+        {
+          type: 17, // Component V2 Container
+          accent_color: 0x5865F2,
+          components: [
+            {
+              type: 10,
+              content: "# 📩 Need Support?\nClick the button below to open a private ticket with our staff."
+            }
+          ]
+        },
+        {
+          type: 1, // Action Row
+          components: [
+            { type: 2, style: 1, label: "Create Ticket", emoji: { name: "📩" }, custom_id: "ticket_open" }
+          ]
+        }
+      ]
+    });
+  },
+
+  components: {
+    "ticket_open": async function (ctx) {
+      // Check if user already has an active ticket
+      const existingTicket = ctx.storage.get("user_ticket_" + ctx.guildId + "_" + ctx.user.id);
+      if (existingTicket) {
+        return ctx.replyWarn("You already have an active ticket: &lt;#" + existingTicket + "&gt;!", { ephemeral: true });
+      }
+
+      // Create private channel
+      const cleanName = "ticket-" + ctx.user.username.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const res = await ctx.createChannel(ctx.guildId, {
+        name: cleanName,
+        type: 0,
+        topic: "Ticket for " + ctx.user.username + " (" + ctx.user.id + ")",
+        permission_overwrites: [
+          { id: ctx.guildId, type: 0, allow: "0", deny: "1024" }, // Hide from @everyone
+          { id: ctx.user.id, type: 1, allow: "3072", deny: "0" }   // Allow user
+        ]
+      });
+
+      if (!res || !res.body || !res.body.id) {
+        return ctx.replyError("Failed to create ticket channel. Check bot permissions!", { ephemeral: true });
+      }
+
+      const channelId = res.body.id;
+      ctx.storage.set("user_ticket_" + ctx.guildId + "_" + ctx.user.id, channelId);
+      ctx.storage.set("channel_owner_" + channelId, ctx.user.id);
+
+      // Send greeting in the new channel
+      await ctx.sendChannel(channelId, {
+        content: "Welcome &lt;@" + ctx.user.id + "&gt;! Staff will be with you shortly.",
+        components: [
+          {
+            type: 1,
+            components: [
+              { type: 2, style: 4, label: "Close Ticket", emoji: { name: "🔒" }, custom_id: "ticket_close" }
+            ]
+          }
+        ]
+      });
+
+      return ctx.replySuccess("Your ticket has been opened: &lt;#" + channelId + "&gt;", { ephemeral: true });
+    },
+
+    "ticket_close": async function (ctx) {
+      await ctx.replyWarn("This ticket will close and delete in 5 seconds...");
+      const ownerId = ctx.storage.get("channel_owner_" + ctx.channelId);
+      if (ownerId) ctx.storage.delete("user_ticket_" + ctx.guildId + "_" + ownerId);
+      ctx.storage.delete("channel_owner_" + ctx.channelId);
+
+      setTimeout(async function () {
+        await ctx.deleteChannel(ctx.channelId);
+      }, 5000);
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="gateway-events">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Gateway Raw Events</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="example-economy">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Economy System Plugin →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 22: EXAMPLE ECONOMY -->
+    <article class="doc-page" id="page-example-economy">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Production Examples <span>/</span> <span class="current">Economy System Plugin</span></div>
+        <h1>Production Example: Economy System</h1>
+        <p class="lead">A complete dual-engine Economy plugin with balance, daily rewards, money transfers, and cooldowns.</p>
+      </div>
+
+      <h2>Full Runnable Code</h2>
+      <p>Save this inside your plugin's <code>main/index.js</code>:</p>
+
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "balance",
+      description: "Check your coin balance",
+      slash: true,
+      prefix: true,
+      aliases: ["bal", "coins"]
+    },
+    {
+      name: "daily",
+      description: "Claim your daily reward of 250 coins",
+      slash: true,
+      prefix: true
+    },
+    {
+      name: "pay",
+      description: "Pay coins to another user",
+      slash: true,
+      prefix: true,
+      options: [
+        { type: 6, name: "user", description: "Recipient member", required: true },
+        { type: 4, name: "amount", description: "Number of coins", required: true }
+      ]
+    }
+  ],
+
+  onCommand: async function (ctx) {
+    const cmd = String(ctx.command).toLowerCase();
+
+    // /balance or !bal
+    if (cmd === "balance") {
+      const bal = ctx.storage.get("bal_" + ctx.user.id, 0);
+      return ctx.reply({
+        content: "> 💰 **" + ctx.user.username + "**\x27s Balance: `" + bal + " coins`"
+      });
+    }
+
+    // /daily or !daily
+    if (cmd === "daily") {
+      const lastDaily = ctx.storage.get("daily_" + ctx.user.id, 0);
+      const now = Date.now();
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      if (now - lastDaily < oneDay) {
+        const remainingHours = Math.ceil((oneDay - (now - lastDaily)) / (60 * 60 * 1000));
+        return ctx.replyWarn("You already claimed your daily reward! Return in **" + remainingHours + " hours**.");
+      }
+
+      ctx.storage.set("daily_" + ctx.user.id, now);
+      const current = ctx.storage.get("bal_" + ctx.user.id, 0);
+      ctx.storage.set("bal_" + ctx.user.id, current + 250);
+
+      return ctx.replySuccess("Claimed your daily **250 coins**! New balance: `" + (current + 250) + " coins`");
+    }
+
+    // /pay <user> <amount>
+    if (cmd === "pay") {
+      const recipient = ctx.options.user || ctx.rawArgs[0];
+      const targetId = typeof recipient === "object" ? recipient.id : (recipient ? recipient.replace(/[^0-9]/g, "") : null);
+      const amount = parseInt(ctx.options.amount || ctx.rawArgs[1], 10);
+
+      if (!targetId || targetId === ctx.user.id) return ctx.replyWarn("Please specify a valid recipient!");
+      if (!amount || amount <= 0) return ctx.replyWarn("Amount must be greater than 0!");
+
+      const senderBal = ctx.storage.get("bal_" + ctx.user.id, 0);
+      if (senderBal < amount) return ctx.replyWarn("Insufficient balance! You only have `" + senderBal + " coins`.");
+
+      const targetBal = ctx.storage.get("bal_" + targetId, 0);
+      ctx.storage.set("bal_" + ctx.user.id, senderBal - amount);
+      ctx.storage.set("bal_" + targetId, targetBal + amount);
+
+      return ctx.replySuccess("Successfully sent **" + amount + " coins** to &lt;@" + targetId + "&gt;!");
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="example-tickets">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Ticket System Plugin</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="best-practices">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Glitch Prevention & Standards →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 23: BEST PRACTICES & GLITCH PREVENTION -->
+    <article class="doc-page" id="page-best-practices">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Production & Quality <span>/</span> <span class="current">Glitch Prevention & Standards</span></div>
+        <h1>Glitch Prevention & Production Standards</h1>
+        <p class="lead">Essential architectural guidelines to prevent command collisions, ghost pings, permission crashes, and Discord API rate-limits.</p>
+      </div>
+
+      <h2>1. Dual-Engine Mention & Argument Resolution</h2>
+      <p>In Discord Slash interactions, arguments arrive as structured objects (e.g. <code>ctx.options.user</code>). In Text Prefix mode, arguments arrive as space-separated tokens in <code>ctx.rawArgs</code> or <code>ctx.rawText</code>. Always use safe extraction helpers:</p>
+      
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Safe Dual-Engine Argument Parser</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>function resolveTargetUser(ctx, optName) {
+  // 1. Check slash options object
+  if (ctx.options && ctx.options[optName]) {
+    const o = ctx.options[optName];
+    if (typeof o === "object" && o.id) return o.id;
+    if (typeof o === "string") return o.replace(/[^0-9]/g, "");
+  }
+  // 2. Check prefix argument
+  const arg = (ctx.rawArgs && ctx.rawArgs[0]) || "";
+  const match = arg.match(/^<@!?(\d+)>$/);
+  if (match) return match[1];
+  if (/^\d{17,20}$/.test(arg)) return arg;
+
+  // 3. Fallback to command runner
+  return ctx.user ? ctx.user.id : null;
+}</code></pre>
+      </div>
+
+      <h2>2. Safe Message Referencing & Ghost-Ping Immunity</h2>
+      <p>When sending replies to chat messages, avoid pinging the author unless explicitly intended, and protect against Discord Error <code>10008 (Unknown Message)</code> if the user rapidly deletes their trigger message:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Safe Reply Referencing</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>function safeReply(ctx, payload) {
+  let body = typeof payload === "string" ? { content: payload } : Object.assign({}, payload);
+  if (ctx.data && ctx.data.id) {
+    // Reply directly to trigger message without pinging user
+    body.message_reference = { message_id: ctx.data.id, fail_if_not_exists: false };
+    body.allowed_mentions = { replied_user: false };
+  }
+  return ctx.reply(body);
+}</code></pre>
+      </div>
+
+      <h2>3. Auto-Delete Alerts vs Permanent Cards</h2>
+      <p>Keep server channels clean and modern by following {{NAME}}'s message persistence standards:</p>
+      <ul>
+        <li><strong>Permanent Confirmations (<code>ctx.replySuccess</code>):</strong> Use for state changes that should remain visible in server history (e.g. prefix updated, coins transferred, ticket created).</li>
+        <li><strong>Temporary Alerts (10s Auto-Delete):</strong> Use <code>ctx.replyWarn</code>, <code>ctx.replyError</code>, and <code>ctx.replyCooldown</code>. These messages automatically delete from Discord after 10 seconds, preventing channels from accumulating error spam.</li>
+      </ul>
+
+      <h2>4. Dynamic Cooldown Isolation</h2>
+      <p>Always protect resource-intensive commands with <code>ctx.cooldown(seconds)</code>. The engine automatically isolates cooldown timers per user, per command, and per plugin:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Command Rate Limiting</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>onCommand: async function (ctx) {
+  // Check rate limit (Admins can bypass if desired)
+  const isPrivileged = ctx.isServerOwner || ctx.hasPermission("ADMINISTRATOR");
+  if (!isPrivileged && !ctx.cooldown(15)) {
+    return; // ctx.cooldown automatically sends an animated cooldown alert with 10s auto-delete
+  }
+
+  // Execute heavy logic...
+}</code></pre>
+      </div>
+
+      <h2>5. Two-Way Permission Verification</h2>
+      <p>Never assume the bot has permission to perform an action simply because the user has permission to request it:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">Defensive Permission Checks</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>// 1. Verify User has rights
+if (!ctx.hasPermission("MANAGE_MESSAGES")) {
+  return ctx.replyWarn("You need Manage Messages permission to use this command!");
+}
+
+// 2. Perform Bot operation with clean error capture
+const res = await ctx.deleteMessage(ctx.channelId, targetMessageId).catch(function () { return null; });
+if (!res) {
+  return ctx.replyError("Failed to delete message. Please verify the Bot has **Manage Messages** permission!");
+}</code></pre>
+      </div>
+
+      <h2>6. Asset & Nitro Fallback Handling</h2>
+      <p>Standard Discord users may not have Nitro image banners. When building profile or user information commands, always support <code>u.accent_color</code> as a graceful fallback instead of failing with an error.</p>
+
+      <h2>7. Preventing "This component is not recognized" Errors</h2>
+      <p>When a button click or dropdown select interaction arrives, the engine queries loaded plugins in order. If your plugin sends interactive components, follow these best practices to ensure zero interaction drops:</p>
+      <ul>
+        <li><strong>Export both <code>components</code> and <code>onButton</code>:</strong> Registering your handler across both interfaces guarantees the engine catches the interaction regardless of dispatch strategy.</li>
+        <li><strong>Prefix Dynamic custom_id strings:</strong> Always namespace custom IDs (e.g. <code>plugin_action_id</code>) and use a Proxy or wildcard (<code>components: { "*": fn }</code>) to capture dynamic session IDs cleanly.</li>
+        <li><strong>Always Acknowledge Interactions:</strong> Discord interactions expire after 3 seconds. Always call <code>ctx.update(...)</code>, <code>ctx.deferUpdate()</code>, or <code>ctx.reply(...)</code> immediately within your handler.</li>
+      </ul>
+
+      <h2>8. Zero Core Modification Rule (Complete Plugin Autonomy)</h2>
+      <p>The host system is designed with a microkernel architecture. <strong>You never need to edit or touch any host system files</strong> to add features. Everything is driven entirely within your plugin:</p>
+      <ul>
+        <li><strong>Buttons & Click Handlers:</strong> Export in <code>mod.buttons</code> or <code>mod.components</code>. Supports wildcard prefixes (<code>"action:*"</code>).</li>
+        <li><strong>Dropdown Select Menus:</strong> Export in <code>mod.selects</code> or <code>mod.components</code>. Supports String, User, Role, and Channel select menus.</li>
+        <li><strong>Form Modals (Pop-ups):</strong> Trigger with <code>ctx.showModal(...)</code> and handle via <code>mod.modals[customId]</code> or <code>mod.onModal</code>.</li>
+        <li><strong>Custom Variables / Credentials:</strong> Define in <code>mod.config</code> (e.g. Lavalink Host, Port, Password) and read via <code>ctx.config</code>.</li>
+        <li><strong>Embed Themes:</strong> Managed automatically by the engine via <code>ctx.replyEmbed</code> matching the bot owner's unified master color.</li>
+      </ul>
+
+      <h2>9. Foolproof Anti-Mistake Checklist (Check Before Uploading)</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Check Item</th><th>Rule</th><th>Why It Matters</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Command Names</strong></td><td><code>^[a-z0-9_-]{1,32}$</code></td><td>Uppercase letters or spaces will cause Discord Gateway registration (400 Bad Request) to fail.</td></tr>
+            <tr><td><strong>Option Ordering</strong></td><td>Required options FIRST, optional options LAST</td><td>Placing an optional argument before a required one violates Discord's API specification.</td></tr>
+            <tr><td><strong>Visual Themes</strong></td><td>Use <code>ctx.replyEmbed</code> or <code>ctx.color</code></td><td>Hardcoded random colors will be overwritten by the engine to preserve bot brand identity.</td></tr>
+            <tr><td><strong>Status Alerts</strong></td><td>Use <code>ctx.replyError</code> / <code>ctx.replyWarn</code></td><td>Guarantees Discord Components V2 rendering and prevents permanent error clutter with 10s auto-delete.</td></tr>
+            <tr><td><strong>Variable Fallbacks</strong></td><td><code>ctx.config.field || "default"</code></td><td>Ensures the plugin runs gracefully even before the bot owner configures dashboard values.</td></tr>
+            <tr><td><strong>Dynamic custom_ids</strong></td><td>Namespace with colons (e.g. <code>kick:12345</code>)</td><td>Use wildcard patterns (<code>"kick:*"</code>) so dynamic arguments in buttons or modals resolve cleanly.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="example-economy">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Economy System Plugin</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="api-reference">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">ctx API Reference Table →</span>
+        </a>
+      </div>
+    </article>
+
+    <!-- PAGE 24: API REFERENCE -->
+    <article class="doc-page" id="page-api-reference">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Production & Quality <span>/</span> <span class="current">ctx API Reference Table</span></div>
+        <h1>Master `ctx` API Reference Table</h1>
+        <p class="lead">Complete, exhaustive reference of every property, method, and signature available on the context object.</p>
+      </div>
+
+      <h2>Context Properties</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.user</code></td><td>Object</td><td>The command runner's Discord user object (<code>id</code>, <code>username</code>, etc.).</td></tr>
+            <tr><td><code>ctx.member</code></td><td>Object</td><td>Guild member object (roles, permissions, nick).</td></tr>
+            <tr><td><code>ctx.guildId</code></td><td>String</td><td>ID of current server (or null in DM).</td></tr>
+            <tr><td><code>ctx.guildName</code></td><td>String</td><td>Name of current server.</td></tr>
+            <tr><td><code>ctx.guildOwnerId</code></td><td>String</td><td>Discord ID of server owner.</td></tr>
+            <tr><td><code>ctx.isServerOwner</code></td><td>Boolean</td><td><code>true</code> if user is the guild owner.</td></tr>
+            <tr><td><code>ctx.channelId</code></td><td>String</td><td>Current channel snowflake.</td></tr>
+            <tr><td><code>ctx.botId</code></td><td>String</td><td>Discord application ID of the bot.</td></tr>
+            <tr><td><code>ctx.colors</code></td><td>Object</td><td>Bot theme palette: <code>v1</code>, <code>v2</code>, <code>warning</code>, <code>error</code>, <code>cooldown</code>.</td></tr>
+            <tr><td><code>ctx.color</code> / <code>ctx.embedColor</code></td><td>Number</td><td>Bot master theme color integer (e.g. <code>0x5865F2</code>).</td></tr>
+            <tr><td><code>ctx.hexColor</code></td><td>String</td><td>Bot master theme color hex string (e.g. <code>"#5865F2"</code>).</td></tr>
+            <tr><td><code>ctx.command</code></td><td>String</td><td>Name of invoked command.</td></tr>
+            <tr><td><code>ctx.subcommand</code></td><td>String</td><td>Name of active subcommand (or null).</td></tr>
+            <tr><td><code>ctx.subcommandGroup</code></td><td>String</td><td>Name of active subcommand group (or null).</td></tr>
+            <tr><td><code>ctx.options</code></td><td>Object</td><td>Dictionary of parsed command arguments.</td></tr>
+            <tr><td><code>ctx.rawArgs</code></td><td>Array&lt;String&gt;</td><td>Array of raw argument tokens (prefix mode).</td></tr>
+            <tr><td><code>ctx.rawText</code></td><td>String</td><td>Full argument string following command name.</td></tr>
+            <tr><td><code>ctx.customId</code></td><td>String</td><td>Button or select menu custom ID.</td></tr>
+            <tr><td><code>ctx.values</code></td><td>Array&lt;String&gt;</td><td>Selected values from dropdown select menus.</td></tr>
+            <tr><td><code>ctx.fields</code></td><td>Object</td><td>Dictionary of form inputs submitted from modals.</td></tr>
+            <tr><td><code>ctx.config</code></td><td>Object</td><td>Custom variables & credentials configured in dashboard Customize tab.</td></tr>
+            <tr><td><code>ctx.botPing</code></td><td>Number</td><td>Bot Gateway WebSocket ping in ms.</td></tr>
+            <tr><td><code>ctx.botUptime</code></td><td>Number</td><td>Bot online uptime in seconds.</td></tr>
+            <tr><td><code>ctx.uptimeStart</code></td><td>Number</td><td>Timestamp when bot connected to Discord.</td></tr>
+            <tr><td><code>ctx.storage</code></td><td>Object</td><td>Isolated key-value storage engine.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Context Methods</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Signature</th><th>Return Value</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.reply(payload)</code></td><td><code>(payload: string|object)</code></td><td>Promise</td><td>Send reply to slash interaction or chat channel.</td></tr>
+            <tr><td><code>ctx.replyEmbed(embed, opts)</code></td><td><code>(embed: object, opts?: object)</code></td><td>Promise</td><td>Send an Embed V1 automatically styled with the bot's master color.</td></tr>
+            <tr><td><code>ctx.sendEmbed(cid, embed, opts)</code></td><td><code>(cid: string, embed: object, opts?: object)</code></td><td>Promise</td><td>Send an auto-themed Embed V1 to any guild channel.</td></tr>
+            <tr><td><code>ctx.update(payload)</code></td><td><code>(payload: object)</code></td><td>Promise</td><td>In-place message update for buttons / selects (Type 7).</td></tr>
+            <tr><td><code>ctx.deferUpdate()</code></td><td><code>()</code></td><td>Promise</td><td>Acknowledge button / select interaction without modifying message (Type 6).</td></tr>
+            <tr><td><code>ctx.deferReply(opts)</code></td><td><code>(opts: object)</code></td><td>Promise</td><td>Defer slash interaction (shows thinking state).</td></tr>
+            <tr><td><code>ctx.editReply(payload)</code></td><td><code>(payload: object)</code></td><td>Promise</td><td>Edit previously deferred interaction response.</td></tr>
+            <tr><td><code>ctx.showModal(payload)</code></td><td><code>(payload: object)</code></td><td>Promise</td><td>Open a Discord popup modal form (Type 9).</td></tr>
+            <tr><td><code>ctx.deleteMessage(cid, mid)</code></td><td><code>(cid: string, mid: string)</code></td><td>Promise</td><td>Delete a specific message from a channel.</td></tr>
+            <tr><td><code>ctx.replySuccess(msg, opts)</code></td><td><code>(msg: string, opts: object)</code></td><td>Promise</td><td>Send green Component V2 card.</td></tr>
+            <tr><td><code>ctx.replyWarn(msg, opts)</code></td><td><code>(msg: string, opts: object)</code></td><td>Promise</td><td>Send yellow Component V2 card (10s auto-delete).</td></tr>
+            <tr><td><code>ctx.replyError(msg, opts)</code></td><td><code>(msg: string, opts: object)</code></td><td>Promise</td><td>Send red Component V2 card (10s auto-delete).</td></tr>
+            <tr><td><code>ctx.replyCooldown(sec, opts)</code></td><td><code>(sec: number, opts: object)</code></td><td>Promise</td><td>Send animated cooldown card (10s auto-delete).</td></tr>
+            <tr><td><code>ctx.cooldown(seconds)</code></td><td><code>(seconds: number)</code></td><td>boolean</td><td>Check and enforce command rate limit.</td></tr>
+            <tr><td><code>ctx.hasPermission(perm)</code></td><td><code>(perm: string|bigint)</code></td><td>boolean</td><td>Check if runner has permission or is owner/admin.</td></tr>
+            <tr><td><code>ctx.createStorage(pid)</code></td><td><code>(pid: string)</code></td><td>Storage</td><td>Access storage of another plugin ID.</td></tr>
+            <tr><td><code>ctx.sendChannel(cid, payload)</code></td><td><code>(cid: string, payload: object)</code></td><td>Promise</td><td>Send message to any channel (embeds auto-themed).</td></tr>
+            <tr><td><code>ctx.createChannel(gid, opts)</code></td><td><code>(gid: string, opts: object)</code></td><td>Promise</td><td>Create text, voice, or category channel.</td></tr>
+            <tr><td><code>ctx.editChannel(cid, opts)</code></td><td><code>(cid: string, opts: object)</code></td><td>Promise</td><td>Update channel name, topic, or slowmode.</td></tr>
+            <tr><td><code>ctx.deleteChannel(cid)</code></td><td><code>(cid: string)</code></td><td>Promise</td><td>Delete guild channel.</td></tr>
+            <tr><td><code>ctx.setChannelPermissions(...)</code></td><td><code>(cid, targetId, allow, deny, type)</code></td><td>Promise</td><td>Modify channel permission overwrites.</td></tr>
+            <tr><td><code>ctx.fetchMember(gid, uid)</code></td><td><code>(gid, uid)</code></td><td>Promise</td><td>Fetch guild member info.</td></tr>
+            <tr><td><code>ctx.addRole(gid, uid, rid)</code></td><td><code>(gid, uid, rid)</code></td><td>Promise</td><td>Assign role to user.</td></tr>
+            <tr><td><code>ctx.removeRole(gid, uid, rid)</code></td><td><code>(gid, uid, rid)</code></td><td>Promise</td><td>Remove role from user.</td></tr>
+            <tr><td><code>ctx.timeoutMember(gid, uid, ms)</code></td><td><code>(gid, uid, ms)</code></td><td>Promise</td><td>Native Discord timeout mute.</td></tr>
+            <tr><td><code>ctx.kickMember(gid, uid)</code></td><td><code>(gid, uid)</code></td><td>Promise</td><td>Kick user from server.</td></tr>
+            <tr><td><code>ctx.banMember(gid, uid, opts)</code></td><td><code>(gid, uid, opts)</code></td><td>Promise</td><td>Ban user with message purge.</td></tr>
+            <tr><td><code>ctx.unbanMember(gid, uid)</code></td><td><code>(gid, uid)</code></td><td>Promise</td><td>Unban user.</td></tr>
+            <tr><td><code>ctx.sendDM(uid, payload)</code></td><td><code>(uid: string, payload: object)</code></td><td>Promise</td><td>Send direct message to user.</td></tr>
+            <tr><td><code>ctx.discordRequest(method, path, body)</code></td><td><code>(method, path, body)</code></td><td>Promise</td><td>Send raw authenticated Discord REST API request.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="best-practices">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Glitch Prevention & Standards</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="overview">
+          <span class="nav-sub">Back to Start</span>
+          <span class="nav-title">Overview & Architecture →</span>
+        </a>
+      </div>
+    </article>
+
+  </main>
+</div>
+
+<footer class="footer"><span id="footerText">{{FOOTER}}</span></footer>
+
+<script>
+var footerText = document.getElementById("footerText");
+if (footerText && footerText.textContent.indexOf("{{") > -1) footerText.textContent = "Copyright 2026";
+
+// SPA Page Router
+const pages = document.querySelectorAll(".doc-page");
+const sidebarLinks = document.querySelectorAll(".sidebar-link");
+
+function switchPage(pageId) {
+  if (!pageId) pageId = "overview";
+  const targetPage = document.getElementById("page-" + pageId);
+  if (!targetPage) return;
+
+  pages.forEach(p => p.classList.remove("active"));
+  targetPage.classList.add("active");
+
+  sidebarLinks.forEach(link => {
+    link.classList.remove("active");
+    if (link.getAttribute("data-page") === pageId) {
+      link.classList.add("active");
+    }
+  });
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Update hash if needed
+  if (window.location.hash !== "#" + pageId) {
+    history.pushState(null, null, "#" + pageId);
+  }
+}
+
+// Sidebar link clicks
+sidebarLinks.forEach(link => {
+  link.addEventListener("click", (e) => {
+    e.preventDefault();
+    const pageId = link.getAttribute("data-page");
+    switchPage(pageId);
+
+    // Mobile sidebar auto-close
+    const docsSidebar = document.getElementById("docsSidebar");
+    const mobileOverlay = document.getElementById("mobileOverlay");
+    if (docsSidebar && docsSidebar.classList.contains("open")) {
+      docsSidebar.classList.remove("open");
+      mobileOverlay.classList.remove("active");
+    }
+  });
+});
+
+// Pagination button clicks
+document.querySelectorAll(".page-nav-btn").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const navId = btn.getAttribute("data-nav");
+    if (navId) switchPage(navId);
+  });
+});
+
+// URL Hash listener
+window.addEventListener("hashchange", () => {
+  const hash = window.location.hash.replace("#", "");
+  if (hash) switchPage(hash);
+});
+
+// Initial page load
+window.addEventListener("DOMContentLoaded", () => {
+  const hash = window.location.hash.replace("#", "");
+  switchPage(hash || "overview");
+});
+
+// Copy Code Button
+function copyCode(btn) {
+  const wrapper = btn.closest(".code-wrapper");
+  const code = wrapper ? wrapper.querySelector("code").innerText : "";
+  if (!code) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => setCopied(btn));
+  } else {
+    const ta = document.createElement("textarea");
+    ta.value = code;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      setCopied(btn);
+    } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function setCopied(btn) {
+  const orig = btn.innerText;
+  btn.innerText = "Copied!";
+  btn.classList.add("copied");
+  setTimeout(() => {
+    btn.innerText = orig;
+    btn.classList.remove("copied");
+  }, 2000);
+}
+
+// Mobile Drawer
+const menuToggle = document.getElementById("menuToggle");
+const docsSidebar = document.getElementById("docsSidebar");
+const mobileOverlay = document.getElementById("mobileOverlay");
+
+if (menuToggle) {
+  menuToggle.addEventListener("click", () => {
+    docsSidebar.classList.toggle("open");
+    mobileOverlay.classList.toggle("active");
+  });
+}
+if (mobileOverlay) {
+  mobileOverlay.addEventListener("click", () => {
+    docsSidebar.classList.remove("open");
+    mobileOverlay.classList.remove("active");
+  });
+}
+
+// Live Search Filter
+const searchBox = document.getElementById("searchBox");
+if (searchBox) {
+  searchBox.addEventListener("input", function (e) {
+    const query = e.target.value.toLowerCase().trim();
+    sidebarLinks.forEach(link => {
+      const text = link.innerText.toLowerCase();
+      const page = (link.getAttribute("data-page") || "").toLowerCase();
+      if (!query || text.includes(query) || page.includes(query)) {
+        link.style.display = "flex";
+      } else {
+        link.style.display = "none";
+      }
+    });
+  });
+
+  searchBox.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      const visible = Array.from(sidebarLinks).filter(l => l.style.display !== "none");
+      if (visible.length > 0) {
+        visible[0].click();
+        searchBox.blur();
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>

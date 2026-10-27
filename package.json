@@ -1,0 +1,10 @@
+{
+  "name": "Arixa",
+  "version": "1.0.0",
+  "description": "Arixa",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  }
+}

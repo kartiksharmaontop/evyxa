@@ -1,0 +1,15 @@
+# Environment & Secrets
+.env
+
+# Sensitive Runtime & User Data
+data/
+
+# Dependencies
+node_modules/
+
+# Archives & Backups
+skill/app.zip
+*.zip
+
+# Logs
+*.log
