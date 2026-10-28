@@ -909,8 +909,7 @@ function emitPluginEvent(entry, token, name, data) {
   if (!name || name === "READY" || name === "RESUMED") return;
   if (name === "MESSAGE_CREATE" && data && data.guild_id && data.member && data.member.permissions === undefined && data.content && !(data.author && data.author.bot)) {
     const rawMsg = String(data.content || "").trim();
-    const isCmd = rawMsg.startsWith("<@") || /^[^a-zA-Z0-9\s]/.test(rawMsg);
-    if (!isCmd) {
+    if (!rawMsg) {
       emitPluginEventNow(entry, token, name, data);
       return;
     }
