@@ -469,7 +469,7 @@ function getBotThemeColors(botData) {
   const v1Fallback = (botData && (botData.embedColor || botData.color)) || 0x5865f2;
   return {
     v1: parseHexToDecimal(tc.main_v1, parseHexToDecimal(v1Fallback, 0x5865f2)),
-    v2: parseHexToDecimal(tc.main_v2, 0x57f287),
+    v2: parseHexToDecimal(tc.main_v2, parseHexToDecimal(v1Fallback, 0x5865f2)),
     warning: parseHexToDecimal(tc.warning, 0xfaa61a),
     error: parseHexToDecimal(tc.error, 0xed4245),
     cooldown: parseHexToDecimal(tc.cooldown, 0xeb459e)

@@ -687,12 +687,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
         <pre><code>my-plugin/
-├── readme.md          # Manifest, Dashboard Docs, and Config Schema
-├── main/
-│   ├── index.js       # Main entry point (Exports commands, handlers, events)
-│   ├── helpers.js     # (Optional) Internal helper functions
-│   └── constants.js   # (Optional) Color constants, emojis, etc.
-└── assets/            # (Optional) Static icons or images</code></pre>
+├── readme.md
+└── main/
+    └── index.js</code></pre>
       </div>
 
       <h2>Plugin Naming Convention</h2>
@@ -2388,12 +2385,13 @@ module.exports = {
 };</code></pre>
       </div>
 
-      <h2>Built-in Discord Emojis</h2>
-      <p>The host uses custom Discord emojis defined in <code>utils/system/emoji.js</code>:</p>
+      <h2>Built-in System Alert Emojis</h2>
+      <p>The host engine automatically applies system emojis defined in <code>utils/system/emoji.js</code> to alert responses:</p>
       <ul>
-        <li>Error: <code>&lt;:error:1563618179891208242&gt;</code></li>
-        <li>Warning: <code>&lt;:Warning:1563618139051131033&gt;</code></li>
-        <li>Cooldown: <code>&lt;a:cooldown:1563618102841708624&gt;</code> (Animated)</li>
+        <li>Error: <code>❌</code></li>
+        <li>Warning: <code>⚠️</code></li>
+        <li>Cooldown: <code>🕛</code></li>
+        <li>Success: <code>✅</code></li>
       </ul>
 
       <h2>Auto-Delete Behavior</h2>

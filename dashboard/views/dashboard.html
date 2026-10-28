@@ -3060,8 +3060,8 @@ h3.md-h{font-size:14px}
                 <span class="color-desc">Secondary embed and highlight accent color</span>
               </div>
               <div class="color-picker-box">
-                <label class="color-swatch-label" id="swatch_main_v2" style="background-color: #57F287;" title="Choose color for Main v2">
-                  <input type="color" class="bot-color-input" data-key="main_v2" data-swatch="swatch_main_v2" value="#57F287" />
+                <label class="color-swatch-label" id="swatch_main_v2" style="background-color: #5865F2;" title="Choose color for Main v2">
+                  <input type="color" class="bot-color-input" data-key="main_v2" data-swatch="swatch_main_v2" value="#5865F2" />
                 </label>
               </div>
             </div>
@@ -4566,9 +4566,9 @@ function renderPluginDetail(p) {
       html += '<div class="config-row alias-row">' +
         '<div class="config-label-group">' +
           '<span class="config-label">/' + escPluginHtml(c.name) + ' Aliases</span>' +
-          '<span class="config-sublabel">' + (defaultNote ? escPluginHtml(defaultNote) + ' · ' : '') + 'Add custom aliases (comma-separated, e.g. p, latency)</span>' +
+          '<span class="config-sublabel">' + (defaultNote ? escPluginHtml(defaultNote) + ' · ' : '') + 'Add custom aliases (comma-separated)</span>' +
         '</div>' +
-        '<input class="config-input alias-cmd-input" type="text" data-cmd="' + escPluginHtml(c.name) + '" placeholder="e.g. p, latency" value="' + escPluginHtml(currentAliases) + '" autocomplete="off" spellcheck="false">' +
+        '<input class="config-input alias-cmd-input" type="text" data-cmd="' + escPluginHtml(c.name) + '" placeholder="e.g. ' + escPluginHtml(c.name.slice(0, 2)) + '" value="' + escPluginHtml(currentAliases) + '" autocomplete="off" spellcheck="false">' +
       '</div>';
     });
   }
@@ -4718,7 +4718,7 @@ if (manageGrid) manageGrid.addEventListener("click", function (e) {
 
   var currentThemeColors = {
     main_v1: "#5865F2",
-    main_v2: "#57F287",
+    main_v2: "#5865F2",
     warning: "#FAA61A",
     error: "#ED4245",
     cooldown: "#EB459E"

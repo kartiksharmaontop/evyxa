@@ -781,7 +781,7 @@ const PRESENCE_STATUSES = ["online", "idle", "dnd"];
 
 const DEFAULT_THEME_COLORS = {
   main_v1: "#5865F2",
-  main_v2: "#57F287",
+  main_v2: "#5865F2",
   warning: "#FAA61A",
   error: "#ED4245",
   cooldown: "#EB459E"

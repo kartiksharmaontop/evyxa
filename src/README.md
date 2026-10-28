@@ -1,142 +1,244 @@
-# Arixa Plugin Developer Guide: System Alerts & Bot Theme Colors
+# Arixa Plugin Developer Guide
 
-Welcome to the **Arixa Plugin Development Standard**. This document specifies the architectural rules, helper APIs, and best practices for creating plugins that seamlessly integrate with Arixa bots.
-
----
-
-## 1. Golden Rule: No Hardcoded Colors
-
-> [!IMPORTANT]
-> **Plugin developers must NEVER hardcode custom colors** (e.g. `#ED4245`, `0x5865F2`) in plugins.
-> Every bot owner customizes their bot's branding and alert palette directly in the **Bot Dashboard &rarr; Theme Colors**. Your plugin must always adapt dynamically to the bot's configured colors.
-
-### Bot-Connected Theme Variables (`ctx.colors`)
-
-Every command, event, and component execution context automatically provides `ctx.colors`:
-
-| Property | Type | Description | Intended Use |
-| :--- | :--- | :--- | :--- |
-| `ctx.colors.v1` | `number` | Primary Discord Embed color | Embed messages in V1 plugins (`ctx.replyEmbed`). |
-| `ctx.colors.v2` | `number` | Primary Components V2 accent color | Action cards & success containers in V2 plugins. |
-| `ctx.colors.warning` | `number` | Warning alert accent color | Automatically used by `ctx.replyWarn()`. |
-| `ctx.colors.error` | `number` | Error & rejection accent color | Automatically used by `ctx.replyError()`. |
-| `ctx.colors.cooldown` | `number` | Command rate-limit accent color | Automatically used by `ctx.replyCooldown()`. |
+Welcome to the **Arixa Plugin Development Guide**. This comprehensive reference covers everything you need to create fast, crash-proof, and modern Discord plugins for Arixa bots without inspecting the core engine source code.
 
 ---
 
-## 2. Built-in System Alert Methods
+## 📑 Table of Contents
 
-Whenever you need to notify the user about a validation failure, missing permission, rate limit, or unexpected error, **always use the built-in system helpers**. Do not craft custom embed errors or fake warning containers.
-
-### 1. `ctx.replyWarn(message, options)`
-Used for:
-- Missing user input or invalid arguments.
-- Missing permissions (e.g. user lacks `MANAGE_GUILD`).
-- Server-only command used in DMs.
-- Action disallowed by configuration.
-
-```javascript
-if (!ctx.hasPermission("MANAGE_MESSAGES")) {
-  return ctx.replyWarn("You need **Manage Messages** permission to use this command.");
-}
-
-if (!args[0]) {
-  return ctx.replyWarn("Please provide a valid user or ID.");
-}
-```
-* **Styling:** Dynamic `ctx.colors.warning` with system warning emoji (`<:Warning:...>`).
-* **Auto-Delete:** Automatically deletes after **10 seconds** to avoid channel clutter.
-* **Options:** `{ ephemeral: true }` (for slash interactions) or `{ deleteAfter: 0 }` (to keep permanent).
+- [1. Plugin Folder Structure](#1-plugin-folder-structure)
+- [2. Metadata & Dashboard Configuration (`readme.md`)](#2-metadata--dashboard-configuration-readmemd)
+- [3. Golden Rule: No Hardcoded Colors](#3-golden-rule-no-hardcoded-colors)
+- [4. Built-in System Alert Standard (`warn`, `error`, `cooldown`)](#4-built-in-system-alert-standard-warn-error-cooldown)
+- [5. Custom Command Cooldowns (`ctx.cooldown`)](#5-custom-command-cooldowns-ctxcooldown)
+- [6. Context (`ctx`) API Reference](#6-context-ctx-api-reference)
+- [7. Persistent Storage & Bot Configuration](#7-persistent-storage--bot-configuration)
+- [8. Complete Beginner-Friendly Plugin Template](#8-complete-beginner-friendly-plugin-template)
 
 ---
 
-### 2. `ctx.replyError(message, options)`
-Used for:
-- API errors (Discord API rate limits, external webhook failures).
-- Unhandled runtime exceptions or database failures.
-- Bot hierarchy errors (e.g. bot cannot kick someone with higher role).
+## 1. Plugin Folder Structure
 
-```javascript
-try {
-  await performAction();
-} catch (err) {
-  return ctx.replyError("An error occurred while executing this action: " + err.message);
-}
-```
-* **Styling:** Dynamic `ctx.colors.error` with system error emoji (`<:error:...>`).
-* **Auto-Delete:** Automatically deletes after **10 seconds**.
-* **Options:** `{ ephemeral: true }`, `{ deleteAfter: ms }`.
+Every Arixa plugin lives in its own directory with two required files:
 
----
-
-### 3. `ctx.replyCooldown(seconds, options)` & `ctx.cooldown(seconds)`
-Used for:
-- Command rate-limiting and anti-spam protection.
-
-#### Method A: Automatic Cooldown Enforcement (Recommended)
-`ctx.cooldown(seconds)` handles tracking, remaining time calculation, and auto-reply in one call:
-
-```javascript
-if (!ctx.cooldown(5)) return;
+```text
+my-plugin/
+├── readme.md       Metadata, description, and dashboard settings schema
+└── main/
+    └── index.js    Plugin logic, command handlers, and gateway events
 ```
 
-#### Method B: Manual Cooldown Reply
-```javascript
-return ctx.replyCooldown(12);
-```
-* **Styling:** Dynamic `ctx.colors.cooldown` with animated cooldown emoji (`<a:cooldown:...>`).
-* **Auto-Delete:** Automatically deletes after **10 seconds**.
+- **`readme.md`**: Defines your plugin name, description, version, and the settings fields that appear in the Bot Owner Dashboard.
+- **`main/index.js`**: Contains your plugin export, command definitions, permissions, and execution handlers.
 
 ---
 
-### 4. `ctx.replySuccess(message, options)`
-Used for:
-- Confirmation of successful operations (e.g. prefix updated, member warned, ticket created).
+## 2. Metadata & Dashboard Configuration (`readme.md`)
 
-```javascript
-return ctx.replySuccess("Successfully set server prefix to `" + newPrefix + "`");
-```
-* **Styling:** Dynamic `ctx.colors.v2` (Components V2 accent).
-* **Auto-Delete:** Permanent by default.
+The `readme.md` file uses YAML frontmatter at the top, followed by a markdown description, and an optional ````config```` JSON block that automatically generates UI settings in the web dashboard.
 
----
-
-## 3. V1 (Embed) vs V2 (Components V2) Standards
-
-### V1 Plugins (Embed Based)
-1. Use `ctx.replyEmbed(embedData, opts)` or `ctx.sendEmbed(channelId, embedData, opts)`.
-2. Do **not** allow plugin makers or users to hardcode embed colors. The system host sanitizes and locks outgoing embeds to `ctx.colors.v1`.
-3. Validation and error handling in V1 plugins must still use `ctx.replyWarn()` and `ctx.replyError()`.
-
-### V2 Plugins (Discord Components V2)
-1. Use Discord Components V2 format (`flags: 32768`, Container `type: 17`, Text Display `type: 10`).
-2. Set Container `accent_color: ctx.colors.v2`.
-3. In `readme.md`, do **NOT** include `"embed": "color"` in the config schema. Theme colors belong to the bot, not individual plugins.
+### Example `readme.md`:
 
 ```markdown
+---
+name: Announcement System
+tag: Utility
+description: Broadcast formatted announcements across server channels with Components V2 cards.
+version: 1.0.0
+author: @community
+---
+
+# Announcement System
+Send clean, formatted announcements using bot theme accents and permission controls.
+
 ```config
 {
   "fields": [
-    { "key": "custom_option", "label": "Option Name", "type": "text", "default": "value" }
+    { "key": "default_channel", "label": "Default Channel ID", "type": "text", "default": "" },
+    { "key": "mention_everyone", "label": "Mention Everyone", "type": "toggle", "default": "false" },
+    { "key": "emoji_icon", "label": "Announcement Icon Emoji", "type": "text", "default": "📢" }
   ]
 }
 ```
 ```
 
+### Supported Field Types:
+- **`text`**: Standard text input (strings, channel IDs, emoji characters).
+- **`toggle`**: Boolean switch (`"true"` or `"false"`).
+- **`number`**: Numeric values (counts, intervals, thresholds).
+
+Inside your code, read these values anytime using `ctx.config.<key>`.
+
 ---
 
-## 4. Complete Plugin Template
+## 3. Golden Rule: No Hardcoded Colors
+
+> [!IMPORTANT]
+> **Never hardcode hex colors** (such as `#ED4245` or `0x5865F2`) inside your plugin.
+> Bot owners choose their unified color palette directly in the **Bot Dashboard &rarr; Theme Colors**. Every plugin must dynamically use the bot's configured colors.
+
+### Bot Theme Keys (`ctx.colors`):
+
+| Property | Type | Description | Where to Use |
+| :--- | :--- | :--- | :--- |
+| `ctx.colors.v1` / `ctx.color` | `number` | Main Embed Color | V1 Discord Embeds (`ctx.replyEmbed`). |
+| `ctx.colors.v2` | `number` | Main Container Accent | Discord Components V2 Containers (`type: 17`). |
+| `ctx.colors.warning` | `number` | System Warning Accent | Automatically used by `ctx.replyWarn()`. |
+| `ctx.colors.error` | `number` | System Error Accent | Automatically used by `ctx.replyError()`. |
+| `ctx.colors.cooldown` | `number` | System Cooldown Accent | Automatically used by `ctx.replyCooldown()`. |
+
+---
+
+## 4. Built-in System Alert Standard (`warn`, `error`, `cooldown`)
+
+Never build custom error boxes or fake warning cards. Always use Arixa's native system alert helpers so all warnings, errors, and cooldowns look identical and consistent across every installed plugin.
+
+### 1. Warning Notice (`ctx.replyWarn`)
+Use for missing permissions, invalid arguments, or server-only command restrictions:
+
+```javascript
+if (!ctx.guildId) {
+  return ctx.replyWarn("This command can only be used inside a server.");
+}
+
+if (!ctx.hasPermission("MANAGE_MESSAGES")) {
+  return ctx.replyWarn("You need Manage Messages permission to use this command.");
+}
+
+if (!args[0]) {
+  return ctx.replyWarn("Please provide a valid text input.");
+}
+```
+
+- **Visuals:** Bot's warning color accent + system warning emoji (`⚠️`).
+- **Auto-Delete:** Automatically deletes after **10 seconds** to keep channels clean.
+
+### 2. Error Notice (`ctx.replyError`)
+Use for caught runtime exceptions, failed API requests, or hierarchy errors:
+
+```javascript
+try {
+  await performAction();
+} catch (err) {
+  return ctx.replyError("Operation failed: " + err.message);
+}
+```
+
+- **Visuals:** Bot's error color accent + system error emoji (`❌`).
+- **Auto-Delete:** Automatically deletes after **10 seconds**.
+
+### 3. Success Notice (`ctx.replySuccess`)
+Use for confirming actions:
+
+```javascript
+return ctx.replySuccess("Successfully updated settings.");
+```
+
+- **Visuals:** Bot's Main V2 container accent color + success emoji (`✅`).
+
+---
+
+## 5. Custom Command Cooldowns (`ctx.cooldown`)
+
+Every plugin can set custom cooldown times per command to prevent spam.
+
+### One-Line Automatic Cooldown:
+Call `ctx.cooldown(seconds)` at the beginning of your command handler:
+
+```javascript
+if (!ctx.cooldown(5)) return;
+```
+
+- Returns `true` if the user is allowed to run the command.
+- Returns `false` and automatically displays the system animated cooldown alert with the remaining seconds if the user is rate-limited.
+- Set any duration you need: `ctx.cooldown(3)` (fast commands), `ctx.cooldown(15)` (moderation), `ctx.cooldown(60)` (heavy tasks).
+
+---
+
+## 6. Context (`ctx`) API Reference
+
+Every command execution receives a rich `ctx` object containing all necessary data:
+
+| Property / Method | Return Type | Description |
+| :--- | :--- | :--- |
+| `ctx.guildId` | `string \| null` | ID of the current Discord server (`null` in direct messages). |
+| `ctx.guildName` | `string \| null` | Name of the current Discord server. |
+| `ctx.channelId` | `string` | ID of the channel where the command was executed. |
+| `ctx.user.id` | `string` | Discord ID of the user who triggered the command. |
+| `ctx.user.username` | `string` | Username of the command author. |
+| `ctx.member` | `object \| null` | Guild member object including server roles and permissions. |
+| `ctx.hasPermission(name)` | `boolean` | Checks if user has a permission (e.g. `"ADMINISTRATOR"`, `"MANAGE_GUILD"`). |
+| `ctx.isServerOwner` | `boolean` | `true` if the command author is the Discord server owner. |
+| `ctx.options` | `object` | Parsed options object for both slash and prefix commands. |
+| `ctx.rawArgs` | `string[]` | Array of words following the command name (prefix commands). |
+| `ctx.rawText` | `string` | Full raw text following the command name. |
+| `ctx.config` | `object` | Key-value settings configured by the bot owner in Dashboard. |
+| `ctx.storage` | `object` | Persistent storage instance isolated to this plugin and bot. |
+| `ctx.cooldown(seconds)` | `boolean` | Automatically tracks rate limits and sends cooldown warnings. |
+| `ctx.replyWarn(message)` | `Promise` | Sends a standardized auto-deleting warning card. |
+| `ctx.replyError(message)` | `Promise` | Sends a standardized auto-deleting error card. |
+| `ctx.replySuccess(message)` | `Promise` | Sends a standardized Components V2 success card. |
+| `ctx.reply(payload)` | `Promise` | Sends a custom message or Components V2 container. |
+| `ctx.sendChannel(id, payload)` | `Promise` | Sends a message directly to a target channel ID. |
+
+---
+
+## 7. Persistent Storage & Bot Configuration
+
+Arixa provides an isolated, persistent JSON database for each plugin per bot. Data is stored safely with atomic file writes and automatic backup recovery.
+
+### Reading & Writing Data:
+
+```javascript
+const currentCount = ctx.storage.get("user_points_" + ctx.user.id, 0);
+
+ctx.storage.set("user_points_" + ctx.user.id, currentCount + 10);
+
+ctx.storage.delete("user_points_" + ctx.user.id);
+```
+
+- `ctx.storage.get(key, defaultValue)`: Retrieves a stored value. If the key does not exist, returns `defaultValue`.
+- `ctx.storage.set(key, value)`: Atomically saves data to disk.
+- `ctx.storage.delete(key)`: Removes a key from storage.
+
+---
+
+## 8. Complete Beginner-Friendly Plugin Template
+
+Here is a complete, production-ready plugin template you can copy and customize:
 
 ```javascript
 module.exports = {
+  name: "welcome",
+  version: "1.0.0",
+  description: "Custom server welcome card manager",
+
   commands: [
     {
-      name: "example",
-      description: "Standard compliant example command",
+      name: "welcome",
+      description: "Manage welcome greeting settings",
       slash: true,
       prefix: true,
+      cooldown: 5,
       options: [
-        { type: 3, name: "text", description: "Text input", required: true }
+        {
+          type: 1,
+          name: "view",
+          description: "View current welcome channel settings"
+        },
+        {
+          type: 1,
+          name: "set",
+          description: "Set the welcome channel for this server",
+          options: [
+            {
+              type: 7,
+              name: "channel",
+              description: "Target channel to send greetings",
+              required: true
+            }
+          ]
+        }
       ]
     }
   ],
@@ -146,32 +248,43 @@ module.exports = {
       return ctx.replyWarn("This command can only be used inside a server.");
     }
 
-    if (!ctx.hasPermission("MANAGE_MESSAGES")) {
-      return ctx.replyWarn("You need **Manage Messages** permission to use this command.");
+    if (typeof ctx.cooldown === "function" && !ctx.cooldown(5)) {
+      return;
     }
 
-    if (!ctx.cooldown(5)) return;
+    const sub = String(ctx.subcommand || "view").toLowerCase();
 
-    const input = (ctx.options.text || ctx.rawArgs[0] || "").trim();
-    if (!input || input.length < 3) {
-      return ctx.replyWarn("Please provide text with at least 3 characters.");
+    if (sub === "set") {
+      if (!ctx.hasPermission("MANAGE_GUILD")) {
+        return ctx.replyWarn("You need Manage Server permission to configure the welcome channel.");
+      }
+
+      const targetChannel = ctx.options.channel && ctx.options.channel.id;
+      if (!targetChannel) {
+        return ctx.replyWarn("Please mention a valid channel.");
+      }
+
+      ctx.storage.set("welcome_channel_" + ctx.guildId, targetChannel);
+      return ctx.replySuccess("Successfully set welcome channel to <#" + targetChannel + ">");
     }
 
-    return ctx.replySuccess("Successfully received input: **" + input + "**");
+    const savedChannel = ctx.storage.get("welcome_channel_" + ctx.guildId, null);
+    if (!savedChannel) {
+      return ctx.replySuccess("No welcome channel configured for this server. Use `/welcome set` to configure.");
+    }
+
+    return ctx.replySuccess("Current welcome channel is set to <#" + savedChannel + ">");
+  },
+
+  events: {
+    GUILD_MEMBER_ADD: function (member, ctx) {
+      if (!member || !member.guild_id) return;
+      const targetChannel = ctx.storage.get("welcome_channel_" + member.guild_id, null);
+      if (!targetChannel) return;
+
+      const welcomeText = "Welcome to the server, <@" + member.user.id + ">!";
+      ctx.sendChannel(targetChannel, { content: welcomeText });
+    }
   }
 };
 ```
-
----
-
-## 5. How Bot Owners Customize Theme Colors
-
-Bot owners can change alert colors at any time:
-1. Open the Bot Dashboard.
-2. Under **Theme Colors**, adjust:
-   - **Main v1**: Embed response color.
-   - **Main v2**: Components V2 accent color.
-   - **Warning**: Color for all warning alerts.
-   - **Error**: Color for all error alerts.
-   - **Cooldown**: Color for all cooldown alerts.
-3. Changes save automatically to `bot.json` and take effect immediately across all installed plugins without restarting the bot.
