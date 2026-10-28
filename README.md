@@ -83,24 +83,13 @@ touch .env
 Open `.env` and configure your credentials:
 
 ```ini
-# ==========================================
-# 🤖 Discord Bot Core Credentials
-# ==========================================
 TOKEN=your_discord_bot_token_here
 DISCORD_CLIENT_ID=your_discord_application_id_here
 DISCORD_CLIENT_SECRET=your_discord_client_secret_here
 MASTER_KEY=generate_a_random_32_character_hex_key
-
-# ==========================================
-# 🌐 Web Dashboard & Networking
-# ==========================================
 PORT=3000
 DISCORD_REDIRECT_URI=http://localhost:3000/auth/callback
 BASE_URL=http://localhost:3000
-
-# ==========================================
-# 🏷️ Branding & Webhooks (Optional)
-# ==========================================
 NAME=Arixa
 FOOTER=Powered by Arixa Engine
 USER_LOGIN=
@@ -293,8 +282,6 @@ module.exports = {
   name: "ping",
   version: "1.0.0",
   description: "High-precision latency monitor",
-  
-  // Text & Slash Commands
   commands: {
     ping: {
       description: "Check bot latency and gateway ping",
@@ -304,11 +291,8 @@ module.exports = {
       }
     }
   },
-
-  // Gateway Event Listeners
   events: {
     MESSAGE_CREATE(msg, ctx) {
-      // Custom event handling
     }
   }
 };
@@ -325,19 +309,19 @@ For comprehensive plugin specifications, component builders, and complete exampl
 ```text
 arixa/
 ├── dashboard/
-│   ├── botHost.js        # Core Gateway WebSocket and plugin execution engine
-│   ├── crypto.js         # AES-256-GCM token and session encryption
-│   └── views/            # Dashboard HTML templates (dashboard, docs, login, main, plans)
+│   ├── botHost.js
+│   ├── crypto.js
+│   └── views/
 ├── src/
-│   ├── README.md         # Developer guide for bot theme colors & alert standards
-│   └── plugins/          # Plugin directory (empty & ready for custom plugins)
+│   ├── README.md
+│   └── plugins/
 ├── utils/
-│   ├── system/emoji.js   # Components V2 payload builder & system emojis
-│   └── log.js            # Structured panel logger
-├── index.js              # HTTP server, routing, REST APIs, and auth lifecycle
-├── package.json          # Project configuration & start scripts
-├── LICENSE               # MIT Open Source License
-└── .gitignore            # Excludes sensitive data (.env, data/, plugins) & cache
+│   ├── system/emoji.js
+│   └── log.js
+├── index.js
+├── package.json
+├── LICENSE
+└── .gitignore
 ```
 
 ---

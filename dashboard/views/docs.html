@@ -836,7 +836,6 @@ module.exports = {
   name: "Lavalink Music",
   version: "1.0.0",
 
-  // Custom Variables configured by the Bot Owner in Dashboard
   config: [
     {
       key: "lavalink_host",
@@ -870,7 +869,7 @@ module.exports = {
     }
   ],
 
-  commands: [ /* ... */ ]
+  commands: [ [...] ]
 };</code></pre>
       </div>
 
@@ -884,12 +883,10 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "nodeinfo", slash: true, prefix: true }],
   onCommand: function (ctx) {
-    // Read variables configured in dashboard
     const host = ctx.config.lavalink_host || "127.0.0.1";
     const port = ctx.config.lavalink_port || 2333;
     const isAutoLeave = ctx.config.auto_leave === "true" || ctx.config.auto_leave === true;
 
-    // replyEmbed automatically applies the bot owner's unified master color!
     return ctx.replyEmbed({
       title: "🎵 Music Node Status",
       description: "> Connected to node `" + host + ":" + port + "`",
@@ -980,7 +977,6 @@ module.exports = {
   ],
 
   onCommand: async function (ctx) {
-    // Reads from slash options OR text prefix arguments
     const text = ctx.options.message || ctx.rawText || "No text provided!";
     return ctx.reply({ content: text });
   }
@@ -1345,13 +1341,10 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "poll", slash: true, prefix: true }],
   onCommand: async function (ctx) {
-    // ctx.rawArgs: Array of words ["Should", "we", "add", "features?"]
-    // ctx.rawText: Full string "Should we add features?"
     const question = ctx.rawText || ctx.options.question || "Default Poll";
 
     const msg = await ctx.reply({ content: "📊 **Poll:** " + question });
     if (msg && msg.body && msg.body.id) {
-      // Add quick reactions
       await ctx.discordRequest("PUT", "/channels/" + ctx.channelId + "/messages/" + msg.body.id + "/reactions/%E2%9C%85/@me");
       await ctx.discordRequest("PUT", "/channels/" + ctx.channelId + "/messages/" + msg.body.id + "/reactions/%E2%9D%8C/@me");
     }
@@ -1406,7 +1399,6 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "serverinfo", slash: true, prefix: true }],
   onCommand: function (ctx) {
-    // replyEmbed automatically inherits the bot's master color!
     return ctx.replyEmbed({
       title: ctx.guildName,
       fields: [
@@ -1696,17 +1688,14 @@ module.exports = {
   const targetId = parts[3];
   const expiresAt = Number(parts[4] || 0);
 
-  // Security: Only the command author can use the buttons
   if (authorId && String(ctx.user.id) !== String(authorId)) {
     return ctx.reply({ content: "> Only <@" + authorId + "> can use these buttons.", ephemeral: true });
   }
 
-  // Check expiration (0 = never expires)
   if (expiresAt > 0 && Math.floor(Date.now() / 1000) > expiresAt) {
     return ctx.reply({ content: "> This confirmation has expired.", ephemeral: true });
   }
 
-  // Cancel Button: Delete prompt completely
   if (action === "x") {
     ctx.deferUpdate(); // Acknowledge Discord interaction (type 6)
     const msgId = (ctx.interaction && ctx.interaction.message && ctx.interaction.message.id) || (ctx.message && ctx.message.id);
@@ -1716,9 +1705,7 @@ module.exports = {
     return;
   }
 
-  // Confirm Button: Perform action and update message in-place (Type 7)
   if (action === "c") {
-    // Execute action using targetId...
     return ctx.update({
       content: "> Action successfully executed for <@" + targetId + "> by <@" + ctx.user.id + ">",
       components: [] // Clear action row
@@ -1726,7 +1713,6 @@ module.exports = {
   }
 }
 
-// Universal Proxy matcher guarantees instant dispatch in any engine mode
 const componentsProxy = new Proxy({ "*": handleButton }, {
   get: function (target, prop) {
     if (typeof prop === "string" && (prop.startsWith("mod:") || prop === "*")) return handleButton;
@@ -1951,7 +1937,6 @@ module.exports = {
 
   modals: {
     "modal_bug_report": function (ctx) {
-      // Access values via ctx.fields
       const title = ctx.fields["bug_title"];
       const details = ctx.fields["bug_details"];
 
@@ -2085,13 +2070,10 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "analyze", slash: true, prefix: false }],
   onCommand: async function (ctx) {
-    // Acknowledge interaction within 3 seconds
     await ctx.deferReply();
 
-    // Simulate heavy async job
     await new Promise(r => setTimeout(r, 4000));
 
-    // Update the loading placeholder
     return ctx.editReply({
       content: "✅ Analysis complete! All server systems are healthy."
     });
@@ -2184,7 +2166,6 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "myprefix", slash: true, prefix: true }],
   onCommand: function (ctx) {
-    // Read server prefix saved by prefix-v2 or prefix-v1
     const prefixStore = ctx.createStorage("00005-prefix-v2");
     const serverPrefix = prefixStore.get("prefix_" + ctx.guildId, "!");
 
@@ -2248,12 +2229,10 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "lockdown", slash: true, prefix: true }],
   onCommand: async function (ctx) {
-    // Grants access if Server Owner, Administrator, or has MANAGE_CHANNELS
     if (!ctx.isServerOwner && !ctx.hasPermission("MANAGE_CHANNELS")) {
       return ctx.replyWarn("You need the **Manage Channels** permission to lock this channel!");
     }
 
-    // Lock channel for @everyone (deny SEND_MESSAGES 0x800)
     await ctx.setChannelPermissions(ctx.channelId, ctx.guildId, "0", "2048", 0);
     return ctx.replySuccess("🔒 Channel locked! Only staff may send messages.");
   }
@@ -2402,7 +2381,6 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "claim", slash: true, prefix: true }],
   onCommand: async function (ctx) {
-    // 60-second cooldown per user
     if (!ctx.cooldown(60)) return;
 
     return ctx.replySuccess("You claimed your hourly reward of 100 coins!");
@@ -2430,7 +2408,6 @@ module.exports = {
         <pre><code>module.exports = {
   commands: [{ name: "broadcast", slash: true, prefix: true }],
   onCommand: async function (ctx) {
-    // Admins bypass the 30-second cooldown
     const isAdmin = ctx.isServerOwner || ctx.hasPermission("ADMINISTRATOR");
     if (!isAdmin && !ctx.cooldown(30)) return;
 
@@ -2658,9 +2635,7 @@ module.exports = {
       const hasBanned = BANNED_WORDS.some(w => content.includes(w));
 
       if (hasBanned) {
-        // Delete message immediately
         await ctx.deleteMessage(data.channel_id, data.id);
-        // Send ephemeral warning
         return ctx.replyWarn("&lt;@" + data.author.id + "&gt;, posting suspicious links is prohibited!");
       }
     }
@@ -2756,13 +2731,11 @@ module.exports = {
 
   components: {
     "ticket_open": async function (ctx) {
-      // Check if user already has an active ticket
       const existingTicket = ctx.storage.get("user_ticket_" + ctx.guildId + "_" + ctx.user.id);
       if (existingTicket) {
         return ctx.replyWarn("You already have an active ticket: &lt;#" + existingTicket + "&gt;!", { ephemeral: true });
       }
 
-      // Create private channel
       const cleanName = "ticket-" + ctx.user.username.toLowerCase().replace(/[^a-z0-9]/g, "");
       const res = await ctx.createChannel(ctx.guildId, {
         name: cleanName,
@@ -2782,7 +2755,6 @@ module.exports = {
       ctx.storage.set("user_ticket_" + ctx.guildId + "_" + ctx.user.id, channelId);
       ctx.storage.set("channel_owner_" + channelId, ctx.user.id);
 
-      // Send greeting in the new channel
       await ctx.sendChannel(channelId, {
         content: "Welcome &lt;@" + ctx.user.id + "&gt;! Staff will be with you shortly.",
         components: [
@@ -2869,7 +2841,6 @@ module.exports = {
   onCommand: async function (ctx) {
     const cmd = String(ctx.command).toLowerCase();
 
-    // /balance or !bal
     if (cmd === "balance") {
       const bal = ctx.storage.get("bal_" + ctx.user.id, 0);
       return ctx.reply({
@@ -2877,7 +2848,6 @@ module.exports = {
       });
     }
 
-    // /daily or !daily
     if (cmd === "daily") {
       const lastDaily = ctx.storage.get("daily_" + ctx.user.id, 0);
       const now = Date.now();
@@ -2895,7 +2865,6 @@ module.exports = {
       return ctx.replySuccess("Claimed your daily **250 coins**! New balance: `" + (current + 250) + " coins`");
     }
 
-    // /pay <user> <amount>
     if (cmd === "pay") {
       const recipient = ctx.options.user || ctx.rawArgs[0];
       const targetId = typeof recipient === "object" ? recipient.id : (recipient ? recipient.replace(/[^0-9]/g, "") : null);
@@ -2945,19 +2914,16 @@ module.exports = {
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
         <pre><code>function resolveTargetUser(ctx, optName) {
-  // 1. Check slash options object
   if (ctx.options && ctx.options[optName]) {
     const o = ctx.options[optName];
     if (typeof o === "object" && o.id) return o.id;
     if (typeof o === "string") return o.replace(/[^0-9]/g, "");
   }
-  // 2. Check prefix argument
   const arg = (ctx.rawArgs && ctx.rawArgs[0]) || "";
   const match = arg.match(/^<@!?(\d+)>$/);
   if (match) return match[1];
   if (/^\d{17,20}$/.test(arg)) return arg;
 
-  // 3. Fallback to command runner
   return ctx.user ? ctx.user.id : null;
 }</code></pre>
       </div>
@@ -2972,7 +2938,6 @@ module.exports = {
         <pre><code>function safeReply(ctx, payload) {
   let body = typeof payload === "string" ? { content: payload } : Object.assign({}, payload);
   if (ctx.data && ctx.data.id) {
-    // Reply directly to trigger message without pinging user
     body.message_reference = { message_id: ctx.data.id, fail_if_not_exists: false };
     body.allowed_mentions = { replied_user: false };
   }
@@ -2995,13 +2960,11 @@ module.exports = {
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
         <pre><code>onCommand: async function (ctx) {
-  // Check rate limit (Admins can bypass if desired)
   const isPrivileged = ctx.isServerOwner || ctx.hasPermission("ADMINISTRATOR");
   if (!isPrivileged && !ctx.cooldown(15)) {
     return; // ctx.cooldown automatically sends an animated cooldown alert with 10s auto-delete
   }
 
-  // Execute heavy logic...
 }</code></pre>
       </div>
 
@@ -3017,7 +2980,6 @@ if (!ctx.hasPermission("MANAGE_MESSAGES")) {
   return ctx.replyWarn("You need Manage Messages permission to use this command!");
 }
 
-// 2. Perform Bot operation with clean error capture
 const res = await ctx.deleteMessage(ctx.channelId, targetMessageId).catch(function () { return null; });
 if (!res) {
   return ctx.replyError("Failed to delete message. Please verify the Bot has **Manage Messages** permission!");
@@ -3179,7 +3141,6 @@ if (!res) {
 var footerText = document.getElementById("footerText");
 if (footerText && footerText.textContent.indexOf("{{") > -1) footerText.textContent = "Copyright 2026";
 
-// SPA Page Router
 const pages = document.querySelectorAll(".doc-page");
 const sidebarLinks = document.querySelectorAll(".sidebar-link");
 
@@ -3200,20 +3161,17 @@ function switchPage(pageId) {
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // Update hash if needed
   if (window.location.hash !== "#" + pageId) {
     history.pushState(null, null, "#" + pageId);
   }
 }
 
-// Sidebar link clicks
 sidebarLinks.forEach(link => {
   link.addEventListener("click", (e) => {
     e.preventDefault();
     const pageId = link.getAttribute("data-page");
     switchPage(pageId);
 
-    // Mobile sidebar auto-close
     const docsSidebar = document.getElementById("docsSidebar");
     const mobileOverlay = document.getElementById("mobileOverlay");
     if (docsSidebar && docsSidebar.classList.contains("open")) {
@@ -3223,7 +3181,6 @@ sidebarLinks.forEach(link => {
   });
 });
 
-// Pagination button clicks
 document.querySelectorAll(".page-nav-btn").forEach(btn => {
   btn.addEventListener("click", (e) => {
     e.preventDefault();
@@ -3232,19 +3189,16 @@ document.querySelectorAll(".page-nav-btn").forEach(btn => {
   });
 });
 
-// URL Hash listener
 window.addEventListener("hashchange", () => {
   const hash = window.location.hash.replace("#", "");
   if (hash) switchPage(hash);
 });
 
-// Initial page load
 window.addEventListener("DOMContentLoaded", () => {
   const hash = window.location.hash.replace("#", "");
   switchPage(hash || "overview");
 });
 
-// Copy Code Button
 function copyCode(btn) {
   const wrapper = btn.closest(".code-wrapper");
   const code = wrapper ? wrapper.querySelector("code").innerText : "";
@@ -3277,7 +3231,6 @@ function setCopied(btn) {
   }, 2000);
 }
 
-// Mobile Drawer
 const menuToggle = document.getElementById("menuToggle");
 const docsSidebar = document.getElementById("docsSidebar");
 const mobileOverlay = document.getElementById("mobileOverlay");
@@ -3295,7 +3248,6 @@ if (mobileOverlay) {
   });
 }
 
-// Live Search Filter
 const searchBox = document.getElementById("searchBox");
 if (searchBox) {
   searchBox.addEventListener("input", function (e) {
