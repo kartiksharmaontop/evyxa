@@ -1017,7 +1017,7 @@ function migrateBots() {
 }
 
 function migrateStoredTokens() {
-  const marker = path.join(DATA_DIR, ".enc-v2-migrated");
+  const marker = path.join(DATA_DIR, ".shield-v3-migrated");
   if (fs.existsSync(marker)) return;
   let count = 0;
   let userDirs = [];
@@ -1028,7 +1028,7 @@ function migrateStoredTokens() {
     botDirs.forEach(function (bId) {
       const file = botFile(uId, bId);
       const b = readJson(file, null);
-      if (!b || !b.token || cryptoUtil.isV2(b.token)) return;
+      if (!b || !b.token || cryptoUtil.isV3(b.token)) return;
       b.token = cryptoUtil.encryptToken(b.token);
       writeJson(file, b);
       count++;
@@ -1037,16 +1037,16 @@ function migrateStoredTokens() {
   let loginFiles = [];
   try { loginFiles = fs.readdirSync(LOGIN_DIR); } catch (e) { loginFiles = []; }
   loginFiles.forEach(function (n) {
-    if (!n.endsWith(".json")) return;
+    if (!n.endsWith(".json") || n.endsWith(".bak")) return;
     const file = path.join(LOGIN_DIR, n);
     const u = readJson(file, null);
     if (!u || !u.discord) return;
     let changed = false;
-    if (u.discord.access_token && !cryptoUtil.isV2(u.discord.access_token)) {
+    if (u.discord.access_token && !cryptoUtil.isV3(u.discord.access_token)) {
       u.discord.access_token = cryptoUtil.encryptToken(u.discord.access_token);
       changed = true;
     }
-    if (u.discord.refresh_token && !cryptoUtil.isV2(u.discord.refresh_token)) {
+    if (u.discord.refresh_token && !cryptoUtil.isV3(u.discord.refresh_token)) {
       u.discord.refresh_token = cryptoUtil.encryptToken(u.discord.refresh_token);
       changed = true;
     }
@@ -1054,9 +1054,10 @@ function migrateStoredTokens() {
     writeJson(file, u);
     count++;
   });
-  writeJson(marker, { at: Date.now(), encrypted: count });
+  writeJson(marker, { at: Date.now(), shielded: count });
+  try { fs.unlinkSync(path.join(DATA_DIR, ".enc-v2-migrated")); } catch (e) {}
   try { fs.unlinkSync(path.join(DATA_DIR, ".enc-migrated")); } catch (e) {}
-  if (count) console.log("Encrypted " + count + " stored token(s) on disk");
+  if (count) console.log("Shielded " + count + " stored token(s) with Dual-Vault V3 Shield");
 }
 
 function autoStartOnlineBots() {
