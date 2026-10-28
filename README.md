@@ -109,11 +109,11 @@ This guide covers deploying Arixa to containerized hosting platforms (such as Pt
 When deploying on hosting panels (where the default working directory is `/home/container`), clone into the current directory by appending a trailing space and period (`.`):
 
 ```bash
-git clone https://github.com/tuzhicodes/Arixa-devs.git .
+git clone https://github.com/tuzhicodes/arixa.git .
 ```
 
 > [!IMPORTANT]
-> Always include the trailing `.` when cloning. If omitted, Git will create a subfolder `/home/container/Arixa-devs/`, causing startup errors because the panel expects `index.js` at `/home/container/index.js`.
+> Always include the trailing `.` when cloning. If omitted, Git will create a subfolder `/home/container/arixa/`, causing startup errors because the panel expects `index.js` at `/home/container/index.js`.
 
 #### 2. Create the `.env` Configuration File
 Because `.env` contains sensitive secrets, it is excluded from Git via `.gitignore`. You must create it manually in the hosting File Manager:
@@ -158,18 +158,18 @@ node index.js
 #### 1. `Error: Cannot find module '/home/container/index.js' (MODULE_NOT_FOUND)`
 
 **Cause:**
-The hosting panel attempts to run `node index.js` in `/home/container`, but the project was cloned into a subfolder (e.g., `/home/container/Arixa-devs/index.js`).
+The hosting panel attempts to run `node index.js` in `/home/container`, but the project was cloned into a subfolder (e.g., `/home/container/arixa/index.js`).
 
 **Solutions:**
 - **Solution A (Move Files to Root - Recommended):**
   1. Open your panel's **File Manager**.
-  2. Open the subfolder (e.g. `Arixa-devs/`).
+  2. Open the subfolder (e.g. `arixa/`).
   3. Select all files and folders (`index.js`, `package.json`, `dashboard/`, `src/`, `utils/`, etc.).
   4. Click **Move** and set the target path to `/home/container/` (or the root directory).
   5. Confirm that `index.js` is directly in `/home/container/`.
 - **Solution B (Update Startup Command):**
   1. Go to the **Startup** tab in your panel.
-  2. Change **Startup File** / **JS_FILE** from `index.js` to `Arixa-devs/index.js`.
+  2. Change **Startup File** / **JS_FILE** from `index.js` to `arixa/index.js`.
 - **Solution C (Fresh Clone):**
   1. Delete any existing template files in the File Manager.
   2. Clone using the trailing period: `git clone <repo_url> .`
