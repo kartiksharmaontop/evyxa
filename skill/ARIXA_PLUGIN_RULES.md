@@ -47,13 +47,22 @@
 - When making Discord REST API calls via `ctx.request`:
   Always verify `res.status` and `res.body`. If `res.status === 403` or `body.code === 50013` (Missing Permissions), treat as failure. **NEVER announce success if the Discord API returned an error.**
 
-### 1.6 Interactive Button Confirmation & 2-Minute Expiration
-- Confirmation dialogs (e.g. Confirm Ban, Reset Prefix) must expire after strictly **2 minutes (120,000 ms)**.
+### 1.6 Interactive Button Confirmation, Unique Namespaces & 2-Minute Expiration
+- Confirmation dialogs (e.g. Confirm Ban, Confirm Kick) must expire after strictly **2 minutes (120,000 ms)**.
+- **Unique Custom ID Namespace**: NEVER use generic custom IDs like `mod_confirm_` across multiple plugins. Always prefix with your plugin slug:
+  - Kick plugin: `kick_confirm_<actionId>`, `kick_cancel_<actionId>`
+  - Ban plugin: `ban_confirm_<actionId>`, `ban_cancel_<actionId>`
+- **Export `buttons` with Wildcards**: Always register explicit wildcard handlers in `buttons`:
+  ```javascript
+  buttons: {
+    "kick_confirm_*": function (ctx) { return handleButton(ctx); },
+    "kick_cancel_*": function (ctx) { return handleButton(ctx); }
+  }
+  ```
+- **Fallback Safety in `onButton`**: If `customId` does not match your plugin's prefix, **MUST return `false`** so other plugins can process their buttons. NEVER send "This confirmation has expired." for an unrecognized custom ID.
 - Store pending action state in a process-safe global map:
-  `global.__arixa_<plugin>_actions = global.__arixa_<plugin>_actions || new Map();`
-- Always record `timer = setTimeout(...)` and clear it using `clearTimeout(action.timer)` upon button click or cancellation to prevent memory leaks.
-- Author Validation: Verify that the user clicking the button is the one who initiated the command (`interaction.member.user.id === action.authorId`). If not, send an ephemeral warning.
-- If an interaction arrives for an expired or missing action, edit or reply with `ctx.replyWarn('This confirmation has expired.')` and disable buttons.
+  `global.__arixa_<plugin>_actions = global.__arixa_<plugin>_actions || {};`
+- Author Validation: Verify that the user clicking the button is the one who initiated the command (`ctx.user.id === action.authorId`). If not, send an ephemeral warning.
 
 ### 1.7 Persistent Storage via `ctx.storage` (NEVER `fs`)
 - Multi-tenant bots must never write directly to local disk with `fs.writeFileSync`.
@@ -75,6 +84,15 @@
 - Git remote: `https://github.com/tuzhicodes/arixa.git` (branch: `main`).
 - Git credentials: `~/.git-credentials-arixa`.
 - All plugin developments, test scripts, and modifications for Arixa must strictly target `/storage/emulated/0/app`. Never execute git actions or place Arixa files in `/storage/emulated/0/A+` (which belongs exclusively to ZarKos).
+
+### 1.11 Argument Shift & Reason Formatting Standard
+- **Never Leak Target Mention into Reason**: When parsing prefix command arguments (`rawArgs`), always verify if `rawArgs[0]` is the target user mention (`<@id>`). If it matches `targetId`, shift arguments (`argsStartIdx = 1`). Never allow the target mention to remain in `remainingArgs` and become the `reason`.
+- **Grammar Formatting Standard**:
+  - Without reason: `> ✅ **Successfully banned <@targetId>**`
+  - With reason: `> ✅ **Successfully banned <@targetId> | <reason>**`
+  - With duration & reason: `> ✅ **Successfully banned <@targetId> for <duration> | <reason>**`
+  - With duration only: `> ✅ **Successfully banned <@targetId> for <duration>**`
+  *(Never output `for <reason>` if there is no duration!)*
 
 ---
 

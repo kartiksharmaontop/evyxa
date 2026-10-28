@@ -1554,21 +1554,21 @@ module.exports = {
         </table>
       </div>
 
-      <h2>Dispatching Button Clicks</h2>
-      <p>When a user clicks a button, the engine dispatches the interaction to enabled plugins using a 5-tier resolution hierarchy:</p>
+      <h2>Dispatching Button Clicks & Multi-Plugin Routing</h2>
+      <p>When a user clicks a button, the engine dispatches the interaction to enabled plugins using a prioritized resolution hierarchy:</p>
       <ol>
         <li><code>mod.components[customId]</code> — Exact match for fixed IDs (e.g. <code>"confirm_delete"</code>).</li>
-        <li><code>mod.onButton(ctx)</code> — General button hook for <code>component_type === 2</code> (best for prefix matching or dynamic IDs).</li>
-        <li><code>mod.onSelect(ctx)</code> — Invoked for dropdown select menus (<code>component_type &gt;= 3</code>).</li>
-        <li><code>mod.onComponent(ctx)</code> — Generic component fallback for any interaction type.</li>
-        <li><code>mod.components["*"](ctx)</code> — Universal wildcard fallback.</li>
+        <li><code>mod.buttons["prefix_*"]</code> — Wildcard pattern matching for namespaced plugin buttons (e.g. <code>"kick_confirm_*"</code>, <code>"ban_confirm_*"</code>). <em>Recommended for all interactive cards!</em></li>
+        <li><code>mod.onButton(ctx)</code> — General button hook for <code>component_type === 2</code>. Must return <code>false</code> if the button does not belong to your plugin so other plugins can process their buttons.</li>
+        <li><code>mod.selects[customId]</code> / <code>mod.onSelect(ctx)</code> — Invoked for dropdown select menus (<code>component_type &gt;= 3</code>).</li>
+        <li><code>mod.onComponent(ctx)</code> / <code>mod.components["*"](ctx)</code> — Universal component fallbacks.</li>
       </ol>
 
       <div class="callout warning">
         <div class="callout-icon">⚠️</div>
         <div class="callout-body">
-          <strong>Avoiding "This component is not recognized."</strong>
-          <p>If none of the enabled plugins register a matching handler for a button's <code>custom_id</code>, the engine sends an ephemeral warning: <em>"This component is not recognized."</em> Always ensure dynamic or session-based buttons (e.g. <code>mute_confirm_xyz</code>) are handled via <code>onButton</code>, <code>components: { "*": fn }</code>, or a Proxy object.</p>
+          <strong>Unique Button Namespaces & Fallback Safety</strong>
+          <p>Never use generic custom IDs like <code>mod_confirm_</code> across different plugins. Always prefix with your plugin slug (e.g. <code>kick_confirm_123</code>, <code>ban_confirm_123</code>). Furthermore, if your <code>onButton</code> handler receives an unrecognized custom ID, <strong>return <code>false</code></strong> instead of displaying an expiration alert, preventing false warnings on buttons belonging to other installed plugins.</p>
         </div>
       </div>
 
@@ -2925,6 +2925,21 @@ module.exports = {
   if (/^\d{17,20}$/.test(arg)) return arg;
 
   return ctx.user ? ctx.user.id : null;
+}
+
+function extractTargetAndReason(rawArgs, parsedUser) {
+  let targetId = parsedUser || null;
+  let argsStartIdx = 0;
+  if (Array.isArray(rawArgs) && rawArgs.length > 0) {
+    const match = rawArgs[0].match(/<@!?(\d+)>/);
+    const parsedFirst = match ? match[1] : (/^\d{17,20}$/.test(rawArgs[0]) ? rawArgs[0] : null);
+    if (parsedFirst) {
+      if (!targetId) targetId = parsedFirst;
+      if (targetId === parsedFirst) argsStartIdx = 1; // Shifts user mention out of reason!
+    }
+  }
+  const reason = rawArgs.slice(argsStartIdx).join(" ").trim();
+  return { targetId: targetId, reason: reason };
 }</code></pre>
       </div>
 

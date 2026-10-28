@@ -1171,6 +1171,7 @@ function handleInteraction(entry, token, inter) {
           }
         });
       }
+      return result;
     } catch (e) {
       const errMsg = (e && e.message) || "This interaction failed to run.";
       const payload = emojiUtil.buildComponentV2("error", errMsg, { ephemeral: true, accent: errAccent });
@@ -1181,6 +1182,7 @@ function handleInteraction(entry, token, inter) {
         if (timeoutTimer) { clearTimeout(timeoutTimer); timeoutTimer = null; }
         sendInteractionResponse(token, inter, callbackBody(payload, masterColor));
       }
+      return false;
     }
   }
 
@@ -1276,14 +1278,13 @@ function handleInteraction(entry, token, inter) {
       }
 
       if (!handler) {
-        if (compType === 2 && typeof mod.onButton === "function") handler = mod.onButton;
-        else if (compType >= 3 && typeof mod.onSelect === "function") handler = mod.onSelect;
+        if (compType === 2 && !mod.buttons && typeof mod.onButton === "function") handler = mod.onButton;
+        else if (compType >= 3 && !mod.selects && typeof mod.onSelect === "function") handler = mod.onSelect;
         else if (typeof mod.onComponent === "function") handler = mod.onComponent;
         else if (mod.components && typeof mod.components["*"] === "function") handler = mod.components["*"];
       }
 
       if (handler) {
-        handled = true;
         const ctx = makeContext(item.pluginId, {
           customId: customId,
           componentType: compType,
@@ -1291,8 +1292,11 @@ function handleInteraction(entry, token, inter) {
           resolved: resolved,
           message: message
         });
-        safeRun(handler, ctx);
-        break;
+        const runRes = safeRun(handler, ctx);
+        if (runRes !== false) {
+          handled = true;
+          break;
+        }
       }
     }
     if (!handled && !responded) {

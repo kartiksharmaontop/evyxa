@@ -255,37 +255,41 @@ const payload = {
 };
 ```
 
-### Button Interaction Dispatching (`onButton`):
-When a user clicks a button, the engine calls `onButton(ctx)`:
+### Button Interaction Routing (`mod.buttons` & `onButton`):
+
+When multiple plugins are active, buttons must be uniquely namespaced to avoid interaction collisions and false "expired" alerts. Always register specific wildcard button patterns in `buttons`:
 
 ```javascript
-onButton: function (ctx) {
-  const customId = String(ctx.customId || "");
-  if (!customId.startsWith("action_confirm_")) return;
+module.exports = {
+  buttons: {
+    "kick_confirm_*": function (ctx) {
+      return handleButton(ctx);
+    },
+    "kick_cancel_*": function (ctx) {
+      return handleButton(ctx);
+    }
+  },
 
-  const actionId = customId.slice("action_confirm_".length);
-  const mid = (ctx.data && ctx.data.message && ctx.data.message.id) || ctx.messageId;
-
-  if (typeof ctx.update === "function") {
-    return ctx.update({
-      flags: 32768,
-      components: [
-        {
-          type: 17,
-          accent_color: ctx.colors.v2,
-          components: [{ type: 10, content: "> ✅ **Action completed successfully!**" }]
-        }
-      ]
-    });
+  onButton: function (ctx) {
+    const customId = String(ctx.customId || "");
+    if (!customId.startsWith("kick_confirm_") && !customId.startsWith("kick_cancel_")) {
+      return false; // Return false so the engine continues to other plugins!
+    }
+    return handleButton(ctx);
   }
-}
+};
 ```
+
+> [!IMPORTANT]
+> **Button Namespacing Rule:**
+> - Never use generic custom IDs like `mod_confirm_` across different plugins. Always prefix with your plugin name: `kick_confirm_<actionId>`, `ban_confirm_<actionId>`, `ticket_open_<id>`.
+> - If an interaction arrives in `onButton` that does not match your plugin's prefix, **MUST return `false`**. Never send *"This confirmation has expired"* for an unrecognized custom ID, or you will break buttons for other plugins.
 
 ---
 
 ## 8. Safe Discord Moderation & Role Hierarchy
 
-When building moderation plugins, always follow two essential rules to prevent false success messages and permission glitches:
+When building moderation plugins, always follow these essential rules to prevent false success messages, permission glitches, and command collisions:
 
 ### 1. Pre-Check Role Hierarchy Before Showing Buttons
 Never prompt a moderator to confirm an action if the action cannot possibly succeed. Check roles upfront:
@@ -312,7 +316,11 @@ return Promise.all([targetMemberPromise, botMemberPromise, rolesPromise]).then(f
   const botMember = results[1] && results[1].status === 200 ? results[1].body : null;
   const roles = Array.isArray(results[2]) ? results[2] : [];
 
-  if (targetMember && roles.length) {
+  if (!targetMember) {
+    return ctx.replyWarn("User <@" + targetId + "> is not in this server.");
+  }
+
+  if (roles.length) {
     const rolePosMap = {};
     roles.forEach(function (r) { if (r && r.id) rolePosMap[r.id] = Number(r.position) || 0; });
 
@@ -355,7 +363,51 @@ return Promise.all([targetMemberPromise, botMemberPromise, rolesPromise]).then(f
 Discord API methods resolve with `{ status: number, body: object }`. Always inspect `res.status`:
 - `res.status === 200` or `204`: Success.
 - `res.status === 403`: Check `res.body.code === 50013` (Role hierarchy / missing permissions).
-- `res.status === 404`: Target user or ban not found.
+- `res.status === 404`: Target user or member not found.
+
+### 3. Safe Argument Shift (Preventing Target Mention in Reason)
+When a command is executed via text prefix (e.g. `+ban <@user> 1h spam`), the target user mention arrives as the first argument in `ctx.rawArgs`. If not properly shifted, the user mention will leak into the `reason` variable, causing messages like `Successfully banned <@user> for <@user>`.
+
+Always use this defensive argument shifting pattern:
+
+```javascript
+let targetId = null;
+let duration = null;
+let reason = "";
+let argsStartIdx = 0;
+
+if (opts.user) {
+  targetId = typeof opts.user === "object" ? opts.user.id : parseUserId(String(opts.user));
+}
+
+if (rawArgs.length > 0) {
+  const parsedFirst = parseUserId(rawArgs[0]);
+  if (parsedFirst) {
+    if (!targetId) targetId = parsedFirst;
+    if (targetId === parsedFirst) argsStartIdx = 1; // Shift target mention out of remaining args!
+  }
+}
+
+const remainingArgs = rawArgs.slice(argsStartIdx);
+if (remainingArgs.length > 0) {
+  const possibleTime = parseDuration(remainingArgs[0]);
+  if (possibleTime) {
+    duration = possibleTime;
+    reason = remainingArgs.slice(1).join(" ").trim();
+  } else {
+    reason = remainingArgs.join(" ").trim();
+  }
+}
+```
+
+### 4. Standard Moderation Response Formatting
+To maintain consistent grammar across all moderation plugins:
+- **No duration, no reason**: `> ✅ **Successfully banned <@targetId>**`
+- **With reason only**: `> ✅ **Successfully banned <@targetId> | <reason>**`
+- **With duration & reason**: `> ✅ **Successfully banned <@targetId> for <duration> | <reason>**`
+- **With duration only**: `> ✅ **Successfully banned <@targetId> for <duration>**`
+
+*(Notice `for` is reserved strictly for durations, and `|` is used for reasons. Never output `for <reason>`!)*
 
 ---
 

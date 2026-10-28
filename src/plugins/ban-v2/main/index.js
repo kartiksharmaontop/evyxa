@@ -158,13 +158,21 @@ function parseUserId(str) {
 function buildPromptCard(actionId, action, accentColor) {
   let promptText = "";
   if (action.type === "ban") {
-    if (action.timeLabel) {
+    if (action.timeLabel && action.reason && action.reason !== "No reason provided") {
+      promptText = "> **Are you sure you want to ban <@" + action.targetId + "> for " + action.timeLabel + "?**\n> **Reason:** " + action.reason;
+    } else if (action.timeLabel) {
       promptText = "> **Are you sure you want to ban <@" + action.targetId + "> for " + action.timeLabel + "?**";
+    } else if (action.reason && action.reason !== "No reason provided") {
+      promptText = "> **Are you sure you want to ban <@" + action.targetId + ">?**\n> **Reason:** " + action.reason;
     } else {
       promptText = "> **Are you sure you want to ban <@" + action.targetId + ">?**";
     }
   } else {
-    promptText = "> **Are you sure you want to unban <@" + action.targetId + ">?**";
+    if (action.reason && action.reason !== "No reason provided") {
+      promptText = "> **Are you sure you want to unban <@" + action.targetId + ">?**\n> **Reason:** " + action.reason;
+    } else {
+      promptText = "> **Are you sure you want to unban <@" + action.targetId + ">?**";
+    }
   }
 
   return {
@@ -185,13 +193,13 @@ function buildPromptCard(actionId, action, accentColor) {
                 type: 2,
                 style: action.type === "ban" ? 4 : 3,
                 label: "Confirm",
-                custom_id: "mod_confirm_" + actionId
+                custom_id: "ban_confirm_" + actionId
               },
               {
                 type: 2,
                 style: 2,
                 label: "Cancel",
-                custom_id: "mod_cancel_" + actionId
+                custom_id: "ban_cancel_" + actionId
               }
             ]
           }
@@ -458,11 +466,15 @@ module.exports = {
       targetId = typeof opts.user === "object" ? (opts.user.id || parseUserId(opts.user.query)) : parseUserId(String(opts.user));
     }
 
-    if (!targetId && rawArgs[0]) {
-      const parsedFromArg = parseUserId(rawArgs[0]);
-      if (parsedFromArg) {
-        targetId = parsedFromArg;
-        argsStartIdx = 1;
+    if (rawArgs.length > 0) {
+      const parsedFirst = parseUserId(rawArgs[0]);
+      if (parsedFirst) {
+        if (!targetId) {
+          targetId = parsedFirst;
+        }
+        if (targetId === parsedFirst) {
+          argsStartIdx = 1;
+        }
       }
     }
 
@@ -500,29 +512,48 @@ module.exports = {
     return initiateModeration(ctx, "ban", targetId, duration, reason);
   },
 
+  buttons: {
+    "ban_confirm_*": function (ctx) {
+      return module.exports.onButton(ctx);
+    },
+    "ban_cancel_*": function (ctx) {
+      return module.exports.onButton(ctx);
+    }
+  },
+
   onButton: function (ctx) {
     const customId = String(ctx.customId || "");
     let actionId = "";
     let isConfirm = false;
     let isCancel = false;
 
-    if (customId.startsWith("mod_confirm_")) {
+    if (customId.startsWith("ban_confirm_")) {
+      actionId = customId.slice("ban_confirm_".length);
+      isConfirm = true;
+    } else if (customId.startsWith("ban_cancel_")) {
+      actionId = customId.slice("ban_cancel_".length);
+      isCancel = true;
+    } else if (customId.startsWith("mod_confirm_")) {
       actionId = customId.slice("mod_confirm_".length);
       isConfirm = true;
     } else if (customId.startsWith("mod_cancel_")) {
       actionId = customId.slice("mod_cancel_".length);
       isCancel = true;
     } else {
-      return;
+      return false;
     }
 
     cleanExpiredActions();
     const actions = getPendingActions();
     const action = actions[actionId];
-    if (!action || (Date.now() - action.createdAt > ACTION_EXPIRE_MS)) {
-      if (action) {
-        delete actions[actionId];
+    if (!action) {
+      if (customId.startsWith("ban_confirm_") || customId.startsWith("ban_cancel_")) {
+        return ctx.replyWarn("This confirmation has expired.");
       }
+      return false;
+    }
+    if (Date.now() - action.createdAt > ACTION_EXPIRE_MS) {
+      delete actions[actionId];
       return ctx.replyWarn("This confirmation has expired.");
     }
 
@@ -600,7 +631,7 @@ module.exports = {
           } else if (action.timeLabel) {
             messageText = "> " + emoji + " **Successfully banned <@" + action.targetId + "> for " + action.timeLabel + "**";
           } else if (action.reason && action.reason !== "No reason provided") {
-            messageText = "> " + emoji + " **Successfully banned <@" + action.targetId + "> for " + action.reason + "**";
+            messageText = "> " + emoji + " **Successfully banned <@" + action.targetId + "> | " + action.reason + "**";
           }
 
           const resultPayload = buildAlertCard(messageText, accentColor);
