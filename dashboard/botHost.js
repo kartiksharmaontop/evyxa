@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
+const crypto = require("crypto");
 const emojiUtil = require("../utils/system/emoji.js");
 
 const runningBots = new Map();
@@ -221,7 +222,20 @@ function loadPluginModules(botData) {
   return out;
 }
 
-function discordRequest(token, method, apiPath, body) {
+let globalRateLimitReset = 0;
+const commandPayloadCache = new Map();
+
+function discordRequest(token, method, apiPath, body, retriesLeft) {
+  const maxRetries = typeof retriesLeft === "number" ? retriesLeft : 1;
+  const remainingWait = globalRateLimitReset - Date.now();
+  if (remainingWait > 0) {
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        resolve(discordRequest(token, method, apiPath, body, maxRetries));
+      }, Math.min(remainingWait + 100, 30000));
+    });
+  }
+
   return new Promise(function (resolve) {
     const data = body !== undefined && body !== null ? JSON.stringify(body) : null;
     const req = https.request({
@@ -239,6 +253,23 @@ function discordRequest(token, method, apiPath, body) {
       res.on("end", function () {
         let json = null;
         try { json = JSON.parse(buf); } catch (e) {}
+
+        if (res.statusCode === 429) {
+          const retryAfterSec = (json && typeof json.retry_after === "number")
+            ? json.retry_after
+            : (parseFloat(res.headers["retry-after"]) || 5);
+          const waitMs = Math.min(Math.max(Math.ceil(retryAfterSec * 1000), 1000), 60000);
+          globalRateLimitReset = Math.max(globalRateLimitReset, Date.now() + waitMs);
+          console.warn("[RATE_LIMIT] Discord 429 hit on " + method + " " + apiPath + ". Pausing requests for " + (waitMs / 1000) + "s.");
+
+          if (maxRetries > 0) {
+            setTimeout(function () {
+              resolve(discordRequest(token, method, apiPath, body, maxRetries - 1));
+            }, waitMs + 200);
+            return;
+          }
+        }
+
         resolve({ status: res.statusCode, body: json });
       });
     });
@@ -249,7 +280,18 @@ function discordRequest(token, method, apiPath, body) {
 }
 
 function registerGlobalCommands(botId, token, botData) {
-  return discordRequest(token, "PUT", "/applications/" + botId + "/commands", buildCommandPayload(botData));
+  const payload = buildCommandPayload(botData);
+  const jsonStr = JSON.stringify(payload);
+  const hash = crypto.createHash("md5").update(jsonStr).digest("hex");
+  if (commandPayloadCache.get(botId) === hash) {
+    return Promise.resolve({ status: 200, body: payload, cached: true });
+  }
+  return discordRequest(token, "PUT", "/applications/" + botId + "/commands", payload).then(function (res) {
+    if (res && res.status >= 200 && res.status < 300) {
+      commandPayloadCache.set(botId, hash);
+    }
+    return res;
+  });
 }
 
 function registerGuildCommands(botId, token, guildId, botData) {
@@ -261,6 +303,7 @@ function refreshBotCommands(botId) {
   if (!entry || !entry.token || entry.status === "offline") return;
   const botData = readBotData(entry.userId, botId);
   if (!botData) return;
+  commandPayloadCache.delete(botId);
   registerGlobalCommands(botId, entry.token, botData);
   Object.keys(entry.guilds || {}).forEach(function (guildId) {
     registerGuildCommands(botId, entry.token, guildId, botData);

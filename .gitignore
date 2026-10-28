@@ -1,7 +1,8 @@
 .env
 data/
 node_modules/
-skill/app.zip
+skills/*
 *.zip
 *.log
 
+*.tar.gz

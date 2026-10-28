@@ -1062,6 +1062,7 @@ function migrateStoredTokens() {
 function autoStartOnlineBots() {
   let userDirs = [];
   try { userDirs = fs.readdirSync(USERS_DIR); } catch (e) { return; }
+  const botsToStart = [];
   userDirs.forEach(function (uId) {
     let botDirs = [];
     try { botDirs = fs.readdirSync(path.join(USERS_DIR, uId)); } catch (e) { return; }
@@ -1073,12 +1074,33 @@ function autoStartOnlineBots() {
           console.log("Skipping auto-start (cannot decrypt token):", b.username);
           return;
         }
-        console.log("Auto-starting hosted bot:", b.username, "(" + b.id + ")");
-        botHost.startBot(uId, b.id, plain, b);
-        panelLog.botAction("started", b, null);
+        botsToStart.push({ uId: uId, b: b, plain: plain });
       }
     });
   });
+
+  if (!botsToStart.length) return;
+
+  const DELAY_BETWEEN_BOTS_MS = 3500;
+  console.log("Found " + botsToStart.length + " bot(s) to auto-start. Starting sequentially with " + (DELAY_BETWEEN_BOTS_MS / 1000) + "s interval...");
+
+  let idx = 0;
+  function startNext() {
+    if (idx >= botsToStart.length) {
+      console.log("All " + botsToStart.length + " bot(s) auto-started successfully.");
+      return;
+    }
+    const item = botsToStart[idx++];
+    console.log("Auto-starting hosted bot (" + idx + "/" + botsToStart.length + "):", item.b.username, "(" + item.b.id + ")");
+    botHost.startBot(item.uId, item.b.id, item.plain, item.b);
+    panelLog.botAction("started", item.b, null);
+
+    if (idx < botsToStart.length) {
+      setTimeout(startNext, DELAY_BETWEEN_BOTS_MS);
+    }
+  }
+
+  startNext();
 }
 
 function escapeHtml(s) {
