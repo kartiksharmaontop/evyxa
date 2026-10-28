@@ -5,5 +5,4 @@ skill/app.zip
 *.zip
 *.log
 src/plugins/*
-!src/plugins/README.md
 !src/plugins/.gitkeep

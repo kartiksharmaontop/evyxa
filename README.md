@@ -315,7 +315,7 @@ module.exports = {
 ```
 
 For comprehensive plugin specifications, component builders, and complete examples, refer to:
-- [`src/plugins/README.md`](src/plugins/README.md) — Detailed Plugin Developer Reference & Templates.
+- [`src/README.md`](src/README.md) — Detailed Plugin Developer Reference & Theme Standards.
 - Web Dashboard Documentation view at `/docs` (or [`dashboard/views/docs.html`](dashboard/views/docs.html)).
 
 ---
@@ -330,16 +330,14 @@ arixa/
 │   └── views/            # Dashboard HTML templates (dashboard, docs, login, main, plans)
 ├── src/
 │   ├── README.md         # Developer guide for bot theme colors & alert standards
-│   └── plugins/          # Built-in plugins
-│       ├── README.md     # Plugin developer reference & templates
-│       └── prefix-v2/    # Built-in Prefix V2 plugin implementation
+│   └── plugins/          # Plugin directory (empty & ready for custom plugins)
 ├── utils/
 │   ├── system/emoji.js   # Components V2 payload builder & system emojis
 │   └── log.js            # Structured panel logger
 ├── index.js              # HTTP server, routing, REST APIs, and auth lifecycle
 ├── package.json          # Project configuration & start scripts
 ├── LICENSE               # MIT Open Source License
-└── .gitignore            # Excludes sensitive data (.env, data/) & cache
+└── .gitignore            # Excludes sensitive data (.env, data/, plugins) & cache
 ```
 
 ---
