@@ -56,9 +56,35 @@ function intentsOk(required, mask) {
 }
 
 function readBotData(userId, botId) {
+  const filePath = path.join(USERS_DIR, String(userId).replace(/[^a-zA-Z0-9_-]/g, ""), String(botId).replace(/[^a-zA-Z0-9_-]/g, ""), "bot.json");
   try {
-    return JSON.parse(fs.readFileSync(path.join(USERS_DIR, String(userId).replace(/[^a-zA-Z0-9_-]/g, ""), String(botId).replace(/[^a-zA-Z0-9_-]/g, ""), "bot.json"), "utf8"));
+    if (!fs.existsSync(filePath)) {
+      if (fs.existsSync(filePath + ".bak")) {
+        try {
+          const bak = fs.readFileSync(filePath + ".bak", "utf8");
+          if (bak && bak.trim()) return JSON.parse(bak);
+        } catch (e) {}
+      }
+      return null;
+    }
+    const raw = fs.readFileSync(filePath, "utf8");
+    if (!raw || !raw.trim()) {
+      if (fs.existsSync(filePath + ".bak")) {
+        try {
+          const bak = fs.readFileSync(filePath + ".bak", "utf8");
+          if (bak && bak.trim()) return JSON.parse(bak);
+        } catch (e) {}
+      }
+      return null;
+    }
+    return JSON.parse(raw);
   } catch (e) {
+    try {
+      if (fs.existsSync(filePath + ".bak")) {
+        const bak = fs.readFileSync(filePath + ".bak", "utf8");
+        if (bak && bak.trim()) return JSON.parse(bak);
+      }
+    } catch (err) {}
     return null;
   }
 }
@@ -300,20 +326,49 @@ function createPluginStorage(userId, botId, pluginId) {
     if (cache !== null) return cache;
     try {
       if (fs.existsSync(file)) {
-        cache = JSON.parse(fs.readFileSync(file, "utf8")) || {};
+        const raw = fs.readFileSync(file, "utf8");
+        if (raw && raw.trim()) {
+          cache = JSON.parse(raw) || {};
+        } else if (fs.existsSync(file + ".bak")) {
+          cache = JSON.parse(fs.readFileSync(file + ".bak", "utf8")) || {};
+        } else {
+          cache = {};
+        }
+      } else if (fs.existsSync(file + ".bak")) {
+        cache = JSON.parse(fs.readFileSync(file + ".bak", "utf8")) || {};
       } else {
         cache = {};
       }
     } catch (e) {
-      cache = {};
+      try {
+        if (fs.existsSync(file + ".bak")) {
+          cache = JSON.parse(fs.readFileSync(file + ".bak", "utf8")) || {};
+        } else {
+          cache = {};
+        }
+      } catch (err) {
+        cache = {};
+      }
     }
     return cache;
   }
 
   function save() {
     try {
-      fs.writeFileSync(file, JSON.stringify(cache || {}, null, 2), "utf8");
-    } catch (e) {}
+      const dir = path.dirname(file);
+      fs.mkdirSync(dir, { recursive: true });
+      const str = JSON.stringify(cache || {}, null, 2);
+      const tmp = file + ".tmp." + process.pid + "." + Date.now();
+      fs.writeFileSync(tmp, str, "utf8");
+      if (fs.existsSync(file)) {
+        try { fs.copyFileSync(file, file + ".bak"); } catch (err) {}
+      }
+      fs.renameSync(tmp, file);
+    } catch (e) {
+      try {
+        fs.writeFileSync(file, JSON.stringify(cache || {}, null, 2), "utf8");
+      } catch (err) {}
+    }
   }
 
   return {

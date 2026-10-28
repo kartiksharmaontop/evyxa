@@ -80,15 +80,55 @@ function requestSecure(req) {
 
 function readJson(file, fallback) {
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
+    if (!fs.existsSync(file)) {
+      if (fs.existsSync(file + ".bak")) {
+        try {
+          const bak = fs.readFileSync(file + ".bak", "utf8");
+          if (bak && bak.trim()) return JSON.parse(bak);
+        } catch (e) {}
+      }
+      return fallback;
+    }
+    const raw = fs.readFileSync(file, "utf8");
+    if (!raw || !raw.trim()) {
+      if (fs.existsSync(file + ".bak")) {
+        try {
+          const bak = fs.readFileSync(file + ".bak", "utf8");
+          if (bak && bak.trim()) return JSON.parse(bak);
+        } catch (e) {}
+      }
+      return fallback;
+    }
+    return JSON.parse(raw);
   } catch (e) {
+    try {
+      if (fs.existsSync(file + ".bak")) {
+        const bak = fs.readFileSync(file + ".bak", "utf8");
+        if (bak && bak.trim()) return JSON.parse(bak);
+      }
+    } catch (err) {}
     return fallback;
   }
 }
 
 function writeJson(file, data) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  try {
+    const dir = path.dirname(file);
+    fs.mkdirSync(dir, { recursive: true });
+    const content = JSON.stringify(data, null, 2);
+    const tmp = file + ".tmp." + process.pid + "." + Date.now();
+    fs.writeFileSync(tmp, content, "utf8");
+    if (fs.existsSync(file)) {
+      try {
+        fs.copyFileSync(file, file + ".bak");
+      } catch (e) {}
+    }
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    try {
+      fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
+    } catch (err) {}
+  }
 }
 
 function getCookies(req) {
@@ -1113,8 +1153,19 @@ function discordRequest(options, body) {
 }
 
 const server = http.createServer(function (req, res) {
-  const url = req.url.split("?")[0];
-  const session = getSession(req);
+  req.on("error", function () {
+    if (!res.headersSent) {
+      try {
+        res.writeHead(400, { "Content-Type": "text/plain" });
+        res.end("Bad Request");
+      } catch (e) {}
+    }
+  });
+  res.on("error", function () {});
+
+  try {
+    const url = req.url.split("?")[0];
+    const session = getSession(req);
 
   if (session && getCookies(req).sid) {
     res.setHeader("Set-Cookie", sessionCookie(session.sid, requestSecure(req)));
@@ -1861,6 +1912,22 @@ const server = http.createServer(function (req, res) {
 
   res.writeHead(404, { "Content-Type": "text/plain" });
   res.end("Not found");
+  } catch (err) {
+    console.error("HTTP Request Error:", err);
+    if (!res.headersSent) {
+      try {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, error: "Internal Server Error" }));
+      } catch (e) {}
+    }
+  }
+});
+
+server.on("clientError", function (err, socket) {
+  if (err.code === "ECONNRESET" || !socket.writable) return;
+  try {
+    socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
+  } catch (e) {}
 });
 
 server.on("error", function (err) {
@@ -1893,6 +1960,22 @@ server.listen(PORT, function () {
     console.log("Tip: on a host, set BASE_URL=https://your-domain in .env (locally leave it empty)");
   }
 });
+
+function gracefulShutdown(signal) {
+  console.log("Received " + signal + ". Shutting down gracefully...");
+  try {
+    server.close(function () {
+      process.exit(0);
+    });
+    setTimeout(function () {
+      process.exit(0);
+    }, 3000);
+  } catch (e) {
+    process.exit(0);
+  }
+}
+process.on("SIGTERM", function () { gracefulShutdown("SIGTERM"); });
+process.on("SIGINT", function () { gracefulShutdown("SIGINT"); });
 
 process.on("unhandledRejection", function (reason) {
   console.error("Unhandled Rejection:", reason);
