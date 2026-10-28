@@ -10,10 +10,12 @@ Welcome to the **Arixa Plugin Development Guide**. This comprehensive reference 
 - [2. Metadata & Dashboard Configuration (`readme.md`)](#2-metadata--dashboard-configuration-readmemd)
 - [3. Golden Rule: No Hardcoded Colors](#3-golden-rule-no-hardcoded-colors)
 - [4. Built-in System Alert Standard (`warn`, `error`, `cooldown`)](#4-built-in-system-alert-standard-warn-error-cooldown)
-- [5. Custom Command Cooldowns (`ctx.cooldown`)](#5-custom-command-cooldowns-ctxcooldown)
+- [5. Command Cooldowns & Rate Limiting](#5-command-cooldowns--rate-limiting)
 - [6. Context (`ctx`) API Reference](#6-context-ctx-api-reference)
-- [7. Persistent Storage & Bot Configuration](#7-persistent-storage--bot-configuration)
-- [8. Complete Beginner-Friendly Plugin Template](#8-complete-beginner-friendly-plugin-template)
+- [7. Discord Components V2 & Nested Buttons](#7-discord-components-v2--nested-buttons)
+- [8. Safe Discord Moderation & Role Hierarchy](#8-safe-discord-moderation--role-hierarchy)
+- [9. Persistent Storage & Bot Configuration](#9-persistent-storage--bot-configuration)
+- [10. Complete Production Plugin Templates](#10-complete-production-plugin-templates)
 
 ---
 
@@ -94,19 +96,19 @@ Inside your code, read these values anytime using `ctx.config.<key>`.
 Never build custom error boxes or fake warning cards. Always use Arixa's native system alert helpers so all warnings, errors, and cooldowns look identical and consistent across every installed plugin.
 
 ### 1. Warning Notice (`ctx.replyWarn`)
-Use for missing permissions, invalid arguments, or server-only command restrictions:
+Use for missing permissions, invalid arguments, role hierarchy blocks, or server-only command restrictions:
 
 ```javascript
 if (!ctx.guildId) {
   return ctx.replyWarn("This command can only be used inside a server.");
 }
 
-if (!ctx.hasPermission("MANAGE_MESSAGES")) {
-  return ctx.replyWarn("You need Manage Messages permission to use this command.");
+if (!ctx.hasPermission("BAN_MEMBERS")) {
+  return ctx.replyWarn("You need Ban Members permission to use this command.");
 }
 
-if (!args[0]) {
-  return ctx.replyWarn("Please provide a valid text input.");
+if (!targetId) {
+  return ctx.replyWarn("Please mention a user or provide a user ID.");
 }
 ```
 
@@ -114,7 +116,7 @@ if (!args[0]) {
 - **Auto-Delete:** Automatically deletes after **10 seconds** to keep channels clean.
 
 ### 2. Error Notice (`ctx.replyError`)
-Use for caught runtime exceptions, failed API requests, or hierarchy errors:
+Use for caught runtime exceptions or fatal API failures:
 
 ```javascript
 try {
@@ -138,20 +140,36 @@ return ctx.replySuccess("Successfully updated settings.");
 
 ---
 
-## 5. Custom Command Cooldowns (`ctx.cooldown`)
+## 5. Command Cooldowns & Rate Limiting
 
-Every plugin can set custom cooldown times per command to prevent spam.
+Arixa provides built-in rate-limiting at both the host and dispatcher level.
 
-### One-Line Automatic Cooldown:
-Call `ctx.cooldown(seconds)` at the beginning of your command handler:
+### Automatic Declarative Cooldown (Recommended)
+Set `cooldown: <seconds>` directly in your command specification:
 
 ```javascript
-if (!ctx.cooldown(5)) return;
+commands: [
+  {
+    name: "ban",
+    description: "Ban a member from the server",
+    slash: true,
+    prefix: true,
+    cooldown: 5
+  }
+]
 ```
 
-- Returns `true` if the user is allowed to run the command.
-- Returns `false` and automatically displays the system animated cooldown alert with the remaining seconds if the user is rate-limited.
-- Set any duration you need: `ctx.cooldown(3)` (fast commands), `ctx.cooldown(15)` (moderation), `ctx.cooldown(60)` (heavy tasks).
+- When declared in `commands`, the engine automatically tracks cooldowns and responds with the animated system cooldown warning.
+- Do not call `ctx.cooldown()` inside `onCommand` if `cooldown` is already declared in your command definition.
+
+### Manual Cooldown Check
+For subcommands or dynamic rate-limiting:
+
+```javascript
+if (typeof ctx.cooldown === "function" && !ctx.cooldown(10)) {
+  return;
+}
+```
 
 ---
 
@@ -163,11 +181,13 @@ Every command execution receives a rich `ctx` object containing all necessary da
 | :--- | :--- | :--- |
 | `ctx.guildId` | `string \| null` | ID of the current Discord server (`null` in direct messages). |
 | `ctx.guildName` | `string \| null` | Name of the current Discord server. |
+| `ctx.guildOwnerId` | `string \| null` | Discord ID of the server owner. |
 | `ctx.channelId` | `string` | ID of the channel where the command was executed. |
 | `ctx.user.id` | `string` | Discord ID of the user who triggered the command. |
 | `ctx.user.username` | `string` | Username of the command author. |
+| `ctx.botId` | `string` | Client application / bot ID. |
 | `ctx.member` | `object \| null` | Guild member object including server roles and permissions. |
-| `ctx.hasPermission(name)` | `boolean` | Checks if user has a permission (e.g. `"ADMINISTRATOR"`, `"MANAGE_GUILD"`). |
+| `ctx.hasPermission(name)` | `boolean` | Checks if user has a permission (e.g. `"ADMINISTRATOR"`, `"BAN_MEMBERS"`). |
 | `ctx.isServerOwner` | `boolean` | `true` if the command author is the Discord server owner. |
 | `ctx.options` | `object` | Parsed options object for both slash and prefix commands. |
 | `ctx.rawArgs` | `string[]` | Array of words following the command name (prefix commands). |
@@ -180,10 +200,166 @@ Every command execution receives a rich `ctx` object containing all necessary da
 | `ctx.replySuccess(message)` | `Promise` | Sends a standardized Components V2 success card. |
 | `ctx.reply(payload)` | `Promise` | Sends a custom message or Components V2 container. |
 | `ctx.sendChannel(id, payload)` | `Promise` | Sends a message directly to a target channel ID. |
+| `ctx.fetchRoles(gid)` | `Promise<Role[]>` | Fetches guild roles with positions and permissions (cached 30s). |
+| `ctx.fetchMember(gid, uid)` | `Promise<Response>` | Fetches a guild member and their roles. |
+| `ctx.fetchBan(gid, uid)` | `Promise<Response>` | Fetches guild ban status for a user ID. |
+| `ctx.banMember(gid, uid, opts)` | `Promise<Response>` | Bans a user via Discord API. Returns `{ status, body }`. |
+| `ctx.unbanMember(gid, uid)` | `Promise<Response>` | Unbans a user via Discord API. Returns `{ status, body }`. |
+| `ctx.kickMember(gid, uid)` | `Promise<Response>` | Kicks a member from the guild. |
+| `ctx.timeoutMember(gid, uid, ms)` | `Promise<Response>` | Times out a member (pass `null` to remove timeout). |
+| `ctx.deleteMessage(cid, mid)` | `Promise<Response>` | Deletes a message from a channel. |
+| `ctx.editMessage(cid, mid, payload)` | `Promise<Response>` | Edits an existing channel message. |
+| `ctx.update(payload)` | `Promise<Response>` | Updates the message of a button interaction. |
+| `ctx.deferUpdate()` | `boolean` | Acknowledges a button interaction without altering the message. |
 
 ---
 
-## 7. Persistent Storage & Bot Configuration
+## 7. Discord Components V2 & Nested Buttons
+
+Arixa fully supports modern Discord Components V2 (`flags: 32768`). You can place Action Rows (`type: 1`) containing interactive Buttons (`type: 2`) directly inside a Container (`type: 17`) with dynamic theme colors.
+
+### Unified Container Structure:
+
+```javascript
+const payload = {
+  flags: 32768,
+  components: [
+    {
+      type: 17,
+      accent_color: ctx.colors.v2,
+      components: [
+        {
+          type: 10,
+          content: "> **Are you sure you want to proceed?**"
+        },
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 3,
+              label: "Confirm",
+              custom_id: "action_confirm_" + actionId
+            },
+            {
+              type: 2,
+              style: 2,
+              label: "Cancel",
+              custom_id: "action_cancel_" + actionId
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+```
+
+### Button Interaction Dispatching (`onButton`):
+When a user clicks a button, the engine calls `onButton(ctx)`:
+
+```javascript
+onButton: function (ctx) {
+  const customId = String(ctx.customId || "");
+  if (!customId.startsWith("action_confirm_")) return;
+
+  const actionId = customId.slice("action_confirm_".length);
+  const mid = (ctx.data && ctx.data.message && ctx.data.message.id) || ctx.messageId;
+
+  if (typeof ctx.update === "function") {
+    return ctx.update({
+      flags: 32768,
+      components: [
+        {
+          type: 17,
+          accent_color: ctx.colors.v2,
+          components: [{ type: 10, content: "> ✅ **Action completed successfully!**" }]
+        }
+      ]
+    });
+  }
+}
+```
+
+---
+
+## 8. Safe Discord Moderation & Role Hierarchy
+
+When building moderation plugins, always follow two essential rules to prevent false success messages and permission glitches:
+
+### 1. Pre-Check Role Hierarchy Before Showing Buttons
+Never prompt a moderator to confirm an action if the action cannot possibly succeed. Check roles upfront:
+
+```javascript
+if (ctx.guildOwnerId && targetId === String(ctx.guildOwnerId)) {
+  return ctx.replyWarn("You cannot ban the server owner.");
+}
+
+if (targetId === ctx.botId) {
+  return ctx.replyWarn("I cannot ban myself.");
+}
+
+if (targetId === ctx.user.id) {
+  return ctx.replyWarn("You cannot ban yourself.");
+}
+
+const targetMemberPromise = ctx.fetchMember(ctx.guildId, targetId);
+const botMemberPromise = ctx.fetchMember(ctx.guildId, ctx.botId);
+const rolesPromise = ctx.fetchRoles(ctx.guildId);
+
+return Promise.all([targetMemberPromise, botMemberPromise, rolesPromise]).then(function (results) {
+  const targetMember = results[0] && results[0].status === 200 ? results[0].body : null;
+  const botMember = results[1] && results[1].status === 200 ? results[1].body : null;
+  const roles = Array.isArray(results[2]) ? results[2] : [];
+
+  if (targetMember && roles.length) {
+    const rolePosMap = {};
+    roles.forEach(function (r) { if (r && r.id) rolePosMap[r.id] = Number(r.position) || 0; });
+
+    let targetMaxPos = 0;
+    (targetMember.roles || []).forEach(function (rid) {
+      const pos = rolePosMap[rid] || 0;
+      if (pos > targetMaxPos) targetMaxPos = pos;
+    });
+
+    let botMaxPos = 0;
+    if (botMember) {
+      (botMember.roles || []).forEach(function (rid) {
+        const pos = rolePosMap[rid] || 0;
+        if (pos > botMaxPos) botMaxPos = pos;
+      });
+    }
+
+    if (targetMaxPos >= botMaxPos) {
+      return ctx.replyWarn("I cannot ban <@" + targetId + "> because their role is higher than or equal to my role.");
+    }
+
+    if (!ctx.isServerOwner && ctx.member) {
+      let modMaxPos = 0;
+      (ctx.member.roles || []).forEach(function (rid) {
+        const pos = rolePosMap[rid] || 0;
+        if (pos > modMaxPos) modMaxPos = pos;
+      });
+
+      if (targetMaxPos >= modMaxPos) {
+        return ctx.replyWarn("You cannot ban <@" + targetId + "> because their role is higher than or equal to your role.");
+      }
+    }
+  }
+
+  return sendConfirmationPrompt();
+});
+```
+
+### 2. Inspect Discord API Response Status
+Discord API methods resolve with `{ status: number, body: object }`. Always inspect `res.status`:
+- `res.status === 200` or `204`: Success.
+- `res.status === 403`: Check `res.body.code === 50013` (Role hierarchy / missing permissions).
+- `res.status === 404`: Target user or ban not found.
+
+---
+
+## 9. Persistent Storage & Bot Configuration
 
 Arixa provides an isolated, persistent JSON database for each plugin per bot. Data is stored safely with atomic file writes and automatic backup recovery.
 
@@ -203,16 +379,12 @@ ctx.storage.delete("user_points_" + ctx.user.id);
 
 ---
 
-## 8. Complete Beginner-Friendly Plugin Template
+## 10. Complete Production Plugin Templates
 
-Here is a complete, production-ready plugin template you can copy and customize:
+### Template 1: Standard Server Utility Plugin
 
 ```javascript
 module.exports = {
-  name: "welcome",
-  version: "1.0.0",
-  description: "Custom server welcome card manager",
-
   commands: [
     {
       name: "welcome",
@@ -246,10 +418,6 @@ module.exports = {
   onCommand: async function (ctx) {
     if (!ctx.guildId) {
       return ctx.replyWarn("This command can only be used inside a server.");
-    }
-
-    if (typeof ctx.cooldown === "function" && !ctx.cooldown(5)) {
-      return;
     }
 
     const sub = String(ctx.subcommand || "view").toLowerCase();

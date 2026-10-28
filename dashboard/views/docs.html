@@ -2528,6 +2528,8 @@ module.exports = {
           </thead>
           <tbody>
             <tr><td><code>ctx.fetchMember(gid, uid)</code></td><td>gid, uid</td><td>Fetch guild member and their roles.</td></tr>
+            <tr><td><code>ctx.fetchRoles(gid)</code></td><td>gid</td><td>Fetch guild roles and positions (cached 30s).</td></tr>
+            <tr><td><code>ctx.fetchBan(gid, uid)</code></td><td>gid, uid</td><td>Fetch guild ban record for a user ID.</td></tr>
             <tr><td><code>ctx.addRole(gid, uid, roleId)</code></td><td>gid, uid, roleId</td><td>Assign role to user.</td></tr>
             <tr><td><code>ctx.removeRole(gid, uid, roleId)</code></td><td>gid, uid, roleId</td><td>Remove role from user.</td></tr>
             <tr><td><code>ctx.timeoutMember(gid, uid, durationMs)</code></td><td>gid, uid, ms</td><td>Timeout member (pass <code>null</code> to unmute).</td></tr>

@@ -548,6 +548,36 @@ function pruneCooldowns() {
   }
 }
 
+const guildRoleCache = {};
+
+function pruneGuildRoleCache() {
+  const now = Date.now();
+  const keys = Object.keys(guildRoleCache);
+  if (keys.length > 200) {
+    keys.forEach(function (k) {
+      if (!guildRoleCache[k] || (now - guildRoleCache[k].at) > 120000) {
+        delete guildRoleCache[k];
+      }
+    });
+  }
+}
+
+function getGuildRoles(token, gid) {
+  const now = Date.now();
+  const cached = guildRoleCache[gid];
+  if (cached && (now - cached.at) < 30000) {
+    return Promise.resolve(cached.data);
+  }
+  return discordRequest(token, "GET", "/guilds/" + gid + "/roles").then(function (res) {
+    if (res && res.status === 200 && Array.isArray(res.body)) {
+      pruneGuildRoleCache();
+      guildRoleCache[gid] = { at: now, data: res.body };
+      return res.body;
+    }
+    return (cached && cached.data) ? cached.data : [];
+  });
+}
+
 function createBaseContext(entry, token, inter, pluginId, extra) {
   const meta = extra || {};
   const guildId = (inter && inter.guild_id) || meta.guildId || null;
@@ -811,6 +841,16 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
       const targetGid = gid || guildId;
       if (!targetGid || !uid) return Promise.resolve(null);
       return discordRequest(token, "DELETE", "/guilds/" + targetGid + "/bans/" + uid);
+    },
+    fetchRoles: function (gid) {
+      const targetGid = gid || guildId;
+      if (!targetGid) return Promise.resolve(null);
+      return getGuildRoles(token, targetGid);
+    },
+    fetchBan: function (gid, uid) {
+      const targetGid = gid || guildId;
+      if (!targetGid || !uid) return Promise.resolve(null);
+      return discordRequest(token, "GET", "/guilds/" + targetGid + "/bans/" + uid);
     },
     fetchMessage: function (cid, mid) {
       const targetCid = cid || channelId;

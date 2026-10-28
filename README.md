@@ -275,25 +275,21 @@ if (!ctx.cooldown(10)) return;
 
 Plugins are isolated, self-contained modules located under `src/plugins/` (built-in) or `data/plugins/` (user-installed).
 
-### Plugin Template (`index.js`)
+### Plugin Template (`main/index.js`)
 
 ```javascript
 module.exports = {
-  name: "ping",
-  version: "1.0.0",
-  description: "High-precision latency monitor",
-  commands: {
-    ping: {
+  commands: [
+    {
+      name: "ping",
       description: "Check bot latency and gateway ping",
-      async execute(ctx) {
-        if (!ctx.cooldown(5)) return;
-        return ctx.replySuccess(`🏓 Pong! Latency: ${ctx.ping}ms`);
-      }
+      slash: true,
+      prefix: true,
+      cooldown: 5
     }
-  },
-  events: {
-    MESSAGE_CREATE(msg, ctx) {
-    }
+  ],
+  onCommand: async function (ctx) {
+    return ctx.replySuccess("🏓 Pong! Gateway Latency: " + ctx.ping + "ms");
   }
 };
 ```

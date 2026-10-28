@@ -4,5 +4,4 @@ node_modules/
 skill/app.zip
 *.zip
 *.log
-src/plugins/*
-!src/plugins/.gitkeep
+
