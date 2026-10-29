@@ -372,6 +372,10 @@ function executeExternalPluginCommand(ctx, cmdName, rawArgs, rawText) {
       }
     }
 
+    if (typeof ctx.logCommand === "function") {
+      ctx.logCommand(targetCmd.name, rawArgs);
+    }
+
     try {
       const r = handler(pluginCtx);
       if (r && typeof r.catch === "function") {

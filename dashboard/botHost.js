@@ -978,6 +978,18 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     },
     discordRequest: function (method, apiPath, body) {
       return discordRequest(token, method, apiPath, body);
+    },
+    logCommand: function (cmdName, args) {
+      emitPluginEventNow(entry, token, "COMMAND_EXECUTE", {
+        type: "prefix",
+        command: cmdName,
+        args: args || [],
+        user: user,
+        guildId: guildId,
+        guildName: guildName,
+        channelId: channelId,
+        timestamp: Math.floor(Date.now() / 1000)
+      });
     }
   };
 }
@@ -1053,8 +1065,9 @@ function emitPluginEventNow(entry, token, name, data) {
     if (!handler) return;
     const state = (botData.plugins && botData.plugins[item.pluginId]) || {};
     const ctx = createBaseContext(entry, token, null, item.pluginId, {
-      guildId: data && data.guild_id,
-      channelId: data && data.channel_id,
+      guildId: data && (data.guild_id || data.guildId),
+      channelId: data && (data.channel_id || data.channelId),
+      guildName: data && (data.guild_name || data.guildName),
       user: data && (data.user || data.author),
       member: data && data.member,
       messageId: data && data.id
@@ -1297,6 +1310,16 @@ function handleInteraction(entry, token, inter) {
     if (typeof hit.cooldown === "number" && hit.cooldown > 0) {
       if (!ctx.cooldown(hit.cooldown)) return;
     }
+    emitPluginEvent(entry, token, "COMMAND_EXECUTE", {
+      type: "slash",
+      command: hit.name,
+      user: inter.user || (inter.member && inter.member.user),
+      guildId: inter.guild_id,
+      guildName: (entry && entry.guildNames && entry.guildNames[inter.guild_id]) || (inter.guild && inter.guild.name) || "Server",
+      channelId: inter.channel_id,
+      options: parsed.options,
+      timestamp: Math.floor(Date.now() / 1000)
+    });
     safeRun(hit.onCommand, ctx);
   } else if (inter.type === 3) {
     const customId = inter.data && inter.data.custom_id ? String(inter.data.custom_id) : "";
@@ -1880,6 +1903,12 @@ function startBot(userId, botId, token, botData) {
           entry.guilds = {};
           entry.guildNames = {};
           entry.guildOwners = {};
+          entry.readyGuilds = new Set();
+          if (msg.d && Array.isArray(msg.d.guilds)) {
+            msg.d.guilds.forEach(function (g) {
+              if (g && g.id) entry.readyGuilds.add(String(g.id));
+            });
+          }
           updateGuildStats(entry);
           startStatusRotation(entry, entry.customStatuses, entry.statusInterval);
           safeResolve({ ok: true, status: "online", ping: entry.ping });
@@ -1900,6 +1929,11 @@ function startBot(userId, botId, token, botData) {
         }
 
         if (msg.t === "GUILD_CREATE" && msg.d && msg.d.id) {
+          const isInitial = entry.readyGuilds && entry.readyGuilds.has(String(msg.d.id));
+          if (isInitial) {
+            entry.readyGuilds.delete(String(msg.d.id));
+            msg.d._isInitialSync = true;
+          }
           const members = parseInt(msg.d.member_count || msg.d.approximate_member_count, 10) || 0;
           if (!entry.guilds) entry.guilds = {};
           if (!entry.guildNames) entry.guildNames = {};
@@ -1908,13 +1942,17 @@ function startBot(userId, botId, token, botData) {
           if (msg.d.name) entry.guildNames[msg.d.id] = String(msg.d.name);
           if (msg.d.owner_id) entry.guildOwners[msg.d.id] = String(msg.d.owner_id);
           updateGuildStats(entry);
+          msg.d._totalGuilds = Object.keys(entry.guilds).length;
         }
 
         if (msg.t === "GUILD_DELETE" && msg.d && msg.d.id && !msg.d.unavailable) {
+          const oldName = (entry.guildNames && entry.guildNames[msg.d.id]) || "Server";
           if (entry.guilds) delete entry.guilds[msg.d.id];
           if (entry.guildNames) delete entry.guildNames[msg.d.id];
           if (entry.guildOwners) delete entry.guildOwners[msg.d.id];
           updateGuildStats(entry);
+          msg.d.name = oldName;
+          msg.d._remainingGuilds = entry.guilds ? Object.keys(entry.guilds).length : 0;
         }
 
         if (msg.t === "INTERACTION_CREATE" && msg.d) {
