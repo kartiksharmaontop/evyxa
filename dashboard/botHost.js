@@ -294,20 +294,57 @@ function registerGlobalCommands(botId, token, botData) {
   });
 }
 
+const clearedGuildCommandsCache = new Set();
+const refreshDebounceTimers = new Map();
+
 function registerGuildCommands(botId, token, guildId, botData) {
-  return discordRequest(token, "PUT", "/applications/" + botId + "/guilds/" + guildId + "/commands", []);
+  const cacheKey = botId + ":" + guildId;
+  if (clearedGuildCommandsCache.has(cacheKey)) {
+    return Promise.resolve({ status: 200, body: [], cached: true });
+  }
+  return discordRequest(token, "PUT", "/applications/" + botId + "/guilds/" + guildId + "/commands", []).then(function (res) {
+    if (res && res.status >= 200 && res.status < 300) {
+      clearedGuildCommandsCache.add(cacheKey);
+    }
+    return res;
+  });
 }
 
-function refreshBotCommands(botId) {
+function queueGuildCommandsClear(botId, token, guildIds, botData) {
+  const toClear = (guildIds || []).filter(function (gid) {
+    return gid && !clearedGuildCommandsCache.has(botId + ":" + gid);
+  });
+  if (!toClear.length) return Promise.resolve();
+  return toClear.reduce(function (pChain, gid) {
+    return pChain.then(function () {
+      return new Promise(function (res) {
+        setTimeout(function () {
+          registerGuildCommands(botId, token, gid, botData).then(res).catch(res);
+        }, 500);
+      });
+    });
+  }, Promise.resolve());
+}
+
+function executeRefreshBotCommands(botId) {
   const entry = runningBots.get(botId);
   if (!entry || !entry.token || entry.status === "offline") return;
   const botData = readBotData(entry.userId, botId);
   if (!botData) return;
   commandPayloadCache.delete(botId);
   registerGlobalCommands(botId, entry.token, botData);
-  Object.keys(entry.guilds || {}).forEach(function (guildId) {
-    registerGuildCommands(botId, entry.token, guildId, botData);
-  });
+  const guildIds = Object.keys(entry.guilds || {});
+  queueGuildCommandsClear(botId, entry.token, guildIds, botData);
+}
+
+function refreshBotCommands(botId) {
+  if (refreshDebounceTimers.has(botId)) {
+    clearTimeout(refreshDebounceTimers.get(botId));
+  }
+  refreshDebounceTimers.set(botId, setTimeout(function () {
+    refreshDebounceTimers.delete(botId);
+    executeRefreshBotCommands(botId);
+  }, 800));
 }
 
 const DISCORD_PERMISSIONS = {
@@ -1849,9 +1886,8 @@ function startBot(userId, botId, token, botData) {
           const readyBotData = readBotData(userId, botId) || botData;
           registerGlobalCommands(botId, token, readyBotData);
           if (msg.d && Array.isArray(msg.d.guilds)) {
-            msg.d.guilds.forEach(function (g) {
-              if (g && g.id) registerGuildCommands(botId, token, g.id, readyBotData);
-            });
+            const guildIds = msg.d.guilds.map(function (g) { return g && g.id; }).filter(Boolean);
+            queueGuildCommandsClear(botId, token, guildIds, readyBotData);
           }
         }
 
