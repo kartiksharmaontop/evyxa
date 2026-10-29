@@ -429,7 +429,8 @@ module.exports = {
     const msgData = ctx.data || {};
     const mid = msgData.id;
     if (mid) {
-      getProcessedMessages().set(mid, Date.now());
+      const dedupeKey = (ctx.botId || "bot") + ":" + mid;
+      getProcessedMessages().set(dedupeKey, Date.now());
     }
 
     if (cmdName === "unban") {
@@ -698,7 +699,8 @@ module.exports = {
       if (!data || (data.author && data.author.bot)) return;
 
       const mid = data.id;
-      if (mid && getProcessedMessages().has(mid)) {
+      const dedupeKey = (ctx.botId || "bot") + ":" + mid;
+      if (mid && getProcessedMessages().has(dedupeKey)) {
         return;
       }
 
@@ -745,7 +747,7 @@ module.exports = {
       if (cmd !== "ban" && cmd !== "unban") return;
 
       if (mid) {
-        getProcessedMessages().set(mid, Date.now());
+        getProcessedMessages().set(dedupeKey, Date.now());
       }
 
       if (typeof ctx.cooldown === "function") {

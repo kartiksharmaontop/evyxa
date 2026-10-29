@@ -727,6 +727,55 @@ function resolvePluginCommandConflicts(bot, plugin, userId) {
   return disabled;
 }
 
+function syncBotCommandConflictsOnBoot(bot, userId) {
+  if (!bot || !bot.plugins || typeof bot.plugins !== "object") return false;
+  const catalog = scanPlugins();
+  let changed = false;
+  const commandClaimants = {};
+
+  const pluginIds = Object.keys(bot.plugins);
+  for (let i = 0; i < pluginIds.length; i++) {
+    const pid = pluginIds[i];
+    const entry = bot.plugins[pid];
+    if (!entry || entry.enabled === false) continue;
+
+    const pMeta = catalog.find(function (p) { return p.id === pid; });
+    if (!pMeta || !Array.isArray(pMeta.commands)) continue;
+
+    pMeta.commands.forEach(function (c) {
+      if (!c || !c.name) return;
+      const cmdName = String(c.name).toLowerCase().trim();
+      if (!commandClaimants[cmdName]) {
+        commandClaimants[cmdName] = { pid: pid, meta: pMeta };
+      } else {
+        const prev = commandClaimants[cmdName];
+        const isCurrentV2 = pid.endsWith("-v2");
+        const isPrevV2 = prev.pid.endsWith("-v2");
+
+        let winnerPid = prev.pid;
+        let loserPid = pid;
+
+        if (isCurrentV2 && !isPrevV2) {
+          winnerPid = pid;
+          loserPid = prev.pid;
+          commandClaimants[cmdName] = { pid: pid, meta: pMeta };
+        }
+
+        if (bot.plugins[loserPid] && bot.plugins[loserPid].enabled !== false) {
+          bot.plugins[loserPid].enabled = false;
+          changed = true;
+          console.log("[CONFLICT_SHIELD] Auto-resolved command conflict for bot " + (bot.username || bot.id) + ": disabled '" + loserPid + "' in favor of '" + winnerPid + "' for command '" + cmdName + "'");
+        }
+      }
+    });
+  }
+
+  if (changed) {
+    saveBotData(userId, bot);
+  }
+  return changed;
+}
+
 function connectPlugin(userId, botId, pluginId) {
   const linkDir = path.join(botDir(userId, botId), "plugins");
   fs.mkdirSync(linkDir, { recursive: true });
@@ -1070,6 +1119,7 @@ function autoStartOnlineBots() {
     botDirs.forEach(function (bId) {
       const b = readJson(botFile(uId, bId), null);
       if (b && b.token && b.desiredState === "online") {
+        syncBotCommandConflictsOnBoot(b, uId);
         const plain = botPlainToken(b);
         if (!plain) {
           console.log("Skipping auto-start (cannot decrypt token):", b.username);
@@ -1436,6 +1486,7 @@ const server = http.createServer(function (req, res) {
     }
     const botId = url.split("/")[3];
     const bot = readJson(botFile(session.userId, botId), null);
+    if (bot) syncBotCommandConflictsOnBoot(bot, session.userId);
     const plainToken = botPlainToken(bot);
     if (!bot || !plainToken) {
       res.writeHead(404, { "Content-Type": "application/json" });
@@ -1477,6 +1528,7 @@ const server = http.createServer(function (req, res) {
     }
     const botId = url.split("/")[3];
     const bot = readJson(botFile(session.userId, botId), null);
+    if (bot) syncBotCommandConflictsOnBoot(bot, session.userId);
     const plainToken = botPlainToken(bot);
     if (!bot || !plainToken) {
       res.writeHead(404, { "Content-Type": "application/json" });
