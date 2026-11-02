@@ -22,12 +22,17 @@ function parseUserId(str) {
   const cleaned = str.trim();
   const match = cleaned.match(/<@!?(\d+)>/);
   if (match) return match[1];
-  if (/^\d{4,22}$/.test(cleaned)) return cleaned;
+  if (/^\d{15,22}$/.test(cleaned)) return cleaned;
   return null;
 }
 
 function getDefaultAvatarUrl(user) {
-  const uid = user && user.id ? BigInt(user.id) : 0n;
+  let uid = 0n;
+  try {
+    uid = user && user.id ? BigInt(user.id) : 0n;
+  } catch (e) {
+    uid = 0n;
+  }
   const disc = user && user.discriminator;
   if (disc && disc !== "0") {
     return "https://cdn.discordapp.com/embed/avatars/" + (Number(disc) % 5) + ".png";
@@ -130,6 +135,9 @@ function resolveTargetId(ctx) {
 }
 
 function handleMediaRequest(ctx, cmdName, targetId) {
+  if (!targetId) {
+    return ctx.replyWarn("Could not find that user.");
+  }
   const userPromise = (typeof ctx.discordRequest === "function")
     ? ctx.discordRequest("GET", "/users/" + targetId)
     : Promise.resolve(null);
@@ -323,8 +331,8 @@ module.exports = {
       const content = String(msgData.content || "").trim();
       if (!content) return;
 
-      const prefixCfg = ctx.storage.get("prefix_" + ctx.guildId);
-      let prefixes = ["+"];
+      const prefixCfg = ctx.storage ? ctx.storage.get("prefix_" + ctx.guildId) : null;
+      let prefixes = ["!", "+"];
       if (typeof prefixCfg === "string" && prefixCfg.trim()) {
         prefixes = [prefixCfg.trim()];
       } else if (Array.isArray(prefixCfg) && prefixCfg.length > 0) {

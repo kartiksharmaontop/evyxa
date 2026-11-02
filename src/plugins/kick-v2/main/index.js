@@ -126,7 +126,6 @@ function parseUserId(str) {
   const match = cleaned.match(/<@!?(\d+)>/);
   if (match) return match[1];
   if (/^\d{15,22}$/.test(cleaned)) return cleaned;
-  if (/^[a-zA-Z0-9_]{3,32}$/.test(cleaned)) return cleaned;
   return null;
 }
 
@@ -307,12 +306,6 @@ function handleKickButton(ctx) {
     isConfirm = true;
   } else if (customId.startsWith("kick_cancel_")) {
     actionId = customId.slice("kick_cancel_".length);
-    isCancel = true;
-  } else if (customId.startsWith("mod_confirm_")) {
-    actionId = customId.slice("mod_confirm_".length);
-    isConfirm = true;
-  } else if (customId.startsWith("mod_cancel_")) {
-    actionId = customId.slice("mod_cancel_".length);
     isCancel = true;
   } else {
     return false;
@@ -563,11 +556,6 @@ module.exports = {
 
       if (mid) {
         getProcessedMessages().set(dedupeKey, Date.now());
-      }
-
-      if (typeof ctx.cooldown === "function") {
-        ctx.command = cmd;
-        if (!ctx.cooldown(5)) return;
       }
 
       ctx.command = cmd;

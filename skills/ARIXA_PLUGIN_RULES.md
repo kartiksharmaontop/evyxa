@@ -361,13 +361,13 @@ module.exports = {
                 {
                   type: 2,
                   style: 4,
-                  custom_id: `confirm_${actionId}`,
+                  custom_id: `confirm_kick_${actionId}`,
                   label: 'Confirm Kick'
                 },
                 {
                   type: 2,
                   style: 2,
-                  custom_id: `cancel_${actionId}`,
+                  custom_id: `cancel_kick_${actionId}`,
                   label: 'Cancel'
                 }
               ]
@@ -388,7 +388,7 @@ module.exports = {
       await ctx.replyWarn('This confirmation has expired or is invalid.');
       return;
     }
-    if (ctx.author.id !== action.authorId) {
+    if (((ctx.user && ctx.user.id) || (ctx.author && ctx.author.id)) !== action.authorId) {
       await ctx.replyWarn('You are not authorized to interact with this confirmation.');
       return;
     }

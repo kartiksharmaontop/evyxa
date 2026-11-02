@@ -397,8 +397,17 @@ body.sidebar-open .sidebar-overlay{opacity:1; visibility:visible}
   display:flex;
   align-items:center;
   justify-content:space-between;
+  flex-wrap:wrap;
   gap:8px;
   min-height:34px;
+}
+.plugin-card-buttons{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-left:auto;
 }
 .btn-install{
   background:#5865f2;
@@ -456,6 +465,31 @@ body.sidebar-open .sidebar-overlay{opacity:1; visibility:visible}
   color:#fff;
 }
 .btn-manage:hover svg{color:#7289da}
+.btn-update{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(63,185,80,0.12);
+  border:1px solid rgba(63,185,80,0.4);
+  color:#3fb950;
+  border-radius:10px;
+  padding:7px 12px;
+  font-size:12.5px;
+  font-weight:700;
+  font-family:"Inter","Segoe UI",sans-serif;
+  cursor:pointer;
+  transition:all .18s ease;
+  white-space:nowrap;
+}
+.btn-update:hover{
+  background:rgba(63,185,80,0.2);
+  border-color:rgba(63,185,80,0.7);
+  color:#56d364;
+}
+.btn-update:disabled{
+  opacity:.65;
+  cursor:wait;
+}
 .plugin-detail{
   width:100%;
   max-width:520px;
@@ -4115,20 +4149,28 @@ function renderManageGrid() {
   pluginDetail.hidden = true;
   pluginDetail.innerHTML = "";
   manageGrid.innerHTML = installed.map(function (p) {
+    var updateTitle = p.installedVersion
+      ? "Installed v" + p.installedVersion + ", latest v" + p.version
+      : "Update plugin to v" + p.version;
+    var updateBtn = p.updateAvailable
+      ? '<button class="btn-update" data-id="' + escPluginHtml(p.id) + '" title="' + escPluginHtml(updateTitle) + '">Update</button>'
+      : "";
     return '<div class="plugin-card">' +
       '<span class="plugin-name">' + escPluginHtml(p.name) + "</span>" +
       '<div class="plugin-card-actions"><span class="plugin-version">v' + escPluginHtml(p.version) + "</span>" +
-      '<button class="btn-manage" data-id="' + escPluginHtml(p.id) + '" title="Manage plugin">' + PLUGIN_SLIDER_SVG + "Manage</button></div></div>";
+      '<div class="plugin-card-buttons">' + updateBtn +
+      '<button class="btn-manage" data-id="' + escPluginHtml(p.id) + '" title="Manage plugin">' + PLUGIN_SLIDER_SVG + "Manage</button></div></div></div>";
   }).join("");
 }
 
-function postPluginAction(action, data, cb) {
+function postPluginAction(action, data, cb, fail) {
   fetch("/api/bot/" + botId + "/plugins/" + action, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   }).then(function (r) { return r.json(); }).then(cb).catch(function () {
-    pluginToastShow("Could not reach the server", false);
+    if (typeof fail === "function") fail();
+    else pluginToastShow("Could not reach the server", false);
   });
 }
 
@@ -4707,6 +4749,29 @@ if (pluginsGrid) pluginsGrid.addEventListener("click", function (e) {
 });
 
 if (manageGrid) manageGrid.addEventListener("click", function (e) {
+  var upBtn = e.target && e.target.closest ? e.target.closest(".btn-update") : null;
+  if (upBtn) {
+    if (upBtn.disabled) return;
+    var label = upBtn.textContent;
+    upBtn.disabled = true;
+    upBtn.textContent = "Updating...";
+    postPluginAction("update", { pluginId: upBtn.getAttribute("data-id") }, function (d) {
+      if (!d.ok) {
+        upBtn.disabled = false;
+        upBtn.textContent = label;
+        pluginToastShow(d.error || "Failed to update", false);
+        return;
+      }
+      if (d.warnings && d.warnings.length) pluginToastShow("Plugin updated, but " + d.warnings[0], false);
+      else pluginToastShow("Plugin updated to v" + (d.version || "latest"), true);
+      loadPlugins();
+    }, function () {
+      upBtn.disabled = false;
+      upBtn.textContent = label;
+      pluginToastShow("Could not reach the server", false);
+    });
+    return;
+  }
   var btn = e.target && e.target.closest ? e.target.closest(".btn-manage") : null;
   if (!btn) return;
   openPluginDetail(btn.getAttribute("data-id"));

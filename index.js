@@ -330,6 +330,79 @@ function findPluginDir(id) {
   return null;
 }
 
+function pluginSourceMeta(dir) {
+  const hash = crypto.createHash("sha1");
+  let latestMtime = 0;
+  const skipDirs = { node_modules: 1, ".git": 1 };
+  const skipFiles = { ".DS_Store": 1, "Thumbs.db": 1 };
+  function walk(current, prefix) {
+    let entries = [];
+    try { entries = fs.readdirSync(current, { withFileTypes: true }); } catch (e) { return; }
+    entries.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    entries.forEach(function (entry) {
+      if (entry.isSymbolicLink()) return;
+      const full = path.join(current, entry.name);
+      const rel = prefix ? prefix + "/" + entry.name : entry.name;
+      if (entry.isDirectory()) {
+        if (skipDirs[entry.name]) return;
+        walk(full, rel);
+        return;
+      }
+      if (!entry.isFile() || skipFiles[entry.name]) return;
+      try {
+        const stat = fs.statSync(full);
+        if (stat.mtimeMs > latestMtime) latestMtime = stat.mtimeMs;
+        const data = fs.readFileSync(full);
+        hash.update(rel);
+        hash.update("\0");
+        hash.update(data);
+        hash.update("\0");
+      } catch (e) {}
+    });
+  }
+  walk(dir, "");
+  return {
+    fingerprint: hash.digest("hex"),
+    latestMtime: latestMtime
+  };
+}
+
+function versionParts(value) {
+  return String(value || "").split(/[^0-9]+/).filter(Boolean).map(function (n) {
+    return parseInt(n, 10);
+  });
+}
+
+function compareVersions(a, b) {
+  const left = versionParts(a);
+  const right = versionParts(b);
+  const len = Math.max(left.length, right.length);
+  for (let i = 0; i < len; i++) {
+    const l = left[i] || 0;
+    const r = right[i] || 0;
+    if (l > r) return 1;
+    if (l < r) return -1;
+  }
+  return 0;
+}
+
+function pluginUpdateState(entry, plugin) {
+  if (!entry || !plugin) return false;
+  if (entry.fingerprint && plugin.fingerprint) {
+    return entry.fingerprint !== plugin.fingerprint;
+  }
+  if (entry.version && plugin.version) {
+    const cmp = compareVersions(plugin.version, entry.version);
+    if (cmp < 0) return false;
+    if (cmp > 0) return true;
+  }
+  const installedAt = Date.parse(entry.installedAt || "");
+  if (Number.isFinite(installedAt) && plugin.latestMtime) {
+    return plugin.latestMtime > installedAt + 1000;
+  }
+  return false;
+}
+
 function loadPluginModule(id) {
   const dir = findPluginDir(id);
   if (!dir) return null;
@@ -615,6 +688,7 @@ function scanPlugins() {
       if (!isDir) return;
       seen[id] = 1;
       const readme = parsePluginReadme(path.join(dir, "readme.md"));
+      const source = pluginSourceMeta(dir);
       out.push({
         id: id,
         name: readme.header.name || id,
@@ -626,7 +700,9 @@ function scanPlugins() {
         commands: readPluginCommands(dir),
         config: readPluginConfig(dir, readme.body),
         embedMode: extractPluginEmbedMode(readme.body),
-        readme: readme.body
+        readme: readme.body,
+        fingerprint: source.fingerprint,
+        latestMtime: source.latestMtime
       });
     });
   });
@@ -1143,7 +1219,9 @@ function autoStartOnlineBots() {
     }
     const item = botsToStart[idx++];
     console.log("Auto-starting hosted bot (" + idx + "/" + botsToStart.length + "):", item.b.username, "(" + item.b.id + ")");
-    botHost.startBot(item.uId, item.b.id, item.plain, item.b);
+    botHost.startBot(item.uId, item.b.id, item.plain, item.b).catch(function (err) {
+      console.error("Failed to auto-start bot", item.b.id, err);
+    });
     panelLog.botAction("started", item.b, null);
 
     if (idx < botsToStart.length) {
@@ -1353,6 +1431,9 @@ const server = http.createServer(function (req, res) {
     refreshUserToken(u).then(function (t) {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: !!t, expires_at: t ? t.expires_at : null }));
+    }).catch(function (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: (err && err.message) || "Token refresh failed" }));
     });
     return;
   }
@@ -1498,6 +1579,9 @@ const server = http.createServer(function (req, res) {
     botHost.startBot(session.userId, bot.id, plainToken, bot).then(function (result) {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(result));
+    }).catch(function (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: (err && err.message) || "Failed to start bot" }));
     });
     return;
   }
@@ -1540,6 +1624,9 @@ const server = http.createServer(function (req, res) {
     botHost.restartBot(session.userId, bot.id, plainToken, bot).then(function (result) {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(result));
+    }).catch(function (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, error: (err && err.message) || "Failed to restart bot" }));
     });
     return;
   }
@@ -1727,7 +1814,10 @@ const server = http.createServer(function (req, res) {
         image: p.image,
         commands: p.commands.map(function (c) { return c.name; }),
         installed: !!entry,
-        enabled: !!(entry && entry.enabled !== false)
+        enabled: !!(entry && entry.enabled !== false),
+        updateAvailable: pluginUpdateState(entry, p),
+        installedVersion: entry && entry.version ? String(entry.version) : null,
+        updatedAt: entry && entry.updatedAt ? String(entry.updatedAt) : null
       };
     });
     res.writeHead(200, { "Content-Type": "application/json" });
@@ -1773,13 +1863,16 @@ const server = http.createServer(function (req, res) {
         configValues: configValues,
         installed: !!entry,
         enabled: !!(entry && entry.enabled !== false),
+        updateAvailable: pluginUpdateState(entry, plugin),
+        installedVersion: entry && entry.version ? String(entry.version) : null,
+        updatedAt: entry && entry.updatedAt ? String(entry.updatedAt) : null,
         readme: plugin.readme
       }
     }));
     return;
   }
 
-  const pluginActionMatch = url.match(/^\/api\/bot\/([0-9]+)\/plugins\/(install|uninstall|toggle|config)$/);
+  const pluginActionMatch = url.match(/^\/api\/bot\/([0-9]+)\/plugins\/(install|uninstall|toggle|config|update)$/);
   if (pluginActionMatch && req.method === "POST") {
     if (!session) {
       res.writeHead(401, { "Content-Type": "application/json" });
@@ -1811,7 +1904,12 @@ const server = http.createServer(function (req, res) {
       bot.plugins = (bot.plugins && typeof bot.plugins === "object") ? bot.plugins : {};
       if (action === "install") {
         if (!bot.plugins[pid]) {
-          bot.plugins[pid] = { installedAt: new Date().toISOString(), enabled: true };
+          bot.plugins[pid] = {
+            installedAt: new Date().toISOString(),
+            enabled: true,
+            version: plugin.version,
+            fingerprint: plugin.fingerprint
+          };
           saveBotData(session.userId, bot);
           connectPlugin(session.userId, bot.id, pid);
           botHost.refreshBotCommands(bot.id);
@@ -1841,6 +1939,38 @@ const server = http.createServer(function (req, res) {
       if (!entry) {
         res.writeHead(404, { "Content-Type": "application/json" });
         return res.end(JSON.stringify({ ok: false, error: "Plugin is not installed" }));
+      }
+      if (action === "update") {
+        if (!plugin.fingerprint || !loadPluginModule(pid)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ ok: false, error: "Plugin source could not be loaded" }));
+        }
+        const fromVersion = entry.version ? String(entry.version) : null;
+        entry.version = plugin.version;
+        entry.fingerprint = plugin.fingerprint;
+        entry.updatedAt = new Date().toISOString();
+        saveBotData(session.userId, bot);
+        connectPlugin(session.userId, bot.id, pid);
+        botHost.refreshBotCommands(bot.id);
+        const warnings = entry.enabled !== false ? pluginCommandCollisions(bot, plugin) : [];
+        callPluginHook(pid, "onUpdate", {
+          userId: session.userId,
+          botId: bot.id,
+          config: Object.assign({}, entry.config || {}),
+          fromVersion: fromVersion,
+          toVersion: plugin.version
+        });
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({
+          ok: true,
+          installed: true,
+          enabled: entry.enabled !== false,
+          version: plugin.version,
+          installedVersion: plugin.version,
+          updatedAt: entry.updatedAt,
+          updateAvailable: false,
+          warnings: warnings
+        }));
       }
       if (action === "uninstall") {
         const hookCtx = { userId: session.userId, botId: bot.id, config: entry.config || {} };

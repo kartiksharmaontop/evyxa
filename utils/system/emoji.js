@@ -10,6 +10,7 @@ const raw = {
 const COLORS = {
   error: 0xed4245,
   warn: 0xfaa61a,
+  warning: 0xfaa61a,
   cooldown: 0x5865f2,
   success: 0x3ba55d,
   info: 0x5865f2

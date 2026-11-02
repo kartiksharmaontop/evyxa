@@ -93,10 +93,12 @@ function resolvePluginStorage(ctx, pid) {
 
 function getServerPrefix(ctx, guildId) {
   if (!guildId) return null;
-  let p = ctx.storage.get("prefix_" + guildId, null);
+  let p = ctx.storage ? ctx.storage.get("prefix_" + guildId, null) : null;
   if (!p) {
     const v1Store = resolvePluginStorage(ctx, "00003-prefix-v1");
-    p = v1Store.get("prefix_" + guildId, null);
+    if (v1Store && typeof v1Store.get === "function") {
+      p = v1Store.get("prefix_" + guildId, null);
+    }
   }
   return p ? String(p).trim() : null;
 }
@@ -104,10 +106,14 @@ function getServerPrefix(ctx, guildId) {
 function setServerPrefix(ctx, guildId, newPrefix) {
   if (!guildId) return;
   const val = String(newPrefix || "").trim();
-  ctx.storage.set("prefix_" + guildId, val);
+  if (ctx.storage && typeof ctx.storage.set === "function") {
+    ctx.storage.set("prefix_" + guildId, val);
+  }
   try {
     const v1Store = resolvePluginStorage(ctx, "00003-prefix-v1");
-    v1Store.set("prefix_" + guildId, val);
+    if (v1Store && typeof v1Store.set === "function") {
+      v1Store.set("prefix_" + guildId, val);
+    }
   } catch (e) {}
 }
 
@@ -232,14 +238,21 @@ function handleReset(ctx) {
   return ctx.sendChannel(ctx.channelId, payload);
 }
 
+const pluginModuleCache = {};
+
 function resolvePluginModule(pluginId) {
   const safeId = String(pluginId || "").replace(/[^a-zA-Z0-9_-]/g, "");
+  if (pluginModuleCache[safeId]) return pluginModuleCache[safeId];
   const dirs = [BUILTIN_PLUGINS_DIR, USER_PLUGINS_DIR];
   for (let i = 0; i < dirs.length; i++) {
     const mainFile = path.join(dirs[i], safeId, "main", "index.js");
     if (fs.existsSync(mainFile)) {
       try {
-        return require(mainFile);
+        const mod = require(mainFile);
+        if (mod) {
+          pluginModuleCache[safeId] = mod;
+          return mod;
+        }
       } catch (e) {}
     }
   }
@@ -510,7 +523,7 @@ module.exports = {
       };
 
       const infoAliases = parseAliases(cfg.aliases_info, "prefix, prefixview, prefixinfo");
-      const setAliases = parseAliases(cfg.aliases_set, "prefixset, prefixadd, prefixdd, setprefix");
+      const setAliases = parseAliases(cfg.aliases_set, "prefixset, prefixadd, setprefix");
       const resetAliases = parseAliases(cfg.aliases_reset, "removeprefix, prefixremove, resetprefix, prefixreset");
 
       if (cmdName === "add" && rawArgs[0] && rawArgs[0].toLowerCase() === "prefix") {

@@ -32,7 +32,9 @@ function post(channelId, body) {
     res.on("data", function () {});
     res.on("end", function () {});
   });
-  req.on("error", function () {});
+  req.on("error", function (err) {
+    if (process.env.DEBUG) console.error("Discord log post error:", err);
+  });
   req.write(payload);
   req.end();
 }
@@ -77,7 +79,7 @@ function guildCount(token, cb) {
   if (!token) return cb(null);
   const req = https.request({
     hostname: "discord.com",
-    path: "/api/users/@me/guilds",
+    path: "/api/v10/users/@me/guilds",
     method: "GET",
     headers: { Authorization: "Bot " + token }
   }, function (res) {

@@ -43,4 +43,4 @@ When generating or editing any Arixa plugin, every AI assistant must strictly fo
 ## 2. Full Rulebook Reference
 
 For the comprehensive guide with code templates and full SDK method breakdowns, refer to:
-[ARIXA_PLUGIN_RULES.md](file:///storage/emulated/0/app/skill/ARIXA_PLUGIN_RULES.md)
+[ARIXA_PLUGIN_RULES.md](file:///storage/emulated/0/app/skills/ARIXA_PLUGIN_RULES.md)

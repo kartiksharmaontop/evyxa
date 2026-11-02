@@ -8,7 +8,12 @@ function parseChannelIds(str) {
 }
 
 function getDefaultAvatarUrl(user) {
-  const uid = user && user.id ? BigInt(user.id) : 0n;
+  let uid = 0n;
+  try {
+    uid = user && user.id ? BigInt(user.id) : 0n;
+  } catch (e) {
+    uid = 0n;
+  }
   const disc = user && user.discriminator;
   if (disc && disc !== "0") {
     return "https://cdn.discordapp.com/embed/avatars/" + (Number(disc) % 5) + ".png";
@@ -88,8 +93,8 @@ function dispatchLog(ctx, channelListRaw, payload) {
   if (!channelIds.length) return Promise.resolve();
 
   const reqFn = (typeof ctx.discordRequest === "function")
-    ? ctx.discordRequest
-    : (typeof ctx.request === "function" ? ctx.request : null);
+    ? ctx.discordRequest.bind(ctx)
+    : (typeof ctx.request === "function" ? ctx.request.bind(ctx) : null);
 
   if (!reqFn) return Promise.resolve();
 
@@ -116,7 +121,7 @@ module.exports = {
       let cmdDisplay = data.command ? "/" + data.command : "/unknown";
       if (data.type === "prefix") {
         const argsStr = Array.isArray(data.args) && data.args.length ? " " + data.args.join(" ") : "";
-        cmdDisplay = "+" + (data.command || "command") + argsStr;
+        cmdDisplay = (data.prefix || "!") + (data.command || "command") + argsStr;
       } else if (data.options && typeof data.options === "object") {
         const optKeys = Object.keys(data.options);
         if (optKeys.length) {

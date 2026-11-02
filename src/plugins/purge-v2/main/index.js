@@ -20,7 +20,7 @@ function cleanExpiredActions() {
   const actions = getPendingActions();
   const now = Date.now();
   Object.keys(actions).forEach(function (id) {
-    if (now - actions[id].createdAt > ACTION_EXPIRE_MS) {
+    if (!actions[id] || (now - actions[id].createdAt > ACTION_EXPIRE_MS)) {
       delete actions[id];
     }
   });
@@ -39,7 +39,7 @@ function isValidEmoji(str) {
   if (!str || typeof str !== "string") return false;
   const s = str.trim();
   if (!s) return false;
-  if (/^<a?:[a-zA-Z0-9_]+:\d{4,22}>$/.test(s)) return true;
+  if (/^<a?:[a-zA-Z0-9_]+:\d{17,20}>$/.test(s)) return true;
   if (/^[a-zA-Z0-9\s.,!?:;'"_+=/\\-]+$/.test(s)) return false;
   try {
     const emojiRegex = /^\p{Extended_Pictographic}+$/u;
@@ -129,7 +129,7 @@ function parseUserId(str) {
   const cleaned = str.trim();
   const match = cleaned.match(/<@!?(\d+)>/);
   if (match) return match[1];
-  if (/^\d{4,22}$/.test(cleaned)) return cleaned;
+  if (/^\d{15,22}$/.test(cleaned)) return cleaned;
   return null;
 }
 
@@ -229,12 +229,6 @@ function handlePurgeButton(ctx) {
     isConfirm = true;
   } else if (customId.startsWith("purge_cancel_")) {
     actionId = customId.slice("purge_cancel_".length);
-    isCancel = true;
-  } else if (customId.startsWith("mod_confirm_")) {
-    actionId = customId.slice("mod_confirm_".length);
-    isConfirm = true;
-  } else if (customId.startsWith("mod_cancel_")) {
-    actionId = customId.slice("mod_cancel_".length);
     isCancel = true;
   } else {
     return false;
@@ -532,11 +526,34 @@ module.exports = {
       const content = String(data.content || "").trim();
       if (!content) return;
 
+      const guildId = ctx.guildId;
       let matchedPrefix = null;
-      if (content.startsWith("+")) {
-        matchedPrefix = "+";
-      } else if (content.startsWith("!")) {
+
+      let customPrefix = null;
+      if (ctx.storage && guildId) {
+        customPrefix = ctx.storage.get("prefix_" + guildId, null);
+      }
+
+      const botId = ctx.botId;
+      if (botId) {
+        const mentionRegex = new RegExp("^<@!?" + botId + ">(\\s+|$)", "i");
+        const match = content.match(mentionRegex);
+        if (match) {
+          matchedPrefix = match[0];
+        }
+      }
+
+      if (!matchedPrefix && customPrefix) {
+        const cp = String(customPrefix).trim();
+        if (cp && content.toLowerCase().startsWith(cp.toLowerCase())) {
+          matchedPrefix = content.slice(0, cp.length);
+        }
+      }
+
+      if (!matchedPrefix && content.startsWith("!")) {
         matchedPrefix = "!";
+      } else if (!matchedPrefix && content.startsWith("+")) {
+        matchedPrefix = "+";
       }
 
       if (!matchedPrefix) return;
@@ -554,11 +571,6 @@ module.exports = {
 
       if (mid) {
         getProcessedMessages().set(dedupeKey, Date.now());
-      }
-
-      if (typeof ctx.cooldown === "function") {
-        ctx.command = cmd;
-        if (!ctx.cooldown(5)) return;
       }
 
       ctx.command = cmd;
