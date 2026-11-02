@@ -2889,7 +2889,10 @@ h3.md-h{font-size:14px}
   <div class="topbar-content">
     <button class="hamburger" id="menuBtn" aria-label="menu"><span></span><span></span><span></span></button>
     <span class="brand" id="brandName">{{NAME}}</span>
-    <img class="user-avatar" id="userAvatar" src="{{AVATAR}}" alt="avatar" />
+    <div style="display:flex;align-items:center;gap:12px;margin-left:auto;">
+      <img class="user-avatar" id="userAvatar" src="{{AVATAR}}" alt="avatar" />
+      <button class="logout-btn" id="logoutBtn" style="background:#161a25;border:1px solid rgba(255,255,255,0.08);color:#8b939f;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:600;font-family:'Inter','Segoe UI',sans-serif;cursor:pointer;transition:all .18s ease;">Logout</button>
+    </div>
   </div>
 </header>
 
@@ -4878,6 +4881,15 @@ if (btnToggleAdvancedPanel && advancedExpandPanel) {
     if (advancedCard) {
       advancedCard.classList.toggle("has-panel-open", isOpen);
     }
+  });
+}
+
+var logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", function () {
+    fetch("/api/auth/logout", { method: "POST" }).then(function () {
+      window.location.href = "/login";
+    });
   });
 }
 

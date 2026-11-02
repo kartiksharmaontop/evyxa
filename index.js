@@ -163,7 +163,8 @@ cryptoUtil.configure(env);
 
 const pendingStates = {};
 
-const COOKIE_MAX_AGE = 400 * 24 * 60 * 60;
+const COOKIE_MAX_AGE = 14 * 24 * 60 * 60;
+const SESSION_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 
 function userFile(userId) {
   return path.join(LOGIN_DIR, String(userId).replace(/[^a-zA-Z0-9_-]/g, "") + ".json");
@@ -996,30 +997,52 @@ function sessionCookie(sid, secure) {
 
 function getSession(req) {
   const sid = getCookies(req).sid;
-  if (!sid) return null;
+  if (!sid || typeof sid !== "string") return null;
+  const now = Date.now();
   const sep = sid.indexOf("_");
   if (sep > 0) {
-    const u = readUser(sid.slice(0, sep));
+    const uid = sid.slice(0, sep);
+    const u = readUser(uid);
     if (u && u.sessions && u.sessions[sid]) {
+      const sess = u.sessions[sid];
+      if (sess.lastSeen && (now - sess.lastSeen > SESSION_MAX_AGE_MS)) {
+        delete u.sessions[sid];
+        writeUser(u.id, u);
+        return null;
+      }
       touchSession(u, sid);
       return { sid: sid, userId: u.id, username: u.username, avatar: u.avatar || null };
     }
   }
   const found = findUserBySession(sid);
-  if (found) {
+  if (found && found.sessions && found.sessions[sid]) {
+    const sess = found.sessions[sid];
+    if (sess.lastSeen && (now - sess.lastSeen > SESSION_MAX_AGE_MS)) {
+      delete found.sessions[sid];
+      writeUser(found.id, found);
+      return null;
+    }
     touchSession(found, sid);
     return { sid: sid, userId: found.id, username: found.username, avatar: found.avatar || null };
-  }
-  const old = readJson(SESSIONS_FILE, {});
-  if (old[sid]) {
-    const s = old[sid];
-    return { sid: sid, userId: s.userId, username: s.username, avatar: s.avatar || null };
   }
   return null;
 }
 
 function createSession(req, res, user, token) {
   const now = Date.now();
+  const oldSid = getCookies(req).sid;
+  if (oldSid) {
+    try {
+      const sep = oldSid.indexOf("_");
+      let oldU = null;
+      if (sep > 0) oldU = readUser(oldSid.slice(0, sep));
+      if (!oldU) oldU = findUserBySession(oldSid);
+      if (oldU && oldU.sessions && oldU.sessions[oldSid]) {
+        delete oldU.sessions[oldSid];
+        writeUser(oldU.id, oldU);
+      }
+    } catch (e) {}
+  }
   const sid = user.id + "_" + crypto.randomBytes(24).toString("hex");
   const u = readUser(user.id) || { id: user.id, sessions: {} };
   u.id = user.id;
@@ -1055,7 +1078,10 @@ function destroySession(req, res) {
       writeUser(u.id, u);
     }
   }
-  res.setHeader("Set-Cookie", "sid=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax" + (requestSecure(req) ? "; Secure" : ""));
+  res.setHeader("Set-Cookie", [
+    "sid=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax" + (requestSecure(req) ? "; Secure" : ""),
+    "oauth_state=; HttpOnly; Path=/api/auth; Max-Age=0; SameSite=Lax"
+  ]);
 }
 
 function refreshUserToken(u) {
@@ -1276,7 +1302,12 @@ function sendHtml(res, file, session, error, extra) {
     html = html.split("{{CUSTOM_STATUSES}}").join(jsEscape(JSON.stringify(extra.customStatuses && extra.customStatuses.length ? extra.customStatuses : defaultStatusList())));
     html = html.split("{{STATUS_INTERVAL}}").join(escapeHtml(String(extra.statusInterval || 10)));
   }
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.writeHead(200, {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": "no-store, no-cache, must-revalidate, private",
+    "Pragma": "no-cache",
+    "Expires": "0"
+  });
   res.end(html);
 }
 
@@ -1318,9 +1349,13 @@ const server = http.createServer(function (req, res) {
     const url = req.url.split("?")[0];
     const session = getSession(req);
 
-  if (session && getCookies(req).sid) {
-    res.setHeader("Set-Cookie", sessionCookie(session.sid, requestSecure(req)));
-  }
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    if (!url.startsWith("/api/plugins/image/")) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    }
 
   if (handlePluginUpload(req, res, session, url)) return;
   if (handlePluginRoute(req, res, url, session)) return;
@@ -1344,7 +1379,6 @@ const server = http.createServer(function (req, res) {
   }
 
   if (url === "/api/auth/login" && req.method === "GET") {
-    if (session) return redirect(res, "/");
     if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) return redirect(res, "/login?error=config");
     const state = crypto.randomBytes(16).toString("hex");
     pendingStates[state] = Date.now();
@@ -1356,8 +1390,10 @@ const server = http.createServer(function (req, res) {
       redirect_uri: redirectUri(req),
       response_type: "code",
       scope: "identify",
+      prompt: "consent",
       state: state
     });
+    res.setHeader("Set-Cookie", "oauth_state=" + state + "; HttpOnly; Path=/api/auth; Max-Age=600; SameSite=Lax" + (requestSecure(req) ? "; Secure" : ""));
     return redirect(res, "https://discord.com/oauth2/authorize?" + params.toString());
   }
 
@@ -1365,8 +1401,9 @@ const server = http.createServer(function (req, res) {
     const q = new URL(req.url, "http://localhost").searchParams;
     const code = q.get("code");
     const state = q.get("state");
+    const cookieState = getCookies(req).oauth_state;
     if (!code) return redirect(res, "/login?error=denied");
-    if (!state || !pendingStates[state]) return redirect(res, "/login?error=state");
+    if (!state || !pendingStates[state] || (cookieState && cookieState !== state)) return redirect(res, "/login?error=state");
     delete pendingStates[state];
 
     const body = new URLSearchParams({
