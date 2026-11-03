@@ -3,6 +3,7 @@ const path = require("path");
 const https = require("https");
 const crypto = require("crypto");
 const emojiUtil = require("../utils/system/emoji.js");
+const rlm = require("../utils/rateLimitManager.js");
 
 const runningBots = new Map();
 
@@ -222,20 +223,10 @@ function loadPluginModules(botData) {
   return out;
 }
 
-let globalRateLimitReset = 0;
+// globalRateLimitReset removed — now handled per-bot via rateLimitManager (Phase 1)
 const commandPayloadCache = new Map();
 
-function discordRequest(token, method, apiPath, body, retriesLeft) {
-  const maxRetries = typeof retriesLeft === "number" ? retriesLeft : 1;
-  const remainingWait = globalRateLimitReset - Date.now();
-  if (remainingWait > 0) {
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        resolve(discordRequest(token, method, apiPath, body, maxRetries));
-      }, Math.min(remainingWait + 100, 30000));
-    });
-  }
-
+function discordRequestDirect(token, method, apiPath, body) {
   return new Promise(function (resolve) {
     const data = body !== undefined && body !== null ? JSON.stringify(body) : null;
     const req = https.request({
@@ -244,6 +235,7 @@ function discordRequest(token, method, apiPath, body, retriesLeft) {
       method: method,
       headers: {
         Authorization: "Bot " + token,
+        "User-Agent": "DiscordBot (https://github.com/tuzhicodes/arixa, 1.0.3)",
         "Content-Type": "application/json",
         "Content-Length": data ? Buffer.byteLength(data) : 0
       }
@@ -253,29 +245,134 @@ function discordRequest(token, method, apiPath, body, retriesLeft) {
       res.on("end", function () {
         let json = null;
         try { json = JSON.parse(buf); } catch (e) {}
-
-        if (res.statusCode === 429) {
-          const retryAfterSec = (json && typeof json.retry_after === "number")
-            ? json.retry_after
-            : (parseFloat(res.headers["retry-after"]) || 5);
-          const waitMs = Math.min(Math.max(Math.ceil(retryAfterSec * 1000), 1000), 60000);
-          globalRateLimitReset = Math.max(globalRateLimitReset, Date.now() + waitMs);
-          console.warn("[RATE_LIMIT] Discord 429 hit on " + method + " " + apiPath + ". Pausing requests for " + (waitMs / 1000) + "s.");
-
-          if (maxRetries > 0) {
-            setTimeout(function () {
-              resolve(discordRequest(token, method, apiPath, body, maxRetries - 1));
-            }, waitMs + 200);
-            return;
-          }
-        }
-
         resolve({ status: res.statusCode, body: json });
       });
     });
-    req.on("error", function () { resolve({ status: 0, body: null }); });
+    req.setTimeout(10000, function () { req.destroy(new Error("Direct request timeout")); });
+    req.on("error", function (err) { resolve({ status: 0, body: null, error: err && err.message }); });
     if (data) req.write(data);
     req.end();
+  });
+}
+
+function extractBotIdFromToken(token) {
+  if (!token || typeof token !== "string") return "unknown";
+  try {
+    const firstPart = token.split(".")[0];
+    const decoded = Buffer.from(firstPart, "base64").toString("utf8");
+    if (/^\d{16,22}$/.test(decoded)) return decoded;
+    return firstPart;
+  } catch (e) {
+    return token.slice(0, 16);
+  }
+}
+
+/**
+ * discordRequest — Phase 1 (per-bot rate limit) + Phase 3 (IP token bucket)
+ * @param {string} token - Bot token
+ * @param {string} method - HTTP method
+ * @param {string} apiPath - Discord API path
+ * @param {object|null} body - request body
+ * @param {number} retriesLeft - retry count
+ * @param {string} [botId] - bot ID for per-bot rate limit isolation
+ */
+function discordRequest(token, method, apiPath, body, retriesLeft, botId) {
+  const maxRetries = typeof retriesLeft === "number" ? retriesLeft : 1;
+
+  // Phase 1: Check per-bot, per-route wait time
+  const _botId = botId || extractBotIdFromToken(token);
+  const routeWait = rlm.getRouteWait(_botId, method, apiPath);
+  if (routeWait > 0) {
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        resolve(discordRequest(token, method, apiPath, body, maxRetries, _botId));
+      }, Math.min(routeWait + 50, 60000));
+    });
+  }
+
+  // Phase 3: Acquire global IP token before firing HTTPS request
+  return rlm.acquireIpToken().then(function () {
+    return new Promise(function (resolve) {
+      const data = body !== undefined && body !== null ? JSON.stringify(body) : null;
+
+      // Phase 4: Build proxy agent if configured
+      const proxyAgent = rlm.buildProxyAgent(_botId);
+      const reqOptions = {
+        hostname: "discord.com",
+        path: "/api/v10" + apiPath,
+        method: method,
+        headers: {
+          Authorization: "Bot " + token,
+          "User-Agent": "DiscordBot (https://github.com/tuzhicodes/arixa, 1.0.3)",
+          "Content-Type": "application/json",
+          "Content-Length": data ? Buffer.byteLength(data) : 0
+        }
+      };
+      if (proxyAgent) reqOptions.agent = proxyAgent;
+
+      const req = https.request(reqOptions, function (res) {
+        let buf = "";
+        res.on("data", function (c) { buf += c; });
+        res.on("end", function () {
+          let json = null;
+          try { json = JSON.parse(buf); } catch (e) {}
+
+          // Cloudflare block detection (HTML body, 1015/1020, or non-JSON 429/403)
+          const isCloudflareBlock = (res.statusCode === 429 || res.statusCode === 403) && (!json || buf.includes("1015") || buf.includes("Cloudflare"));
+          if (isCloudflareBlock && proxyAgent && proxyAgent._proxyInfo) {
+            const ph = proxyAgent._proxyInfo;
+            console.warn("[PROXY_CLOUDFLARE_BLOCK] Proxy " + ph.host + ":" + ph.port + " hit Cloudflare block (" + res.statusCode + "). Removing from pool.");
+            try {
+              const proxyHealth = require("../utils/proxyHealth.js");
+              proxyHealth.markProxyFailed(ph.host, ph.port);
+            } catch (e) {}
+            if (maxRetries > 0) {
+              return resolve(discordRequest(token, method, apiPath, body, maxRetries - 1, _botId));
+            } else {
+              console.log("[PROXY_FALLBACK] Proxies exhausted for " + _botId + ". Retrying directly.");
+              return resolve(discordRequestDirect(token, method, apiPath, body));
+            }
+          }
+
+          // Phase 1: Record rate limit headers for THIS bot only
+          const waitMs = rlm.recordRateLimit(_botId, method, apiPath, res.headers, res.statusCode, json);
+
+          if (res.statusCode === 429 && waitMs !== null) {
+            if (maxRetries > 0) {
+              setTimeout(function () {
+                resolve(discordRequest(token, method, apiPath, body, maxRetries - 1, _botId));
+              }, waitMs + 200);
+              return;
+            }
+          }
+
+          resolve({ status: res.statusCode, body: json });
+        });
+      });
+      req.setTimeout(12000, function () {
+        req.destroy(new Error("Request timeout"));
+      });
+
+      req.on("error", function (err) {
+        if (proxyAgent && proxyAgent._proxyInfo) {
+          const ph = proxyAgent._proxyInfo;
+          console.warn("[PROXY] Proxy failed on " + method + " " + apiPath + " (" + ph.host + ":" + ph.port + "):", err.message);
+          try {
+            const proxyHealth = require("../utils/proxyHealth.js");
+            proxyHealth.markProxyFailed(ph.host, ph.port);
+          } catch (e) {}
+          if (maxRetries > 0) {
+            return resolve(discordRequest(token, method, apiPath, body, maxRetries - 1, _botId));
+          } else {
+            console.log("[PROXY_FALLBACK] Retrying directly after proxy error for " + _botId);
+            return resolve(discordRequestDirect(token, method, apiPath, body));
+          }
+        }
+        resolve({ status: 0, body: null, error: err && err.message });
+      });
+      if (data) req.write(data);
+      req.end();
+    });
   });
 }
 
@@ -286,7 +383,7 @@ function registerGlobalCommands(botId, token, botData) {
   if (commandPayloadCache.get(botId) === hash) {
     return Promise.resolve({ status: 200, body: payload, cached: true });
   }
-  return discordRequest(token, "PUT", "/applications/" + botId + "/commands", payload).then(function (res) {
+  return discordRequest(token, "PUT", "/applications/" + botId + "/commands", payload, 1, botId).then(function (res) {
     if (res && res.status >= 200 && res.status < 300) {
       commandPayloadCache.set(botId, hash);
     }
@@ -302,7 +399,7 @@ function registerGuildCommands(botId, token, guildId, botData) {
   if (clearedGuildCommandsCache.has(cacheKey)) {
     return Promise.resolve({ status: 200, body: [], cached: true });
   }
-  return discordRequest(token, "PUT", "/applications/" + botId + "/guilds/" + guildId + "/commands", []).then(function (res) {
+  return discordRequest(token, "PUT", "/applications/" + botId + "/guilds/" + guildId + "/commands", [], 1, botId).then(function (res) {
     if (res && res.status >= 200 && res.status < 300) {
       clearedGuildCommandsCache.add(cacheKey);
     }
@@ -1695,7 +1792,10 @@ function sendHeartbeat(entry) {
 
 function startBot(userId, botId, token, botData) {
   const entry = getBotEntry(botId);
-  entry.userId = userId;
+  if (entry.userId && String(entry.userId) !== String(userId) && entry.status === "online") {
+    return Promise.reject(new Error("Unauthorized: bot is already active under another user"));
+  }
+  entry.userId = String(userId);
   entry.token = token;
   entry.manualStop = false;
   entry.heartbeatAcked = true;
@@ -1837,13 +1937,17 @@ function startBot(userId, botId, token, botData) {
           }
         };
 
-        try {
-          ws.send(JSON.stringify(identifyPayload));
-        } catch (e) {
-          entry.status = "offline";
-          entry.errorMsg = e.message;
-          safeResolve({ ok: false, error: e.message });
-        }
+        // Phase 2: Queue IDENTIFY through global serializer (5.5s gap between identifies)
+        rlm.queueIdentify(botId, function () {
+          if (entry.manualStop || !entry.ws || entry.ws.readyState !== 1) return;
+          try {
+            entry.ws.send(JSON.stringify(identifyPayload));
+          } catch (e) {
+            entry.status = "offline";
+            entry.errorMsg = e.message;
+            safeResolve({ ok: false, error: e.message });
+          }
+        });
       }
 
       if (msg.op === 11) {
@@ -2003,7 +2107,8 @@ function startBot(userId, botId, token, botData) {
           entry.errorMsg = "Connection dropped (" + event.code + "), reconnecting...";
           entry.status = "connecting";
           entry.reconnectAttempts = (entry.reconnectAttempts || 0) + 1;
-          const delay = Math.min(30000, Math.max(2000, entry.reconnectAttempts * 2000));
+          const jitter = Math.floor(Math.random() * 2000);
+          const delay = Math.min(30000, Math.max(2000, entry.reconnectAttempts * 2000)) + jitter;
           cleanReconnect(entry);
           entry.reconnectTimer = setTimeout(function () {
             entry.reconnectTimer = null;
@@ -2026,6 +2131,9 @@ function startBot(userId, botId, token, botData) {
 
 function stopBot(userId, botId) {
   const entry = getBotEntry(botId);
+  if (entry.userId && String(entry.userId) !== String(userId)) {
+    return { ok: false, error: "Unauthorized: bot belongs to another user" };
+  }
   entry.manualStop = true;
   entry.status = "offline";
   entry.uptimeStart = null;
@@ -2042,6 +2150,10 @@ function stopBot(userId, botId) {
     clearTimeout(entry.restartTimer);
     entry.restartTimer = null;
   }
+
+  // Phase 1 & 2: Cancel any pending identify and clear rate-limit buckets
+  rlm.cancelIdentify(botId);
+  rlm.clearBotBuckets(botId);
 
   cleanHeartbeat(entry);
   cleanRotation(entry);
@@ -2075,6 +2187,9 @@ function stopBot(userId, botId) {
 
 function restartBot(userId, botId, token, botData) {
   const entry = getBotEntry(botId);
+  if (entry.userId && String(entry.userId) !== String(userId)) {
+    return Promise.reject(new Error("Unauthorized: bot belongs to another user"));
+  }
   entry.manualStop = false;
   entry.status = "restarting";
   entry.uptimeStart = null;
@@ -2147,5 +2262,10 @@ module.exports = {
   refreshBotCommands,
   emitPluginEvent,
   createBaseContext,
-  commandCooldowns
+  commandCooldowns,
+  // Phase 4: Proxy config (call from index.js if needed)
+  setGlobalProxy: rlm.setGlobalProxy,
+  setBotProxy: rlm.setBotProxy,
+  // Stats for debugging/dashboard
+  getRateLimitStats: rlm.getStats
 };

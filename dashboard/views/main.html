@@ -488,8 +488,13 @@ function hideEmpty() {
   if (botEmpty) botEmpty.style.display = "none";
 }
 
-fetch("/api/bots/list").then(function (r) { return r.json(); }).then(function (d) {
+fetch("/api/bots/list").then(function (r) {
+  if (r.status === 401) { window.location.href = "/login"; return null; }
+  return r.json();
+}).then(function (d) {
+  if (!d) return;
   if (d.ok && d.bots) d.bots.forEach(function (b) { botList.appendChild(makeCard(b)); hideEmpty(); });
+  else if (d.error === "Not logged in") window.location.href = "/login";
 }).catch(function () {});
 
 var botTokenInput = document.getElementById("botToken");

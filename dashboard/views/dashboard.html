@@ -3739,8 +3739,13 @@ function renderStatus(status, uptime, ping, errorMsg) {
 function fetchStatus() {
   if (!botId) return;
   fetch("/api/bot/" + botId + "/status")
-    .then(function (r) { return r.json(); })
+    .then(function (r) {
+      if (r.status === 401) { window.location.href = "/login"; return null; }
+      return r.json();
+    })
     .then(function (data) {
+      if (!data) return;
+      if (data.error === "Not logged in") { window.location.href = "/login"; return; }
       if (data.ok) {
         pollFailed = false;
         renderStatus(data.status, data.uptime, data.ping, data.error);

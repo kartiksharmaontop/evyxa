@@ -21,6 +21,7 @@ const botDashboardPath = path.join(__dirname, "dashboard", "views", "dashboard.h
 const botHost = require("./dashboard/botHost.js");
 const cryptoUtil = require("./dashboard/crypto.js");
 const panelLog = require("./utils/log.js");
+const proxyHealth = require("./utils/proxyHealth.js");
 
 function loadEnv() {
   const env = {};
@@ -132,13 +133,14 @@ function writeJson(file, data) {
 }
 
 function getCookies(req) {
-  const out = {};
+  const out = Object.create(null);
   const header = req.headers && req.headers.cookie;
-  if (!header) return out;
+  if (!header || typeof header !== "string") return out;
   header.split(";").forEach(function (part) {
     const i = part.indexOf("=");
     if (i > -1) {
       const k = part.slice(0, i).trim();
+      if (k === "__proto__" || k === "constructor" || k === "prototype") return;
       const rawVal = part.slice(i + 1).trim();
       try {
         out[k] = decodeURIComponent(rawVal);
@@ -165,9 +167,16 @@ const pendingStates = {};
 
 const COOKIE_MAX_AGE = 14 * 24 * 60 * 60;
 const SESSION_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+const SESSION_REGEX = /^[0-9]{17,21}_[a-f0-9]{48}$/;
+
+function sanitizeId(id) {
+  return String(id || "").replace(/[^a-zA-Z0-9_-]/g, "");
+}
 
 function userFile(userId) {
-  return path.join(LOGIN_DIR, String(userId).replace(/[^a-zA-Z0-9_-]/g, "") + ".json");
+  const clean = sanitizeId(userId);
+  if (!clean) return path.join(LOGIN_DIR, "_invalid_.json");
+  return path.join(LOGIN_DIR, clean + ".json");
 }
 
 function readUser(userId) {
@@ -176,10 +185,6 @@ function readUser(userId) {
 
 function writeUser(userId, data) {
   writeJson(userFile(userId), data);
-}
-
-function sanitizeId(id) {
-  return String(id).replace(/[^a-zA-Z0-9_-]/g, "");
 }
 
 const PLUGIN_IMAGE_EXTS = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"];
@@ -933,7 +938,10 @@ function normalizePresence(status) {
 }
 
 function botDir(userId, botId) {
-  return path.join(USERS_DIR, sanitizeId(userId), sanitizeId(botId));
+  const cleanU = sanitizeId(userId);
+  const cleanB = sanitizeId(botId);
+  if (!cleanU || !cleanB) return path.join(USERS_DIR, "_invalid_", "_invalid_");
+  return path.join(USERS_DIR, cleanU, cleanB);
 }
 
 function botFile(userId, botId) {
@@ -972,8 +980,9 @@ function listBotData(userId) {
 
 function touchSession(u, sid) {
   const now = Date.now();
+  if (!u || !u.sessions || !Object.prototype.hasOwnProperty.call(u.sessions, sid)) return;
   const s = u.sessions[sid];
-  if (!s) return;
+  if (!s || typeof s !== "object") return;
   if (!s.lastSeen || now - s.lastSeen > 600000) {
     s.lastSeen = now;
     writeUser(u.id, u);
@@ -981,12 +990,13 @@ function touchSession(u, sid) {
 }
 
 function findUserBySession(sid) {
-  let files = [];
-  try { files = fs.readdirSync(LOGIN_DIR); } catch (e) { return null; }
-  for (let i = 0; i < files.length; i++) {
-    if (!files[i].endsWith(".json")) continue;
-    const u = readJson(path.join(LOGIN_DIR, files[i]), null);
-    if (u && u.sessions && u.sessions[sid]) return u;
+  if (!sid || typeof sid !== "string" || !SESSION_REGEX.test(sid)) return null;
+  const sep = sid.indexOf("_");
+  if (sep > 0) {
+    const u = readUser(sid.slice(0, sep));
+    if (u && u.sessions && typeof u.sessions === "object" && Object.prototype.hasOwnProperty.call(u.sessions, sid)) {
+      return u;
+    }
   }
   return null;
 }
@@ -996,60 +1006,70 @@ function sessionCookie(sid, secure) {
 }
 
 function getSession(req) {
-  const sid = getCookies(req).sid;
-  if (!sid || typeof sid !== "string") return null;
+  const cookies = getCookies(req);
+  const sid = cookies.sid;
+  if (!sid || typeof sid !== "string" || !SESSION_REGEX.test(sid)) return null;
+
   const now = Date.now();
   const sep = sid.indexOf("_");
-  if (sep > 0) {
-    const uid = sid.slice(0, sep);
-    const u = readUser(uid);
-    if (u && u.sessions && u.sessions[sid]) {
-      const sess = u.sessions[sid];
-      if (sess.lastSeen && (now - sess.lastSeen > SESSION_MAX_AGE_MS)) {
-        delete u.sessions[sid];
-        writeUser(u.id, u);
-        return null;
-      }
-      touchSession(u, sid);
-      return { sid: sid, userId: u.id, username: u.username, avatar: u.avatar || null };
-    }
+  if (sep <= 0) return null;
+
+  const uid = sid.slice(0, sep);
+  const u = readUser(uid);
+  if (!u || !u.sessions || typeof u.sessions !== "object") return null;
+  if (!Object.prototype.hasOwnProperty.call(u.sessions, sid)) return null;
+
+  const sess = u.sessions[sid];
+  if (!sess || typeof sess !== "object") return null;
+
+  const lastActivity = sess.lastSeen || sess.createdAt || sess.created || 0;
+  if (!lastActivity || (now - lastActivity > SESSION_MAX_AGE_MS)) {
+    delete u.sessions[sid];
+    writeUser(u.id, u);
+    return null;
   }
-  const found = findUserBySession(sid);
-  if (found && found.sessions && found.sessions[sid]) {
-    const sess = found.sessions[sid];
-    if (sess.lastSeen && (now - sess.lastSeen > SESSION_MAX_AGE_MS)) {
-      delete found.sessions[sid];
-      writeUser(found.id, found);
-      return null;
-    }
-    touchSession(found, sid);
-    return { sid: sid, userId: found.id, username: found.username, avatar: found.avatar || null };
-  }
-  return null;
+
+  touchSession(u, sid);
+  return { sid: sid, userId: String(u.id), username: u.username, avatar: u.avatar || null };
 }
 
 function createSession(req, res, user, token) {
   const now = Date.now();
   const oldSid = getCookies(req).sid;
-  if (oldSid) {
+  if (oldSid && typeof oldSid === "string" && SESSION_REGEX.test(oldSid)) {
     try {
       const sep = oldSid.indexOf("_");
-      let oldU = null;
-      if (sep > 0) oldU = readUser(oldSid.slice(0, sep));
-      if (!oldU) oldU = findUserBySession(oldSid);
-      if (oldU && oldU.sessions && oldU.sessions[oldSid]) {
-        delete oldU.sessions[oldSid];
-        writeUser(oldU.id, oldU);
+      if (sep > 0) {
+        const oldUid = oldSid.slice(0, sep);
+        const oldU = readUser(oldUid);
+        if (oldU && oldU.sessions && Object.prototype.hasOwnProperty.call(oldU.sessions, oldSid)) {
+          delete oldU.sessions[oldSid];
+          writeUser(oldU.id, oldU);
+        }
       }
     } catch (e) {}
   }
   const sid = user.id + "_" + crypto.randomBytes(24).toString("hex");
   const u = readUser(user.id) || { id: user.id, sessions: {} };
-  u.id = user.id;
+  u.id = String(user.id);
   u.username = user.username;
   u.avatar = user.avatar || null;
   u.lastLogin = now;
-  u.sessions = u.sessions || {};
+  u.sessions = (u.sessions && typeof u.sessions === "object") ? u.sessions : {};
+
+  // Housekeeping: clean expired sessions in this user's record
+  Object.keys(u.sessions).forEach(function (k) {
+    if (!SESSION_REGEX.test(k)) {
+      delete u.sessions[k];
+      return;
+    }
+    const s = u.sessions[k];
+    const act = (s && typeof s === "object") ? (s.lastSeen || s.createdAt || s.created || 0) : 0;
+    if (!act || (now - act > SESSION_MAX_AGE_MS)) {
+      delete u.sessions[k];
+    }
+  });
+
   u.sessions[sid] = { createdAt: now, lastSeen: now };
   if (token) {
     u.discord = {
@@ -1059,23 +1079,24 @@ function createSession(req, res, user, token) {
     };
   }
   writeUser(user.id, u);
-  res.setHeader("Set-Cookie", sessionCookie(sid, requestSecure(req)));
+  res.setHeader("Set-Cookie", [
+    sessionCookie(sid, requestSecure(req)),
+    "oauth_state=; HttpOnly; Path=/api/auth; Max-Age=0; SameSite=Lax"
+  ]);
   return { sid: sid, userId: u.id, username: u.username, avatar: u.avatar };
 }
 
 function destroySession(req, res) {
   const sid = getCookies(req).sid;
-  if (sid) {
+  if (sid && typeof sid === "string" && SESSION_REGEX.test(sid)) {
     const sep = sid.indexOf("_");
-    let u = null;
     if (sep > 0) {
-      u = readUser(sid.slice(0, sep));
-      if (u && (!u.sessions || !u.sessions[sid])) u = null;
-    }
-    if (!u) u = findUserBySession(sid);
-    if (u && u.sessions && u.sessions[sid]) {
-      delete u.sessions[sid];
-      writeUser(u.id, u);
+      const uid = sid.slice(0, sep);
+      const u = readUser(uid);
+      if (u && u.sessions && Object.prototype.hasOwnProperty.call(u.sessions, sid)) {
+        delete u.sessions[sid];
+        writeUser(u.id, u);
+      }
     }
   }
   res.setHeader("Set-Cookie", [
@@ -2194,7 +2215,15 @@ server.listen(PORT, function () {
   migrateBots();
   cryptoUtil.ensureKey();
   migrateStoredTokens();
-  autoStartOnlineBots();
+  // Proxy health check: test free proxies, filter dead ones, then start bots
+  Promise.race([
+    proxyHealth.initFromEnv(),
+    new Promise(function (resolve) { setTimeout(resolve, 8000); })
+  ]).catch(function (err) {
+    console.error("[PROXY_HEALTH] Init warning:", (err && err.message) || err);
+  }).then(function () {
+    autoStartOnlineBots();
+  });
   if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
     console.log("WARNING: Discord login not configured. Set DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in .env");
   }
