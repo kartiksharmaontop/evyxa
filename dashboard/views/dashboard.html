@@ -2882,6 +2882,16 @@ h3.md-h{font-size:14px}
       </svg>
       <span>Plugins</span>
     </a>
+    <a class="sidebar-link" href="/bot/{{BOTID}}/community" id="sidebarCommunity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2.5"></rect>
+        <line x1="3" y1="9" x2="21" y2="9"></line>
+        <line x1="6.5" y1="6.5" x2="6.51" y2="6.5" stroke-width="2.6"></line>
+        <line x1="9.5" y1="6.5" x2="9.51" y2="6.5" stroke-width="2.6"></line>
+        <line x1="12.5" y1="6.5" x2="12.51" y2="6.5" stroke-width="2.6"></line>
+      </svg>
+      <span>Community</span>
+    </a>
   </nav>
 </aside>
 
@@ -3146,7 +3156,7 @@ h3.md-h{font-size:14px}
         <div class="bot-card-head" id="btnToggleAdvancedPanel" title="Click to expand/collapse Advanced Settings">
           <div class="bot-card-title-wrap">
             <h2>Advanced Settings</h2>
-            <p>Configure Client ID and developer credentials</p>
+            <p>Configure Client ID, Owner IDs and developer credentials</p>
           </div>
           <div class="bot-card-dropdown" id="advancedDropdownBtn">
             <svg class="colors-arrow-icon" id="advancedDropdownArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -3166,6 +3176,18 @@ h3.md-h{font-size:14px}
               <button type="button" id="addClient" class="btn-save-advanced">Save</button>
             </div>
             <div class="field-note" id="clientNote">Client ID added</div>
+          </div>
+
+          <div class="advanced-field-group">
+            <div class="advanced-field-label-wrap">
+              <span class="advanced-field-label">Owner IDs</span>
+              <span class="advanced-field-hint">User IDs allowed to use owner-only plugins (comma-separated)</span>
+            </div>
+            <div class="advanced-input-row">
+              <input type="text" id="ownerIds" class="advanced-text-input" placeholder="Enter Owner IDs (e.g. 123456789012345678, 987654321098765432)" value="{{OWNERIDS}}" autocomplete="off" spellcheck="false" />
+              <button type="button" id="addOwnerIds" class="btn-save-advanced">Save</button>
+            </div>
+            <div class="field-note" id="ownerNote">Owner IDs saved</div>
           </div>
         </div>
       </div>
@@ -3253,6 +3275,10 @@ h3.md-h{font-size:14px}
     </div>
     <div class="plugins-grid" id="manageGrid" hidden></div>
     <div class="plugin-detail" id="pluginDetail" hidden></div>
+  </div>
+
+  <div class="view" id="viewCommunity">
+    <iframe id="communityFrame" title="Community" src="about:blank" style="display:block;width:100%;min-height:74vh;border:0;border-radius:16px;background:#090a0d;"></iframe>
   </div>
 </div>
 
@@ -3401,6 +3427,11 @@ function stopFrontendRotation() {
 var clientIdInput = document.getElementById("clientId");
 if (clientIdInput.value.indexOf("{{") > -1) clientIdInput.value = "";
 
+var ownerIdsInput = document.getElementById("ownerIds");
+var ownerIdsFilled = false;
+if (ownerIdsInput && ownerIdsInput.value.indexOf("{{") > -1) ownerIdsInput.value = "";
+if (ownerIdsInput && ownerIdsInput.value) ownerIdsFilled = true;
+
 var botId = botIdText.textContent.trim();
 if (!botId) {
   var pathParts = window.location.pathname.split("/");
@@ -3428,13 +3459,28 @@ if (sidebarPlugins) {
   else sidebarPlugins.style.display = "none";
 }
 
+var sidebarCommunity = document.getElementById("sidebarCommunity");
+if (sidebarCommunity) {
+  if (botId) sidebarCommunity.setAttribute("href", "/bot/" + botId + "/community");
+  else sidebarCommunity.style.display = "none";
+}
+
 var viewOverview = document.getElementById("viewOverview");
 var viewBotPanel = document.getElementById("viewBot");
 var viewPluginsPanel = document.getElementById("viewPlugins");
 var viewManagePanel = document.getElementById("viewManage");
+var viewCommunityPanel = document.getElementById("viewCommunity");
+var communityFrame = document.getElementById("communityFrame");
+var communityLoaded = false;
+
+function loadCommunityFrame() {
+  if (communityLoaded || !communityFrame) return;
+  communityLoaded = true;
+  communityFrame.src = "/community";
+}
 
 function setActiveLink(linkId) {
-  var linkIds = ["sidebarOverview", "sidebarBot", "sidebarPlugins"];
+  var linkIds = ["sidebarOverview", "sidebarBot", "sidebarPlugins", "sidebarCommunity"];
   for (var i = 0; i < linkIds.length; i++) {
     var el = document.getElementById(linkIds[i]);
     if (el) el.classList.toggle("active", linkIds[i] === linkId);
@@ -3444,7 +3490,7 @@ function setActiveLink(linkId) {
 function showView(name, fromHistory) {
   if (!viewOverview || !viewPluginsPanel || !viewManagePanel) return;
   name = String(name || "overview").toLowerCase().trim();
-  if (name !== "bot" && name !== "plugins" && name !== "manage") {
+  if (name !== "bot" && name !== "plugins" && name !== "manage" && name !== "community") {
     name = "overview";
   }
 
@@ -3452,9 +3498,13 @@ function showView(name, fromHistory) {
   if (viewBotPanel) viewBotPanel.classList.toggle("is-active", name === "bot");
   viewPluginsPanel.classList.toggle("is-active", name === "plugins");
   viewManagePanel.classList.toggle("is-active", name === "manage");
+  if (viewCommunityPanel) viewCommunityPanel.classList.toggle("is-active", name === "community");
+
+  if (name === "community") loadCommunityFrame();
 
   if (name === "overview") setActiveLink("sidebarOverview");
   else if (name === "bot") setActiveLink("sidebarBot");
+  else if (name === "community") setActiveLink("sidebarCommunity");
   else setActiveLink("sidebarPlugins");
 
   var tabBtns = document.querySelectorAll(".plugins-tab-btn");
@@ -3512,6 +3562,12 @@ if (sidebarPlugins) {
     showView("plugins");
   });
 }
+if (sidebarCommunity) {
+  sidebarCommunity.addEventListener("click", function (e) {
+    e.preventDefault();
+    showView("community");
+  });
+}
 
 var tabBtns = document.querySelectorAll(".plugins-tab-btn");
 for (var tb = 0; tb < tabBtns.length; tb++) {
@@ -3535,7 +3591,7 @@ function determineActiveView() {
       return "manage";
     }
     var last = segs[segs.length - 1];
-    if (last === "bot" || last === "plugins" || last === "manage") {
+    if (last === "bot" || last === "plugins" || last === "manage" || last === "community") {
       return last;
     }
     if (last === "overview") {
@@ -3546,7 +3602,7 @@ function determineActiveView() {
       var bId = botId || (segs[1] ? segs[1].replace(/[^0-9]/g, "") : "");
       if (bId) {
         var saved = sessionStorage.getItem("arixa_active_tab_" + bId) || localStorage.getItem("arixa_active_tab_" + bId);
-        if (saved && (saved === "bot" || saved === "plugins" || saved === "manage" || saved === "overview")) {
+        if (saved && (saved === "bot" || saved === "plugins" || saved === "manage" || saved === "overview" || saved === "community")) {
           return saved;
         }
       }
@@ -3660,6 +3716,15 @@ function showClientNote(text, ok) {
   setTimeout(function () { note.classList.remove("show"); }, 2500);
 }
 
+function showOwnerNote(text, ok) {
+  var note = document.getElementById("ownerNote");
+  if (!note) return;
+  note.textContent = text;
+  note.style.color = ok ? "#3fb950" : "#f85149";
+  note.classList.add("show");
+  setTimeout(function () { note.classList.remove("show"); }, 2500);
+}
+
 function formatUptime(seconds) {
   if (!seconds || seconds <= 0) return "0s";
   var s = Math.floor(seconds);
@@ -3766,6 +3831,10 @@ function fetchStatus() {
         if (data.clientId && !clientIdInput.value) {
           clientIdInput.value = data.clientId;
           updateInviteUrl();
+        }
+        if (data.ownerIds && ownerIdsInput && !ownerIdsFilled) {
+          ownerIdsInput.value = data.ownerIds;
+          ownerIdsFilled = true;
         }
         if (data.themeColors && window.__applyThemeColors) {
           window.__applyThemeColors(data.themeColors);
@@ -3885,6 +3954,35 @@ document.getElementById("addClient").addEventListener("click", function () {
     .catch(function () {
       showClientNote("Saved locally", true);
       updateInviteUrl();
+    });
+});
+
+document.getElementById("addOwnerIds").addEventListener("click", function () {
+  var val = ownerIdsInput.value.trim();
+  var parts = val ? val.split(/[\s,;]+/).filter(Boolean) : [];
+  for (var i = 0; i < parts.length; i++) {
+    if (!/^\d{17,20}$/.test(parts[i])) {
+      showOwnerNote("Owner ID must be a valid 17-20 digit snowflake", false);
+      return;
+    }
+  }
+  fetch("/api/bot/" + botId + "/owner-ids", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerIds: parts.join(", ") })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.ok) {
+        ownerIdsInput.value = data.ownerIds || "";
+        ownerIdsFilled = true;
+        showOwnerNote("Owner IDs saved", true);
+      } else {
+        showOwnerNote(data.error || "Error saving Owner IDs", false);
+      }
+    })
+    .catch(function () {
+      showOwnerNote("Network error", false);
     });
 });
 

@@ -17,6 +17,7 @@ const htmlPath = path.join(__dirname, "dashboard", "views", "main.html");
 const loginPath = path.join(__dirname, "dashboard", "views", "login.html");
 const plansPath = path.join(__dirname, "dashboard", "views", "plans.html");
 const docsPath = path.join(__dirname, "dashboard", "views", "docs.html");
+const communityPath = path.join(__dirname, "dashboard", "views", "community.html");
 const botDashboardPath = path.join(__dirname, "dashboard", "views", "dashboard.html");
 const botHost = require("./dashboard/botHost.js");
 const cryptoUtil = require("./dashboard/crypto.js");
@@ -1315,6 +1316,7 @@ function sendHtml(res, file, session, error, extra) {
     html = html.split("{{BOTAVATAR}}").join(escapeHtml(extra.botAvatar || defaultAvatar(extra.botId || "0")));
     html = html.split("{{BOTTOKEN}}").join(escapeHtml(extra.botToken || ""));
     html = html.split("{{CLIENTID}}").join(escapeHtml(extra.clientId || ""));
+    html = html.split("{{OWNERIDS}}").join(escapeHtml(extra.ownerIds || ""));
     html = html.split("{{BOTSTATUS}}").join(escapeHtml(extra.botStatus || "offline"));
     html = html.split("{{CURRENT_ACTIVITY}}").join(escapeHtml(extra.currentActivity || ("Hosted by " + (env.NAME || "Arixa"))));
     html = html.split("{{PRESENCE_STATUS}}").join(escapeHtml(extra.presenceStatus || "online"));
@@ -1611,6 +1613,7 @@ const server = http.createServer(function (req, res) {
       guildCount: hostStatus.guildCount || 0,
       memberCount: hostStatus.memberCount || 0,
       clientId: bot.clientId || "",
+      ownerIds: bot.ownerIds || "",
       currentActivity: currentActivity,
       customStatuses: customStatuses,
       statusInterval: statusInterval,
@@ -1718,6 +1721,41 @@ const server = http.createServer(function (req, res) {
       saveBotData(session.userId, bot);
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: true, clientId: bot.clientId }));
+    });
+    return;
+  }
+
+  if (url.match(/^\/api\/bot\/([0-9]+)\/owner-ids$/) && req.method === "POST") {
+    if (!session) {
+      res.writeHead(401, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: false, error: "Not logged in" }));
+    }
+    const botId = url.split("/")[3];
+    const bot = readJson(botFile(session.userId, botId), null);
+    if (!bot) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ ok: false, error: "Bot not found" }));
+    }
+    let body = "";
+    req.on("data", function (c) { body += c; if (body.length > 1e4) req.destroy(); });
+    req.on("end", function () {
+      let parsed = null;
+      try { parsed = JSON.parse(body); } catch (e) {}
+      if (!parsed || typeof parsed !== "object" || parsed.ownerIds === undefined) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ ok: false, error: "Invalid JSON or missing ownerIds" }));
+      }
+      const parts = String(parsed.ownerIds || "").split(/[\s,;]+/).filter(Boolean);
+      for (let i = 0; i < parts.length; i++) {
+        if (!/^\d{17,20}$/.test(parts[i])) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          return res.end(JSON.stringify({ ok: false, error: "Owner ID must be a valid 17-20 digit snowflake" }));
+        }
+      }
+      bot.ownerIds = parts.join(", ");
+      saveBotData(session.userId, bot);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, ownerIds: bot.ownerIds }));
     });
     return;
   }
@@ -2134,6 +2172,13 @@ const server = http.createServer(function (req, res) {
     return sendHtml(res, docsPath, session);
   }
 
+  if (url === "/community" || url === "/community.html") {
+    if (!session) return redirect(res, "/login");
+    // The dashboard embeds this page in a same-origin iframe (sidebar Community view).
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    return sendHtml(res, communityPath, session);
+  }
+
   if (url === "/plans" && req.method === "GET") {
     if (!session) return redirect(res, "/login");
     return sendHtml(res, plansPath, session);
@@ -2157,6 +2202,7 @@ const server = http.createServer(function (req, res) {
       botAvatar: botAvatarUrl,
       botToken: "",
       clientId: bot.clientId || "",
+      ownerIds: bot.ownerIds || "",
       botStatus: hostStatus.status || "offline",
       presenceStatus: hostStatus.presenceStatus || normalizePresence(bot.presenceStatus),
       guildCount: hostStatus.guildCount || 0,

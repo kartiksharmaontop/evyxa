@@ -189,6 +189,8 @@ Every command execution receives a rich `ctx` object containing all necessary da
 | `ctx.member` | `object \| null` | Guild member object including server roles and permissions. |
 | `ctx.hasPermission(name)` | `boolean` | Checks if user has a permission (e.g. `"ADMINISTRATOR"`, `"BAN_MEMBERS"`). |
 | `ctx.isServerOwner` | `boolean` | `true` if the command author is the Discord server owner. |
+| `ctx.ownerIds` | `string` | Comma-separated owner user IDs saved in **Dashboard → Bot → Advanced Settings → Owner IDs** (empty string if none). |
+| `ctx.isBotOwner([uid])` | `boolean` | `true` if `uid` (defaults to `ctx.user.id`) is listed in the dashboard Owner IDs. |
 | `ctx.options` | `object` | Parsed options object for both slash and prefix commands. |
 | `ctx.rawArgs` | `string[]` | Array of words following the command name (prefix commands). |
 | `ctx.rawText` | `string` | Full raw text following the command name. |
@@ -211,6 +213,26 @@ Every command execution receives a rich `ctx` object containing all necessary da
 | `ctx.editMessage(cid, mid, payload)` | `Promise<Response>` | Edits an existing channel message. |
 | `ctx.update(payload)` | `Promise<Response>` | Updates the message of a button interaction. |
 | `ctx.deferUpdate()` | `boolean` | Acknowledges a button interaction without altering the message. |
+
+### Owner-Only Commands
+
+The bot owner decides who counts as an owner in **Dashboard → Bot → Advanced Settings → Owner IDs** (comma-separated user IDs, e.g. `123456789012345678, 987654321098765432`). Every plugin reads the same list:
+
+```javascript
+module.exports = {
+  commands: [{ name: "ownerpanel", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    if (!ctx.isBotOwner()) {
+      return ctx.replyWarn("Only the bot owner can use this command!");
+    }
+    // ctx.ownerIds -> raw comma-separated string, parse it yourself if needed
+    return ctx.replySuccess("Owner confirmed.");
+  }
+};
+```
+
+- `ctx.isBotOwner()` checks `ctx.user.id` by default; pass a user object or ID to check someone else: `ctx.isBotOwner(ctx.options.user)`.
+- `ctx.isBotOwner()` only consults the dashboard Owner IDs (synchronous, no API calls). If your plugin must also trust the Discord application owner, fetch `/oauth2/applications/@me` and merge that ID yourself.
 
 ---
 

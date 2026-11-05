@@ -2253,6 +2253,35 @@ module.exports = {
 };</code></pre>
       </div>
 
+      <h2>Bot Owner Check (Dashboard Owner IDs)</h2>
+      <p><code>ctx.isServerOwner</code> checks the <strong>server</strong> owner. For <strong>bot-level</strong> owner-only commands (log setup, mass actions, plugin configuration), the bot owner saves the allowed user IDs in the dashboard:</p>
+      <ol>
+        <li>Open <strong>Dashboard → your Bot → Advanced Settings</strong>.</li>
+        <li>Paste one or more Discord user IDs into the <strong>Owner IDs</strong> field, comma-separated (e.g. <code>123456789012345678, 987654321098765432</code>).</li>
+        <li>Press <strong>Save</strong> — running bots pick the change up instantly, no restart needed.</li>
+      </ol>
+      <ul>
+        <li><code>ctx.ownerIds</code> — the raw comma-separated string from the dashboard (useful for displaying or custom parsing).</li>
+        <li><code>ctx.isBotOwner()</code> — synchronous check against that list; defaults to the command author. Pass a user object/ID to check someone else: <code>ctx.isBotOwner(ctx.options.user)</code>.</li>
+      </ul>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [{ name: "logs", slash: true, prefix: true }],
+  onCommand: function (ctx) {
+    if (!ctx.isBotOwner()) {
+      return ctx.replyWarn("Only the bot owner can use this command!");
+    }
+    // owner-only logic here...
+    return ctx.replySuccess("Owner access granted.");
+  }
+};</code></pre>
+      </div>
+      <p><code>ctx.isBotOwner()</code> only reads the dashboard Owner IDs (no Discord API calls). If a plugin must also trust the Discord application owner, fetch <code>/oauth2/applications/@me</code> and merge that ID yourself — the Auto React plugin does exactly this.</p>
+
       <div class="page-pagination">
         <a class="page-nav-btn prev" data-nav="storage">
           <span class="nav-sub">← Previous</span>
@@ -3071,6 +3100,8 @@ if (!res) {
             <tr><td><code>ctx.guildName</code></td><td>String</td><td>Name of current server.</td></tr>
             <tr><td><code>ctx.guildOwnerId</code></td><td>String</td><td>Discord ID of server owner.</td></tr>
             <tr><td><code>ctx.isServerOwner</code></td><td>Boolean</td><td><code>true</code> if user is the guild owner.</td></tr>
+            <tr><td><code>ctx.ownerIds</code></td><td>String</td><td>Comma-separated owner user IDs from <strong>Dashboard → Advanced Settings → Owner IDs</strong> (empty if none).</td></tr>
+            <tr><td><code>ctx.isBotOwner([uid])</code></td><td>Boolean</td><td><code>true</code> if the user (defaults to <code>ctx.user.id</code>) is listed in the dashboard Owner IDs.</td></tr>
             <tr><td><code>ctx.channelId</code></td><td>String</td><td>Current channel snowflake.</td></tr>
             <tr><td><code>ctx.botId</code></td><td>String</td><td>Discord application ID of the bot.</td></tr>
             <tr><td><code>ctx.colors</code></td><td>Object</td><td>Bot theme palette: <code>v1</code>, <code>v2</code>, <code>warning</code>, <code>error</code>, <code>cooldown</code>.</td></tr>
