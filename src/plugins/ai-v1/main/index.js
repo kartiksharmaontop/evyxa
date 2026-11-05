@@ -236,9 +236,26 @@ async function saveMemory(ctx, memory, turns) {
   await ctx.storage.set(memoryKey(ctx), memory.slice(-(turns * 2)));
 }
 
+function dashboardOwnerIds(ctx) {
+  const ids = new Set();
+  String((ctx && ctx.ownerIds) || "")
+    .split(/[\s,;]+/)
+    .forEach(function (x) {
+      const d = x.replace(/\D/g, "");
+      if (/^\d{17,20}$/.test(d)) ids.add(d);
+    });
+  return ids;
+}
+
 async function isBotOwner(ctx) {
   const uid = ctx.user && ctx.user.id ? String(ctx.user.id) : null;
-  if (!uid || typeof ctx.discordRequest !== "function") return false;
+  if (!uid) return false;
+
+  // Dashboard -> Bot -> Advanced Settings -> Owner IDs (live, no API call).
+  if (dashboardOwnerIds(ctx).has(uid)) return true;
+
+  // Discord application owner / team owner (cached).
+  if (typeof ctx.discordRequest !== "function") return false;
   const cache = globalMap("__arixa_ai_owners");
   const cacheKey = ctx.botId || "bot";
   let hit = cache.get(cacheKey);

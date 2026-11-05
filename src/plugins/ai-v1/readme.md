@@ -2,7 +2,7 @@
 name: AI Chat
 tag: AI
 description: A customizable AI character that auto-replies in a chosen channel with mood-aware emojis, stickers, memory and multi-key, multi-model fallback on free providers.
-version: 1.2.0
+version: 1.0.3
 author: @community
 ---
 
@@ -15,6 +15,8 @@ A customizable AI character for your server. Pick one channel and the AI replies
 * `/ai on` or `ai on`: Turn auto-reply on. Bot owner only.
 * `/ai off` or `ai off`: Turn auto-reply off. Bot owner only.
 * `/memory clear` or `memory clear`: Clear your own conversation memory. Everyone can use it.
+
+**Who counts as the bot owner:** the user IDs saved in **Dashboard → Bot → Advanced Settings → Owner IDs** (comma-separated), plus the Discord application owner / team owner.
 
 ### Customization
 * **Identity**: AI name, owner name, introduction, likes, dislikes and backstory.
