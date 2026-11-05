@@ -606,6 +606,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.015); }
     <div class="sidebar-category">
       <div class="sidebar-heading">Storage & System</div>
       <a href="#storage" class="sidebar-link" data-page="storage">Plugin Storage (ctx.storage) <span class="nav-tag tag-sdk">Core</span></a>
+      <a href="#sessions" class="sidebar-link" data-page="sessions">Interactive Sessions (ctx.session) <span class="nav-tag tag-new">New</span></a>
       <a href="#permissions" class="sidebar-link" data-page="permissions">Permissions & Owner Check</a>
       <a href="#live-metrics" class="sidebar-link" data-page="live-metrics">Bot Ping & Uptime</a>
       <a href="#cooldowns-emojis" class="sidebar-link" data-page="cooldowns-emojis">Cooldowns & Emojis</a>
@@ -1129,6 +1130,52 @@ module.exports = {
 };</code></pre>
       </div>
 
+      <h2>Example 3: Dynamic Autocomplete Suggestions</h2>
+      <p>Enable live, asynchronous suggestions as users type arguments by setting <code>autocomplete: true</code> on a text option and defining a handler in <code>autocompletes</code> or <code>onAutocomplete</code>:</p>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    {
+      name: "tag",
+      description: "Search and display server tags",
+      slash: true,
+      options: [
+        {
+          type: 3, // STRING
+          name: "query",
+          description: "Tag name to search",
+          required: true,
+          autocomplete: true
+        }
+      ]
+    }
+  ],
+
+  autocompletes: {
+    tag: async function (ctx) {
+      // ctx.options.query contains what the user has typed so far
+      const query = String(ctx.options.query || "").toLowerCase();
+      const tags = ["announcements", "rules", "faq", "support", "roles", "socials"];
+
+      const matches = tags
+        .filter(t => t.includes(query))
+        .slice(0, 25)
+        .map(t => ({ name: t.toUpperCase(), value: t }));
+
+      return ctx.respondAutocomplete(matches);
+    }
+  },
+
+  onCommand: async function (ctx) {
+    return ctx.reply({ content: "Selected tag: `" + ctx.options.query + "`" });
+  }
+};</code></pre>
+      </div>
+
       <div class="page-pagination">
         <a class="page-nav-btn prev" data-nav="commands-core">
           <span class="nav-sub">← Previous</span>
@@ -1457,13 +1504,13 @@ module.exports = {
       <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Helper Method</th><th>Custom Emoji Used</th><th>Auto-Delete</th><th>Purpose</th></tr>
+            <tr><th>Helper Method</th><th>Standard Emoji Used</th><th>Auto-Delete</th><th>Purpose</th></tr>
           </thead>
           <tbody>
-            <tr><td><code>ctx.replySuccess(text, opts)</code></td><td>None (Permanent card)</td><td>No (Permanent)</td><td>Confirm successful actions (prefix set, ticket opened, etc.).</td></tr>
-            <tr><td><code>ctx.replyWarn(text, opts)</code></td><td><code>&lt;:Warning:1563618139051131033&gt;</code></td><td><strong>10 seconds</strong></td><td>Input errors, invalid syntax, missing arguments.</td></tr>
-            <tr><td><code>ctx.replyError(text, opts)</code></td><td><code>&lt;:error:1563618179891208242&gt;</code></td><td><strong>10 seconds</strong></td><td>Exceptions, missing permissions, API failures.</td></tr>
-            <tr><td><code>ctx.replyCooldown(sec, opts)</code></td><td><code>&lt;a:cooldown:1563618102841708624&gt;</code></td><td><strong>10 seconds</strong></td><td>Animated cooldown warning with seconds remaining.</td></tr>
+            <tr><td><code>ctx.replySuccess(text, opts)</code></td><td><code>✅</code></td><td>No (Permanent)</td><td>Confirm successful actions (prefix set, ticket opened, etc.).</td></tr>
+            <tr><td><code>ctx.replyWarn(text, opts)</code></td><td><code>⚠️</code></td><td><strong>10 seconds</strong></td><td>Input errors, invalid syntax, missing arguments.</td></tr>
+            <tr><td><code>ctx.replyError(text, opts)</code></td><td><code>❌</code></td><td><strong>10 seconds</strong></td><td>Exceptions, missing permissions, API failures.</td></tr>
+            <tr><td><code>ctx.replyCooldown(sec, opts)</code></td><td><code>🕛</code></td><td><strong>10 seconds</strong></td><td>Cooldown warning with remaining seconds formatted.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1895,8 +1942,7 @@ module.exports = {
   ],
 
   onCommand: function (ctx) {
-    return ctx.reply({
-      type: 9, // Modal
+    return ctx.showModal({
       title: "Report a Bug",
       customId: "modal_bug_report",
       components: [
@@ -2175,6 +2221,106 @@ module.exports = {
         <a class="page-nav-btn prev" data-nav="in-place-updates">
           <span class="nav-sub">← Previous</span>
           <span class="nav-title">In-Place Updates (Type 7)</span>
+        </a>
+        <a class="page-nav-btn next" data-nav="sessions">
+          <span class="nav-sub">Next Concept</span>
+          <span class="nav-title">Interactive Sessions (ctx.session) →</span>
+        </a>
+      </div>
+    </article>
+
+    <article class="doc-page" id="page-sessions">
+      <div class="page-header">
+        <div class="doc-breadcrumb">Storage & System <span>/</span> <span class="current">Interactive Sessions (ctx.session)</span></div>
+        <h1>Interactive Sessions & Auto-Reset (`ctx.session`)</h1>
+        <p class="lead">Built-in stateful session engine with auto-expiring timers, touch events, and automatic inactivity reset across all button clicks and modal submissions.</p>
+      </div>
+
+      <h2>Why Interactive Sessions?</h2>
+      <p>When building multi-step setups, forms, pagination, or live editors (such as embed builders or configuration menus), keeping state isolated per user and cleanly cleaning up on inactivity is critical. The host engine provides an integrated <code>ctx.session</code> API:</p>
+      <ul>
+        <li><strong>Automatic Timer Reset:</strong> Whenever a user clicks <em>any</em> button or submits a modal matching their session, the host engine automatically touches the session and restarts the expiration timer back to full duration.</li>
+        <li><strong>Server & Bot Isolation:</strong> Sessions are keyed by <code>botId:pluginId:sessionId</code> with optional server verification to prevent cross-server collision.</li>
+        <li><strong>Automated Cleanup:</strong> If the user walks away, the engine fires <code>onExpire(session)</code> so your plugin can disable buttons, edit messages, or delete draft memory automatically.</li>
+      </ul>
+
+      <h2>Session Methods</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Parameters</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>ctx.session.create(id, data, opts)</code></td><td><code>sessionId: string, data: object, opts?: object</code></td><td>Initialize an active session. Options accept <code>ttl</code> (ms, default 300000 / 5 min), <code>ownerId</code>, <code>messageId</code>, <code>channelId</code>, <code>onTouch</code>, and <code>onExpire</code>.</td></tr>
+            <tr><td><code>ctx.session.get(id)</code></td><td><code>sessionId: string</code></td><td>Retrieve the stored <code>data</code> object directly. Returns <code>null</code> if expired.</td></tr>
+            <tr><td><code>ctx.session.getSession(id)</code></td><td><code>sessionId: string</code></td><td>Retrieve full session object containing metadata (<code>createdAt</code>, <code>updatedAt</code>, <code>expiresAt</code>).</td></tr>
+            <tr><td><code>ctx.session.touch(id, [extraTtl])</code></td><td><code>sessionId: string, extraTtlMs?: number</code></td><td>Manually extend session timer back to full TTL.</td></tr>
+            <tr><td><code>ctx.session.delete(id)</code></td><td><code>sessionId: string</code></td><td>Immediately cancel timer and remove session.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Example: Stateful Multi-Step Setup with Auto-Reset</h2>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <span class="code-badge">main/index.js</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code>module.exports = {
+  commands: [
+    { name: "setup", slash: true, prefix: true, description: "Start interactive setup" }
+  ],
+
+  onCommand: async function (ctx) {
+    const sId = ctx.guildId + ":" + ctx.user.id;
+
+    // Create session lasting 5 minutes (auto-resets whenever user clicks a button)
+    ctx.session.create(sId, { step: 1, preferences: {} }, {
+      ttl: 300000,
+      ownerId: ctx.user.id,
+      onExpire: function (session) {
+        // Automatically disable buttons or alert user on timeout
+        if (session.channelId && session.messageId) {
+          ctx.editMessage(session.channelId, session.messageId, {
+            content: "⚠️ Setup session expired due to 5 minutes of inactivity.",
+            components: []
+          }).catch(() => {});
+        }
+      }
+    });
+
+    const res = await ctx.reply({
+      content: "Step 1: Choose mode (Session timer resets on every button click):",
+      components: [
+        {
+          type: 1,
+          components: [
+            { type: 2, style: 1, label: "Fast Mode", custom_id: "setup_fast:" + ctx.user.id },
+            { type: 2, style: 2, label: "Advanced Mode", custom_id: "setup_adv:" + ctx.user.id }
+          ]
+        }
+      ]
+    });
+  },
+
+  buttons: {
+    "setup_fast:*": function (ctx) {
+      const sId = ctx.guildId + ":" + ctx.user.id;
+      const sess = ctx.session.get(sId);
+      if (!sess) return ctx.replyWarn("Session expired! Run /setup again.", { ephemeral: true });
+
+      // Host engine automatically touched session! Timer is refreshed to 5 mins.
+      sess.step = 2;
+      return ctx.update({ content: "Step 2: Fast mode selected! Setup complete.", components: [] });
+    }
+  }
+};</code></pre>
+      </div>
+
+      <div class="page-pagination">
+        <a class="page-nav-btn prev" data-nav="storage">
+          <span class="nav-sub">← Previous</span>
+          <span class="nav-title">Plugin Storage (ctx.storage)</span>
         </a>
         <a class="page-nav-btn next" data-nav="permissions">
           <span class="nav-sub">Next Concept</span>
@@ -3117,10 +3263,11 @@ if (!res) {
             <tr><td><code>ctx.values</code></td><td>Array&lt;String&gt;</td><td>Selected values from dropdown select menus.</td></tr>
             <tr><td><code>ctx.fields</code></td><td>Object</td><td>Dictionary of form inputs submitted from modals.</td></tr>
             <tr><td><code>ctx.config</code></td><td>Object</td><td>Custom variables & credentials configured in dashboard Customize tab.</td></tr>
-            <tr><td><code>ctx.botPing</code></td><td>Number</td><td>Bot Gateway WebSocket ping in ms.</td></tr>
-            <tr><td><code>ctx.botUptime</code></td><td>Number</td><td>Bot online uptime in seconds.</td></tr>
+            <tr><td><code>ctx.botPing</code> / <code>ctx.ping</code> / <code>ctx.wsPing</code></td><td>Number</td><td>Live Bot Gateway WebSocket ping in ms.</td></tr>
+            <tr><td><code>ctx.botUptime</code> / <code>ctx.uptime</code></td><td>Number</td><td>Bot online uptime in seconds.</td></tr>
             <tr><td><code>ctx.uptimeStart</code></td><td>Number</td><td>Timestamp when bot connected to Discord.</td></tr>
-            <tr><td><code>ctx.storage</code></td><td>Object</td><td>Isolated key-value storage engine.</td></tr>
+            <tr><td><code>ctx.storage</code></td><td>Object</td><td>Isolated key-value storage engine (<code>get</code>, <code>set</code>, <code>delete</code>).</td></tr>
+            <tr><td><code>ctx.session</code></td><td>Object</td><td>Stateful interactive session manager (<code>create</code>, <code>get</code>, <code>getSession</code>, <code>touch</code>, <code>delete</code>) with auto-reset.</td></tr>
           </tbody>
         </table>
       </div>
@@ -3139,7 +3286,10 @@ if (!res) {
             <tr><td><code>ctx.deferUpdate()</code></td><td><code>()</code></td><td>Promise</td><td>Acknowledge button / select interaction without modifying message (Type 6).</td></tr>
             <tr><td><code>ctx.deferReply(opts)</code></td><td><code>(opts: object)</code></td><td>Promise</td><td>Defer slash interaction (shows thinking state).</td></tr>
             <tr><td><code>ctx.editReply(payload)</code></td><td><code>(payload: object)</code></td><td>Promise</td><td>Edit previously deferred interaction response.</td></tr>
+            <tr><td><code>ctx.deleteReply()</code></td><td><code>()</code></td><td>Promise</td><td>Delete the original interaction response message.</td></tr>
+            <tr><td><code>ctx.deleteReplyAfter(ms)</code></td><td><code>(ms: number)</code></td><td>void</td><td>Automatically delete the interaction response after specified milliseconds.</td></tr>
             <tr><td><code>ctx.showModal(payload)</code></td><td><code>(payload: object)</code></td><td>Promise</td><td>Open a Discord popup modal form (Type 9).</td></tr>
+            <tr><td><code>ctx.respondAutocomplete(choices)</code></td><td><code>(choices: array)</code></td><td>Promise</td><td>Respond with up to 25 autocomplete choices <code>[{ name, value }]</code>.</td></tr>
             <tr><td><code>ctx.deleteMessage(cid, mid)</code></td><td><code>(cid: string, mid: string)</code></td><td>Promise</td><td>Delete a specific message from a channel.</td></tr>
             <tr><td><code>ctx.replySuccess(msg, opts)</code></td><td><code>(msg: string, opts: object)</code></td><td>Promise</td><td>Send green Component V2 card.</td></tr>
             <tr><td><code>ctx.replyWarn(msg, opts)</code></td><td><code>(msg: string, opts: object)</code></td><td>Promise</td><td>Send yellow Component V2 card (10s auto-delete).</td></tr>

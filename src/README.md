@@ -195,12 +195,21 @@ Every command execution receives a rich `ctx` object containing all necessary da
 | `ctx.rawArgs` | `string[]` | Array of words following the command name (prefix commands). |
 | `ctx.rawText` | `string` | Full raw text following the command name. |
 | `ctx.config` | `object` | Key-value settings configured by the bot owner in Dashboard. |
-| `ctx.storage` | `object` | Persistent storage instance isolated to this plugin and bot. |
+| `ctx.storage` | `object` | Persistent storage instance isolated to this plugin and bot (`get`, `set`, `delete`). |
+| `ctx.session` | `object` | Stateful interactive session engine (`create`, `get`, `getSession`, `touch`, `delete`) with automatic timer reset on button/modal clicks. |
+| `ctx.ping` / `ctx.botPing` | `number` | Live Gateway WebSocket ping in milliseconds. |
+| `ctx.uptime` / `ctx.botUptime` | `number` | Bot online uptime duration in seconds. |
 | `ctx.cooldown(seconds)` | `boolean` | Automatically tracks rate limits and sends cooldown warnings. |
-| `ctx.replyWarn(message)` | `Promise` | Sends a standardized auto-deleting warning card. |
-| `ctx.replyError(message)` | `Promise` | Sends a standardized auto-deleting error card. |
+| `ctx.replyWarn(message)` | `Promise` | Sends a standardized auto-deleting warning card (10s TTL). |
+| `ctx.replyError(message)` | `Promise` | Sends a standardized auto-deleting error card (10s TTL). |
 | `ctx.replySuccess(message)` | `Promise` | Sends a standardized Components V2 success card. |
 | `ctx.reply(payload)` | `Promise` | Sends a custom message or Components V2 container. |
+| `ctx.defer(ephemeral)` | `boolean` | Acknowledges slash/modal interaction with thinking state. |
+| `ctx.editReply(payload)` | `Promise` | Updates previously deferred interaction response. |
+| `ctx.deleteReply()` | `Promise` | Deletes the interaction response message. |
+| `ctx.deleteReplyAfter(ms)` | `void` | Deletes the interaction response after specified milliseconds. |
+| `ctx.showModal(payload)` | `Promise` | Opens native Discord popup modal form (Type 9). |
+| `ctx.respondAutocomplete(choices)` | `Promise` | Returns up to 25 live autocomplete suggestions (`[{ name, value }]`). |
 | `ctx.sendChannel(id, payload)` | `Promise` | Sends a message directly to a target channel ID. |
 | `ctx.fetchRoles(gid)` | `Promise<Role[]>` | Fetches guild roles with positions and permissions (cached 30s). |
 | `ctx.fetchMember(gid, uid)` | `Promise<Response>` | Fetches a guild member and their roles. |
