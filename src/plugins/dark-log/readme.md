@@ -2,7 +2,7 @@
 name: Dark Log
 tag: Logging
 description: Clean, real-time logging plugin for bot commands, server joins, and server leaves with multi-channel routing and Discord Components V2 cards.
-version: 1.0.0
+version: 1.0.1
 author: @community
 ---
 

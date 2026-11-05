@@ -76,6 +76,7 @@ function buildLogCard(headerText, lines, thumbnailUrl, accentColor) {
 
   return {
     flags: 32768,
+    allowed_mentions: { parse: [] },
     components: [
       {
         type: 17,
