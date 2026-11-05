@@ -226,6 +226,14 @@ function loadPluginModules(botData) {
 // globalRateLimitReset removed — now handled per-bot via rateLimitManager (Phase 1)
 const commandPayloadCache = new Map();
 
+const directHttpsAgent = new https.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 60000,
+  maxSockets: 32,
+  maxFreeSockets: 10,
+  timeout: 8000
+});
+
 function discordRequestDirect(token, method, apiPath, body) {
   return new Promise(function (resolve) {
     const data = body !== undefined && body !== null ? JSON.stringify(body) : null;
@@ -233,6 +241,7 @@ function discordRequestDirect(token, method, apiPath, body) {
       hostname: "discord.com",
       path: "/api/v10" + apiPath,
       method: method,
+      agent: directHttpsAgent,
       headers: {
         Authorization: "Bot " + token,
         "User-Agent": "DiscordBot (https://github.com/tuzhicodes/arixa, 1.0.3)",
@@ -248,7 +257,7 @@ function discordRequestDirect(token, method, apiPath, body) {
         resolve({ status: res.statusCode, body: json });
       });
     });
-    req.setTimeout(10000, function () { req.destroy(new Error("Direct request timeout")); });
+    req.setTimeout(8000, function () { req.destroy(new Error("Direct request timeout")); });
     req.on("error", function (err) { resolve({ status: 0, body: null, error: err && err.message }); });
     if (data) req.write(data);
     req.end();
@@ -277,6 +286,11 @@ function extractBotIdFromToken(token) {
  * @param {string} [botId] - bot ID for per-bot rate limit isolation
  */
 function discordRequest(token, method, apiPath, body, retriesLeft, botId) {
+  // Critical time-sensitive Discord interaction responses (3s hard TTL) must never be delayed by proxy or queue
+  if (apiPath && (apiPath.startsWith("/interactions/") || apiPath.startsWith("/webhooks/"))) {
+    return discordRequestDirect(token, method, apiPath, body);
+  }
+
   const maxRetries = typeof retriesLeft === "number" ? retriesLeft : 1;
 
   // Phase 1: Check per-bot, per-route wait time
@@ -664,7 +678,7 @@ function sanitizeEmbedColors(embeds, masterColor) {
   return embeds.map(function (emb) {
     if (!emb || typeof emb !== "object") return emb;
     const copy = Object.assign({}, emb);
-    copy.color = col;
+    if (typeof copy.color !== "number" || copy.color < 0 || copy.color > 0xffffff) copy.color = col;
     return copy;
   });
 }
@@ -703,7 +717,64 @@ function callbackBody(payload, masterColor) {
 }
 
 function sendInteractionResponse(token, inter, payload) {
-  discordRequest(token, "POST", "/interactions/" + inter.id + "/" + inter.token + "/callback", payload);
+  const req = discordRequestDirect(token, "POST", "/interactions/" + inter.id + "/" + inter.token + "/callback", payload);
+  if (req && typeof req.then === "function") {
+    req.then(function (res) {
+      if (res && res.status >= 400) {
+        console.warn("[INTERACTION_CALLBACK_ERROR] HTTP " + res.status + " on callback (type=" + inter.type + " id=" + inter.id + "):", JSON.stringify(res.body));
+      }
+    }).catch(function (err) {
+      console.error("[INTERACTION_CALLBACK_EXCEPTION]:", err && err.message);
+    });
+  }
+  return req;
+}
+
+const interactiveSessions = new Map();
+
+function getSessionKey(botId, pluginId, sessionId) {
+  return String(botId) + ":" + String(pluginId) + ":" + String(sessionId);
+}
+
+function touchSession(session, extraTtlMs) {
+  if (!session) return;
+  if (session.timer) clearTimeout(session.timer);
+  session.updatedAt = Date.now();
+  const ttl = typeof extraTtlMs === "number" && extraTtlMs > 0 ? extraTtlMs : (session.ttl || 300000);
+  session.expiresAt = session.updatedAt + ttl;
+  session.timer = setTimeout(function () {
+    interactiveSessions.delete(session.key);
+    if (typeof session.onExpire === "function") {
+      try { session.onExpire(session); } catch (e) { console.error("[SESSION_EXPIRE_ERR]:", e); }
+    }
+  }, ttl);
+  if (session.timer && typeof session.timer.unref === "function") session.timer.unref();
+  if (typeof session.onTouch === "function") {
+    try { session.onTouch(session); } catch (e) {}
+  }
+}
+
+function touchMatchingSessions(entry, inter, clickerId, msgId, customId) {
+  for (const [sKey, sObj] of interactiveSessions.entries()) {
+    if (!sObj || sObj.botId !== entry.botId) continue;
+    if (sObj.guildId && inter && inter.guild_id && sObj.guildId !== inter.guild_id) continue;
+    const matchOwner = !sObj.ownerId || sObj.ownerId === clickerId;
+    const matchMessage = Boolean(sObj.messageId && msgId && sObj.messageId === msgId);
+    const matchCustom = Boolean(customId && (sKey.includes(customId) || customId.includes(sObj.id)));
+    const matchUser = Boolean(sObj.ownerId === clickerId || sObj.id === clickerId);
+    if (matchOwner && (matchMessage || matchCustom || matchUser)) {
+      touchSession(sObj);
+    }
+  }
+}
+
+function clearSession(botId, pluginId, sessionId) {
+  const key = getSessionKey(botId, pluginId, sessionId);
+  const existing = interactiveSessions.get(key);
+  if (existing) {
+    if (existing.timer) clearTimeout(existing.timer);
+    interactiveSessions.delete(key);
+  }
 }
 
 const commandCooldowns = new Map();
@@ -826,6 +897,64 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     createStorage: function (pid) {
       return createPluginStorage(entry.userId, entry.botId, pid || pluginId);
     },
+    session: {
+      create: function (sessionId, data, opts) {
+        const options = opts || {};
+        const key = getSessionKey(entry.botId, pluginId, sessionId);
+        const existing = interactiveSessions.get(key);
+        if (existing && existing.timer) clearTimeout(existing.timer);
+
+        const ttl = Number(options.ttl) || 300000;
+        const ownerId = options.ownerId ? String(options.ownerId) : (user && user.id ? String(user.id) : null);
+        const messageId = options.messageId ? String(options.messageId) : (meta.message && meta.message.id ? String(meta.message.id) : null);
+        const targetCid = options.channelId ? String(options.channelId) : channelId;
+        const targetGid = options.guildId ? String(options.guildId) : guildId;
+
+        const sessionObj = {
+          key: key,
+          id: String(sessionId),
+          botId: entry.botId,
+          pluginId: pluginId,
+          ownerId: ownerId,
+          guildId: targetGid,
+          messageId: messageId,
+          channelId: targetCid,
+          data: data || {},
+          ttl: ttl,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          expiresAt: Date.now() + ttl,
+          onExpire: typeof options.onExpire === "function" ? options.onExpire : null,
+          onTouch: typeof options.onTouch === "function" ? options.onTouch : null,
+          timer: null
+        };
+
+        touchSession(sessionObj, ttl);
+        interactiveSessions.set(key, sessionObj);
+        return sessionObj;
+      },
+      get: function (sessionId) {
+        const key = getSessionKey(entry.botId, pluginId, sessionId);
+        const s = interactiveSessions.get(key);
+        return s ? s.data : null;
+      },
+      getSession: function (sessionId) {
+        const key = getSessionKey(entry.botId, pluginId, sessionId);
+        return interactiveSessions.get(key) || null;
+      },
+      touch: function (sessionId, extraTtlMs) {
+        const key = getSessionKey(entry.botId, pluginId, sessionId);
+        const s = interactiveSessions.get(key);
+        if (s) {
+          touchSession(s, extraTtlMs);
+          return true;
+        }
+        return false;
+      },
+      delete: function (sessionId) {
+        clearSession(entry.botId, pluginId, sessionId);
+      }
+    },
     cooldown: function (seconds) {
       const sec = Number(seconds) || 0;
       if (sec <= 0) return true;
@@ -847,6 +976,28 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     get colors() {
       const bData = readBotData(entry.userId, entry.botId);
       return getBotThemeColors(bData);
+    },
+    get ownerIds() {
+      try {
+        const bData = readBotData(entry.userId, entry.botId);
+        return (bData && typeof bData.ownerIds === "string") ? bData.ownerIds : "";
+      } catch (e) {
+        return "";
+      }
+    },
+    isBotOwner: function (uid) {
+      const target = String((uid && uid.id) || uid || (user && user.id) || "");
+      if (!target) return false;
+      let raw = "";
+      try {
+        const bData = readBotData(entry.userId, entry.botId);
+        raw = (bData && typeof bData.ownerIds === "string") ? bData.ownerIds : "";
+      } catch (e) { return false; }
+      const ids = raw.split(/[\s,;]+/).filter(Boolean);
+      for (let i = 0; i < ids.length; i++) {
+        if (ids[i] === target) return true;
+      }
+      return false;
     },
     get color() {
       return this.colors.v1;
@@ -1192,6 +1343,15 @@ function emitPluginEventNow(entry, token, name, data) {
 
 function handleInteraction(entry, token, inter) {
   if (!inter || !inter.type) return;
+
+  // Discord interactions have a strict 3000ms TTL from creation time.
+  // Stale/replayed interactions from bot offline/reconnect are already expired; replying to them causes HTTP 404 (code 10062).
+  const interCreatedMs = inter.id ? (Math.floor(Number(BigInt(inter.id) >> 22n)) + 1420070400000) : Date.now();
+  const ageMs = Math.max(0, Date.now() - interCreatedMs);
+  if (ageMs > 2800) {
+    return;
+  }
+
   const botData = readBotData(entry.userId, entry.botId);
   if (!botData) return;
   const masterColor = getBotMasterColor(botData);
@@ -1424,38 +1584,45 @@ function handleInteraction(entry, token, inter) {
     const values = (inter.data && Array.isArray(inter.data.values)) ? inter.data.values : [];
     const resolved = (inter.data && inter.data.resolved) || {};
     const message = inter.message || null;
+    const clickerId = String((inter.user && inter.user.id) || (inter.member && inter.member.user && inter.member.user.id) || "");
+    const msgId = message && message.id ? String(message.id) : "";
+
+    // Automatically reset/extend session expire timer on any button or component click
+    touchMatchingSessions(entry, inter, clickerId, msgId, customId);
 
     let handled = false;
+
+    // Pass 1: Match specific handler (exact customId or prefix ending with "*")
     for (let i = 0; i < plugins.length; i++) {
       const item = plugins[i];
       const mod = item.mod;
       if (!mod) continue;
       let handler = null;
 
-      if (mod.components) {
-        if (typeof mod.components[customId] === "function") {
-          handler = mod.components[customId];
-        } else {
-          const keys = Object.keys(mod.components);
-          for (let k = 0; k < keys.length; k++) {
-            const pat = keys[k];
-            if (pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
-              handler = mod.components[pat];
-              break;
-            }
-          }
-        }
-      }
-
-      if (!handler && compType === 2 && mod.buttons) {
+      if (compType === 2 && mod.buttons) {
         if (typeof mod.buttons[customId] === "function") {
           handler = mod.buttons[customId];
         } else {
           const bKeys = Object.keys(mod.buttons);
           for (let k = 0; k < bKeys.length; k++) {
             const pat = bKeys[k];
-            if (pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
+            if (pat !== "*" && pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
               handler = mod.buttons[pat];
+              break;
+            }
+          }
+        }
+      }
+
+      if (!handler && mod.components) {
+        if (typeof mod.components[customId] === "function") {
+          handler = mod.components[customId];
+        } else {
+          const keys = Object.keys(mod.components);
+          for (let k = 0; k < keys.length; k++) {
+            const pat = keys[k];
+            if (pat !== "*" && pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
+              handler = mod.components[pat];
               break;
             }
           }
@@ -1469,19 +1636,12 @@ function handleInteraction(entry, token, inter) {
           const sKeys = Object.keys(mod.selects);
           for (let k = 0; k < sKeys.length; k++) {
             const pat = sKeys[k];
-            if (pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
+            if (pat !== "*" && pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
               handler = mod.selects[pat];
               break;
             }
           }
         }
-      }
-
-      if (!handler) {
-        if (compType === 2 && !mod.buttons && typeof mod.onButton === "function") handler = mod.onButton;
-        else if (compType >= 3 && !mod.selects && typeof mod.onSelect === "function") handler = mod.onSelect;
-        else if (typeof mod.onComponent === "function") handler = mod.onComponent;
-        else if (mod.components && typeof mod.components["*"] === "function") handler = mod.components["*"];
       }
 
       if (handler) {
@@ -1499,14 +1659,52 @@ function handleInteraction(entry, token, inter) {
         }
       }
     }
+
+    // Pass 2: Fallback handlers only if no specific prefix/customId matched
+    if (!handled && !responded) {
+      for (let i = 0; i < plugins.length; i++) {
+        const item = plugins[i];
+        const mod = item.mod;
+        if (!mod) continue;
+        let handler = null;
+
+        if (compType === 2 && !mod.buttons && typeof mod.onButton === "function") handler = mod.onButton;
+        else if (compType >= 3 && !mod.selects && typeof mod.onSelect === "function") handler = mod.onSelect;
+        else if (typeof mod.onComponent === "function") handler = mod.onComponent;
+        else if (mod.components && typeof mod.components["*"] === "function") handler = mod.components["*"];
+        else if (compType === 2 && mod.buttons && typeof mod.buttons["*"] === "function") handler = mod.buttons["*"];
+
+        if (handler) {
+          const ctx = makeContext(item.pluginId, {
+            customId: customId,
+            componentType: compType,
+            values: values,
+            resolved: resolved,
+            message: message
+          });
+          const runRes = safeRun(handler, ctx);
+          if (runRes !== false) {
+            handled = true;
+            break;
+          }
+        }
+      }
+    }
+
     if (!handled && !responded) {
       sendInteractionResponse(token, inter, callbackBody(emojiUtil.buildComponentV2("warn", "This component is not recognized.", { ephemeral: true }), masterColor));
     }
   } else if (inter.type === 5) {
     const customId = inter.data && inter.data.custom_id ? String(inter.data.custom_id) : "";
     const fields = parseModalFields(inter.data && inter.data.components);
+    const submitterId = String((inter.user && inter.user.id) || (inter.member && inter.member.user && inter.member.user.id) || "");
+
+    // Automatically reset/extend session expire timer on form/modal submit
+    touchMatchingSessions(entry, inter, submitterId, null, customId);
 
     let handled = false;
+
+    // Pass 1: Specific modal customId or prefix
     for (let i = 0; i < plugins.length; i++) {
       const item = plugins[i];
       const mod = item.mod;
@@ -1519,16 +1717,13 @@ function handleInteraction(entry, token, inter) {
           const mKeys = Object.keys(mod.modals);
           for (let k = 0; k < mKeys.length; k++) {
             const pat = mKeys[k];
-            if (pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
+            if (pat !== "*" && pat.endsWith("*") && customId.startsWith(pat.slice(0, -1))) {
               handler = mod.modals[pat];
               break;
             }
           }
         }
       }
-      if (!handler && typeof mod.onModal === "function") handler = mod.onModal;
-      if (!handler && mod.modals && typeof mod.modals["*"] === "function") handler = mod.modals["*"];
-
       if (handler) {
         handled = true;
         const ctx = makeContext(item.pluginId, {
@@ -1539,6 +1734,29 @@ function handleInteraction(entry, token, inter) {
         break;
       }
     }
+
+    // Pass 2: Fallback onModal or modals["*"]
+    if (!handled && !responded) {
+      for (let i = 0; i < plugins.length; i++) {
+        const item = plugins[i];
+        const mod = item.mod;
+        if (!mod) continue;
+        let handler = null;
+        if (typeof mod.onModal === "function") handler = mod.onModal;
+        else if (mod.modals && typeof mod.modals["*"] === "function") handler = mod.modals["*"];
+
+        if (handler) {
+          handled = true;
+          const ctx = makeContext(item.pluginId, {
+            customId: customId,
+            fields: fields
+          });
+          safeRun(handler, ctx);
+          break;
+        }
+      }
+    }
+
     if (!handled && !responded) {
       sendInteractionResponse(token, inter, callbackBody(emojiUtil.buildComponentV2("warn", "This form submission could not be processed.", { ephemeral: true }), masterColor));
     }
@@ -1572,21 +1790,23 @@ function handleInteraction(entry, token, inter) {
     }
   }
 
+  const safeTimeoutMs = Math.min(2300, Math.max(150, 2750 - ageMs));
   timeoutTimer = setTimeout(function () {
     if (!responded) {
+      responded = true;
       if (inter.type === 2) {
-        responded = true;
         isDeferred = true;
         sendInteractionResponse(token, inter, { type: 5, data: { flags: 0 } });
       } else if (inter.type === 4) {
-        responded = true;
         sendInteractionResponse(token, inter, { type: 8, data: { choices: [] } });
+      } else if (inter.type === 3) {
+        // Defer update on button/component so user never gets "didn't respond in time" error
+        sendInteractionResponse(token, inter, { type: 6 });
       } else {
-        responded = true;
         sendInteractionResponse(token, inter, callbackBody(emojiUtil.buildComponentV2("warn", "This interaction timed out.", { ephemeral: true }), masterColor));
       }
     }
-  }, 2500);
+  }, safeTimeoutMs);
 }
 
 const STATUS_TYPE_CODES = { playing: 0, streaming: 1, listening: 2, watching: 3, competing: 4 };
