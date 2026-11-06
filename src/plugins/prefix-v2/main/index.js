@@ -374,6 +374,7 @@ function executeExternalPluginCommand(ctx, cmdName, rawArgs, rawText) {
     pluginCtx.pluginId = pid;
     pluginCtx.storage = resolvePluginStorage(ctx, pid);
     pluginCtx.command = targetCmd.name;
+    pluginCtx.commandName = targetCmd.name;
     pluginCtx.rawArgs = rawArgs;
     pluginCtx.rawText = rawText;
     pluginCtx.options = parsePositionalOptions(targetCmd.options || [], rawArgs, rawText);
