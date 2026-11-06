@@ -721,6 +721,20 @@ function sendInteractionResponse(token, inter, payload) {
   if (req && typeof req.then === "function") {
     req.then(function (res) {
       if (res && res.status >= 400) {
+        if (res.status === 404 && res.body && res.body.code === 10062) {
+          // Token expired or unknown interaction. Rescue displayable content directly in channel:
+          if (inter && inter.channel_id && payload && payload.data && (payload.data.content || (Array.isArray(payload.data.embeds) && payload.data.embeds.length) || (Array.isArray(payload.data.components) && payload.data.components.length))) {
+            const channelMsg = {
+              content: payload.data.content,
+              embeds: payload.data.embeds,
+              components: payload.data.components,
+              allowed_mentions: payload.data.allowed_mentions
+            };
+            discordRequest(token, "POST", "/channels/" + inter.channel_id + "/messages", channelMsg).catch(function () {});
+            return;
+          }
+          return;
+        }
         console.warn("[INTERACTION_CALLBACK_ERROR] HTTP " + res.status + " on callback (type=" + inter.type + " id=" + inter.id + "):", JSON.stringify(res.body));
       }
     }).catch(function (err) {
@@ -892,6 +906,8 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     subcommand: meta.subcommand || null,
     subcommandGroup: meta.subcommandGroup || null,
     command: meta.command || null,
+    commandName: meta.command || null,
+    isInteraction: Boolean(inter && inter.id),
     message: meta.message || null,
     storage: createPluginStorage(entry.userId, entry.botId, pluginId),
     createStorage: function (pid) {
@@ -1345,21 +1361,40 @@ function handleInteraction(entry, token, inter) {
   if (!inter || !inter.type) return;
 
   // Discord interactions have a strict 3000ms TTL from creation time.
-  // Stale/replayed interactions from bot offline/reconnect are already expired; replying to them causes HTTP 404 (code 10062).
+  // Stale/replayed interactions (>2500ms old) are already expired; replying to them causes HTTP 404 (code 10062).
   const interCreatedMs = inter.id ? (Math.floor(Number(BigInt(inter.id) >> 22n)) + 1420070400000) : Date.now();
   const ageMs = Math.max(0, Date.now() - interCreatedMs);
-  if (ageMs > 2800) {
-    return;
-  }
+  const isExpired = ageMs > 2500;
 
   const botData = readBotData(entry.userId, entry.botId);
   if (!botData) return;
   const masterColor = getBotMasterColor(botData);
 
   const plugins = loadPluginModules(botData);
-  let responded = false;
+  let responded = isExpired;
   let isDeferred = false;
   let timeoutTimer = null;
+
+  // Auto-defer early (1200ms - 1500ms max) so Discord receives type 5 well within the 3.0s deadline.
+  // Once deferred, the bot has 15 minutes to complete async tasks (DB, HTTP, Lavalink, Permissions).
+  if (!isExpired) {
+    const safeTimeoutMs = Math.min(1500, Math.max(80, 1900 - ageMs));
+    timeoutTimer = setTimeout(function () {
+      if (!responded) {
+        responded = true;
+        if (inter.type === 2) {
+          isDeferred = true;
+          sendInteractionResponse(token, inter, { type: 5, data: { flags: 0 } });
+        } else if (inter.type === 4) {
+          sendInteractionResponse(token, inter, { type: 8, data: { choices: [] } });
+        } else if (inter.type === 3) {
+          sendInteractionResponse(token, inter, { type: 6 });
+        } else {
+          sendInteractionResponse(token, inter, callbackBody(emojiUtil.buildComponentV2("warn", "This interaction timed out.", { ephemeral: true }), masterColor));
+        }
+      }
+    }, safeTimeoutMs);
+  }
 
   function makeContext(pluginId, extra) {
     const base = createBaseContext(entry, token, inter, pluginId, extra);
@@ -1382,6 +1417,11 @@ function handleInteraction(entry, token, inter) {
     }
 
     base.reply = function (payload) {
+      if (isExpired) {
+        // Expired interaction: rescue by posting directly to channel
+        if (inter.channel_id) return base.sendChannel(inter.channel_id, payload);
+        return false;
+      }
       if (isDeferred) {
         return base.editReply(payload);
       }
@@ -1422,7 +1462,13 @@ function handleInteraction(entry, token, inter) {
           discordRequest(token, "DELETE", "/webhooks/" + appId + "/" + inter.token + "/messages/@original");
         }, deleteAfter);
       }
-      return discordRequest(token, "PATCH", "/webhooks/" + appId + "/" + inter.token + "/messages/@original", data);
+      return discordRequest(token, "PATCH", "/webhooks/" + appId + "/" + inter.token + "/messages/@original", data).then(function (res) {
+        if (res && res.status === 404 && inter.channel_id) {
+          // If original deferred message failed, rescue by posting directly to channel
+          return discordRequest(token, "POST", "/channels/" + inter.channel_id + "/messages", data);
+        }
+        return res;
+      });
     };
 
     base.followUp = function (payload) {
@@ -1789,24 +1835,6 @@ function handleInteraction(entry, token, inter) {
       sendInteractionResponse(token, inter, { type: 8, data: { choices: [] } });
     }
   }
-
-  const safeTimeoutMs = Math.min(2300, Math.max(150, 2750 - ageMs));
-  timeoutTimer = setTimeout(function () {
-    if (!responded) {
-      responded = true;
-      if (inter.type === 2) {
-        isDeferred = true;
-        sendInteractionResponse(token, inter, { type: 5, data: { flags: 0 } });
-      } else if (inter.type === 4) {
-        sendInteractionResponse(token, inter, { type: 8, data: { choices: [] } });
-      } else if (inter.type === 3) {
-        // Defer update on button/component so user never gets "didn't respond in time" error
-        sendInteractionResponse(token, inter, { type: 6 });
-      } else {
-        sendInteractionResponse(token, inter, callbackBody(emojiUtil.buildComponentV2("warn", "This interaction timed out.", { ephemeral: true }), masterColor));
-      }
-    }
-  }, safeTimeoutMs);
 }
 
 const STATUS_TYPE_CODES = { playing: 0, streaming: 1, listening: 2, watching: 3, competing: 4 };
