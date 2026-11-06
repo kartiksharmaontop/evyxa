@@ -905,6 +905,23 @@ module.exports = {
         </div>
       </div>
 
+      <h2>Readme Cards & Interactive Formatting</h2>
+      <p>The Bot Owner Dashboard automatically renders plugin <code>readme.md</code> documentation with modern glassmorphism cards and tables:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Feature</th><th>Markdown Syntax</th><th>Rendered Output</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Custom Cards</strong></td><td><code>::: card Title<br>...<br>:::</code></td><td>Elevated card with header badge, icon, and subtle borders.</td></tr>
+            <tr><td><strong>Callouts & Tips</strong></td><td><code>&gt; [!TIP]</code> or <code>&gt; [!NOTE]</code></td><td>Accent-bordered alert boxes (Green for Tips, Blue for Notes, Amber for Warnings).</td></tr>
+            <tr><td><strong>Command Tables</strong></td><td><code>| Command | Type | Description |</code></td><td>Clean responsive tables with dark header backgrounds.</td></tr>
+            <tr><td><strong>Code Blocks</strong></td><td><code>```bash ... ```</code></td><td>Monospace snippet cards with syntax container and language badges.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="page-pagination">
         <a class="page-nav-btn prev" data-nav="folder-structure">
           <span class="nav-sub">← Previous</span>

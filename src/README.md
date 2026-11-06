@@ -71,6 +71,13 @@ Send clean, formatted announcements using bot theme accents and permission contr
 
 Inside your code, read these values anytime using `ctx.config.<key>`.
 
+### Dashboard Readme Formatting & Cards:
+The dashboard natively transforms plugin `readme.md` files into modern cards:
+- **Card Containers**: Wrap sections in `::: card [Title]` ... `:::` to display highlighted feature boxes with icons and borders.
+- **Callout Cards**: Use `> [!TIP]`, `> [!NOTE]`, or `> [!WARNING]` for colored accent cards.
+- **Table Cards**: Standard markdown tables (`| Command | Description |`) automatically render as responsive dark table cards.
+- **Code Snippet Cards**: Code fences (```` ```js ````) render inside styled syntax boxes.
+
 ---
 
 ## 3. Golden Rule: No Hardcoded Colors
