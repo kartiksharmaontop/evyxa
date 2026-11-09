@@ -44,7 +44,8 @@ function activeIntentMask(botData, entry) {
       if (bit !== undefined) mask |= bit;
     });
   }
-  if (!mask) mask = 513 | 32768;
+  if (!mask) mask = 513 | 32768 | 128;
+  mask |= 128;
   if (entry && entry.noContentIntent) mask &= ~32768;
   return mask;
 }
@@ -865,6 +866,7 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     isServerOwner: isServerOwner,
     channelId: channelId,
     botId: entry.botId,
+    botUserId: entry.botUserId || (entry.botUser && entry.botUser.id) || entry.botId,
     userId: entry.userId,
     get ping() {
       return (entry && typeof entry.ping === "number") ? entry.ping : null;
@@ -1242,6 +1244,34 @@ function createBaseContext(entry, token, inter, pluginId, extra) {
     },
     discordRequest: function (method, apiPath, body) {
       return discordRequest(token, method, apiPath, body);
+    },
+    getVoiceChannelId: function (uid) {
+      const targetUid = uid || (user && user.id);
+      if (!targetUid || !guildId || !entry.voiceStates) return null;
+      return entry.voiceStates.get(String(guildId) + ":" + String(targetUid)) || null;
+    },
+    get voiceChannelId() {
+      return this.getVoiceChannelId();
+    },
+    get botVoiceChannelId() {
+      return this.getVoiceChannelId(entry.botId);
+    },
+    sendGateway: function (op, d) {
+      if (entry && entry.ws && entry.ws.readyState === 1) {
+        try {
+          entry.ws.send(JSON.stringify({ op: op, d: d }));
+          return true;
+        } catch (e) { return false; }
+      }
+      return false;
+    },
+    sendVoiceStateUpdate: function (targetGuildId, targetChannelId, selfMute, selfDeaf) {
+      return this.sendGateway(4, {
+        guild_id: String(targetGuildId || guildId),
+        channel_id: targetChannelId ? String(targetChannelId) : null,
+        self_mute: Boolean(selfMute),
+        self_deaf: selfDeaf !== undefined ? Boolean(selfDeaf) : true
+      });
     },
     logCommand: function (cmdName, args) {
       emitPluginEventNow(entry, token, "COMMAND_EXECUTE", {
@@ -2252,9 +2282,14 @@ function startBot(userId, botId, token, botData) {
           entry.uptimeStart = Date.now();
           entry.sessionId = msg.d.session_id || null;
           entry.resumeGatewayUrl = msg.d.resume_gateway_url || null;
+          if (msg.d && msg.d.user) {
+            entry.botUser = msg.d.user;
+            entry.botUserId = msg.d.user.id ? String(msg.d.user.id) : null;
+          }
           entry.guilds = {};
           entry.guildNames = {};
           entry.guildOwners = {};
+          entry.voiceStates = new Map();
           entry.readyGuilds = new Set();
           if (msg.d && Array.isArray(msg.d.guilds)) {
             msg.d.guilds.forEach(function (g) {
@@ -2294,6 +2329,14 @@ function startBot(userId, botId, token, botData) {
           if (msg.d.name) entry.guildNames[msg.d.id] = String(msg.d.name);
           if (msg.d.owner_id) entry.guildOwners[msg.d.id] = String(msg.d.owner_id);
           updateGuildStats(entry);
+          if (Array.isArray(msg.d.voice_states)) {
+            if (!entry.voiceStates) entry.voiceStates = new Map();
+            msg.d.voice_states.forEach(function (vs) {
+              if (vs && vs.user_id && vs.channel_id) {
+                entry.voiceStates.set(String(msg.d.id) + ":" + String(vs.user_id), String(vs.channel_id));
+              }
+            });
+          }
           msg.d._totalGuilds = Object.keys(entry.guilds).length;
         }
 
@@ -2302,9 +2345,26 @@ function startBot(userId, botId, token, botData) {
           if (entry.guilds) delete entry.guilds[msg.d.id];
           if (entry.guildNames) delete entry.guildNames[msg.d.id];
           if (entry.guildOwners) delete entry.guildOwners[msg.d.id];
+          if (entry.voiceStates) {
+            const prefix = String(msg.d.id) + ":";
+            for (const k of entry.voiceStates.keys()) {
+              if (k.startsWith(prefix)) entry.voiceStates.delete(k);
+            }
+          }
           updateGuildStats(entry);
           msg.d.name = oldName;
           msg.d._remainingGuilds = entry.guilds ? Object.keys(entry.guilds).length : 0;
+        }
+
+        if (msg.t === "VOICE_STATE_UPDATE" && msg.d) {
+          if (!entry.voiceStates) entry.voiceStates = new Map();
+          const gId = String(msg.d.guild_id || "");
+          const uId = String(msg.d.user_id || "");
+          const cId = msg.d.channel_id ? String(msg.d.channel_id) : null;
+          if (gId && uId) {
+            if (cId) entry.voiceStates.set(gId + ":" + uId, cId);
+            else entry.voiceStates.delete(gId + ":" + uId);
+          }
         }
 
         if (msg.t === "INTERACTION_CREATE" && msg.d) {
