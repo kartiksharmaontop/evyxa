@@ -262,7 +262,7 @@ html{scrollbar-width:none}
 var footerText = document.getElementById("footerText");
 if (footerText.textContent.indexOf("{{") > -1) footerText.textContent = "Copyright 2026";
 var brandName = document.getElementById("brandName");
-if (brandName.textContent.indexOf("{{") > -1) brandName.textContent = "Arixa";
+if (brandName.textContent.indexOf("{{") > -1) brandName.textContent = "Evyxa";
 document.getElementById("logoutBtn").addEventListener("click", function () {
   fetch("/api/auth/logout", { method: "POST" }).then(function () { window.location.href = "/login"; });
 });
